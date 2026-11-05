@@ -11,6 +11,16 @@ export const propertyService = {
      */
     getPropertyDetail: async (togId, signal = null) => {
         return apiClient.get(`${API_BASE_URL}/detail/${togId}`, { signal });
+    },
+
+    /**
+     * Get lightweight property booking summary (hero image, star rating, address, images count)
+     * optimized for booking detail screens.
+     * @param {number|string} togId
+     * @param {AbortSignal} [signal]
+     */
+    getPropertyBookingSummary: async (togId, signal = null) => {
+        return apiClient.get(`${API_BASE_URL}/tog/${togId}/booking-summary`, { signal });
     }
 };
 

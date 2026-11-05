@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { bookingService } from '../services/bookingService';
 import { hotelService } from '../services/hotelService';
+import { propertyService } from '../services/propertyService';
 import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import CreateTaskModal from '../components/CreateTaskModal';
@@ -14,6 +15,9 @@ const BookingDetail = () => {
     const navigate = useNavigate();
     const [booking, setBooking] = useState(null);
     const [hotelDetails, setHotelDetails] = useState(null);
+    const [propertySummary, setPropertySummary] = useState(null);
+    const [propertyLoading, setPropertyLoading] = useState(false);
+    const [showImageLightbox, setShowImageLightbox] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [copiedText, setCopiedText] = useState(null);
@@ -60,15 +64,29 @@ const BookingDetail = () => {
             const data = await bookingService.getBookingDetail(bookingId, signal);
             if (!signal?.aborted) {
                 setBooking(data);
-                if (data?.hotel?.internalHotelId) {
-                    try {
-                        const hDetails = await hotelService.getHotelDetail(data.hotel.internalHotelId, signal);
-                        if (!signal?.aborted && hDetails) {
-                            setHotelDetails(hDetails);
-                        }
-                    } catch (hErr) {
-                        console.error('Fetch supplementary hotel details error:', hErr);
-                    }
+                const togId = data?.hotel?.internalHotelId || data?.hotel?.togId;
+                if (togId) {
+                    setPropertyLoading(true);
+                    propertyService.getPropertyBookingSummary(togId, signal)
+                        .then((pSummary) => {
+                            if (!signal?.aborted && pSummary) {
+                                setPropertySummary(pSummary);
+                            }
+                        })
+                        .catch((pErr) => {
+                            console.warn('Property summary fetch failed, trying fallback:', pErr);
+                            return hotelService.getHotelDetail(togId, signal).then((hDetails) => {
+                                if (!signal?.aborted && hDetails) {
+                                    setHotelDetails(hDetails);
+                                }
+                            });
+                        })
+                        .catch((err) => {
+                            console.error('Fetch supplementary hotel details error:', err);
+                        })
+                        .finally(() => {
+                            if (!signal?.aborted) setPropertyLoading(false);
+                        });
                 }
             }
         } catch (error) {
@@ -297,6 +315,17 @@ const BookingDetail = () => {
     };
 
     const getHotelAddress = () => {
+        if (propertySummary?.fullAddress && propertySummary.fullAddress.trim()) {
+            return propertySummary.fullAddress.trim();
+        }
+        if (propertySummary?.addressLine) {
+            const parts = [
+                propertySummary.addressLine,
+                propertySummary.cityName,
+                propertySummary.countryName
+            ].filter(p => p && String(p).trim().length > 0);
+            if (parts.length > 0) return parts.join(', ');
+        }
         const addr = hotelDetails?.address || booking?.hotel?.address;
         if (addr) {
             if (typeof addr === 'string' && addr.trim()) return addr.trim();
@@ -318,6 +347,10 @@ const BookingDetail = () => {
     };
 
     const getHotelStarData = () => {
+        if (propertySummary?.starRating != null && propertySummary.starRating > 0 && propertySummary.starRating <= 7) {
+            const count = Number(propertySummary.starRating);
+            return { count, label: `${count} ${L('stars') || 'Yıldız'}` };
+        }
         const starObj = hotelDetails?.hotelStar || booking?.hotel?.hotelStar;
         let count = 0;
         if (starObj?.star != null) {
@@ -499,7 +532,25 @@ const BookingDetail = () => {
                     {loading ? (
                         <div className="space-y-6 animate-pulse">
                             {/* Trip Hero Banner Skeleton */}
-                            <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 h-56"></div>
+                            <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 sm:p-7 space-y-6">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-stretch gap-5">
+                                    <div className="w-full sm:w-64 h-44 rounded-2xl bg-slate-200 dark:bg-[#303134] shrink-0" />
+                                    <div className="flex-1 space-y-3.5 w-full">
+                                        <div className="flex gap-2">
+                                            <div className="h-6 w-20 rounded-full bg-slate-200 dark:bg-[#303134]" />
+                                            <div className="h-6 w-28 rounded-full bg-slate-200 dark:bg-[#303134]" />
+                                            <div className="h-6 w-36 rounded-full bg-slate-200 dark:bg-[#303134]" />
+                                        </div>
+                                        <div className="h-8 w-3/4 rounded-xl bg-slate-200 dark:bg-[#303134]" />
+                                        <div className="flex gap-2 pt-1">
+                                            <div className="h-8 w-28 rounded-xl bg-slate-200 dark:bg-[#303134]" />
+                                            <div className="h-8 w-28 rounded-xl bg-slate-200 dark:bg-[#303134]" />
+                                            <div className="h-8 w-28 rounded-xl bg-slate-200 dark:bg-[#303134]" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="h-24 rounded-2xl bg-slate-100 dark:bg-[#202124]" />
+                            </div>
                             {/* Main Grid Skeleton */}
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                                 <div className="lg:col-span-8 space-y-6">
@@ -540,6 +591,66 @@ const BookingDetail = () => {
     const paymentBadge = getPaymentStatusBadge(booking.payment?.status);
 
     const totalGuests = booking.hotel?.rooms?.reduce((acc, r) => acc + (r.occupancies?.length || 0), 0) || 0;
+
+    const isRefundableBooking = (() => {
+        if (booking?.hotel?.isRefundable !== undefined && booking?.hotel?.isRefundable !== null) {
+            return Boolean(booking.hotel.isRefundable);
+        }
+        const rooms = booking?.hotel?.rooms || [];
+        if (rooms.length > 0) {
+            return rooms.some(r => (r.rates || []).some(rate => rate.refundable === true));
+        }
+        return null;
+    })();
+
+    const heroImage = propertySummary?.heroImage || propertySummary?.heroThumbImage || hotelDetails?.heroImage || hotelDetails?.images?.[0]?.url || null;
+    const imagesCount = propertySummary?.imagesCount || hotelDetails?.imagesCount || (Array.isArray(hotelDetails?.images) ? hotelDetails.images.length : null);
+    const hotelName = propertySummary?.name || booking?.hotel?.hotelName || 'Otel Bilgisi';
+    const internalHotelId = propertySummary?.togId || booking?.hotel?.internalHotelId || null;
+    const supplierDisplayName = booking?.supplier?.name || booking?.hotel?.supplier?.name || 'Expedia';
+
+    const CopyBadge = ({ label, value, copyId, icon, isPrimary = false, onClickValue = null }) => {
+        if (!value) return null;
+        const isCopied = copiedText === copyId;
+
+        return (
+            <div className={`inline-flex items-center h-8 rounded-xl border transition-all text-xs shadow-2xs overflow-hidden ${
+                isPrimary
+                    ? 'bg-[#137fec]/10 border-[#137fec]/30 text-[#137fec] hover:border-[#137fec]/60'
+                    : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:border-[#137fec]/40'
+            }`}>
+                {onClickValue ? (
+                    <button
+                        type="button"
+                        onClick={onClickValue}
+                        className="inline-flex items-center gap-1.5 px-3 h-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-mono"
+                        title={`${label}: ${value}`}
+                    >
+                        {icon && <span className="material-symbols-outlined text-[15px] opacity-75 shrink-0">{icon}</span>}
+                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 font-sans">{label}:</span>
+                        <strong className="font-bold text-xs truncate max-w-[200px]">{value}</strong>
+                        <span className="material-symbols-outlined text-[13px] opacity-75">open_in_new</span>
+                    </button>
+                ) : (
+                    <div className="inline-flex items-center gap-1.5 px-3 h-full font-mono">
+                        {icon && <span className="material-symbols-outlined text-[15px] opacity-75 shrink-0">{icon}</span>}
+                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 font-sans">{label}:</span>
+                        <span className="font-bold text-xs truncate max-w-[200px]">{value}</span>
+                    </div>
+                )}
+                <button
+                    type="button"
+                    onClick={() => handleCopy(value, copyId)}
+                    className="px-2 h-full flex items-center justify-center border-l border-inherit hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[#70757a] hover:text-[#137fec]"
+                    title={`Kopyala: ${label}`}
+                >
+                    <span className="material-symbols-outlined text-[15px]">
+                        {isCopied ? 'check' : 'content_copy'}
+                    </span>
+                </button>
+            </div>
+        );
+    };
 
     return (
         <>
@@ -727,84 +838,223 @@ const BookingDetail = () => {
                         );
                     })()}
 
-                    {/* Top Row: Hotel Title & Price */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#dadce0] dark:border-[#3c4043]">
-                        <div className="space-y-1.5">
-                            <div className="flex flex-wrap items-center gap-2.5">
-                                {/* BookingStatus badge above hotel name */}
-                                {booking.hotel?.bookingStatus && (
-                                    <div className="w-full mb-0.5">
-                                        <BookingStatusBadge status={booking.hotel.bookingStatus} showIcon className="text-[12px]" />
-                                    </div>
-                                )}
-                                <h1 className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white tracking-tight">
-                                    {booking.hotel?.hotelName || 'Otel Bilgisi'}
-                                </h1>
-                                {(() => {
-                                    const starData = getHotelStarData();
-                                    if (!starData) return null;
-                                    return (
-                                        <div 
-                                            className="flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 shadow-2xs" 
-                                            title={starData.label}
-                                        >
-                                            {[...Array(starData.count)].map((_, i) => (
-                                                <span 
-                                                    key={i} 
-                                                    className="material-symbols-outlined text-[15px] text-amber-400 select-none leading-none"
-                                                    style={{ fontVariationSettings: "'FILL' 1" }}
-                                                >
-                                                    star
-                                                </span>
-                                            ))}
-                                            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 ml-1">
-                                                {starData.count}★
+                    {/* Top Row: Hotel Media & Details Showcase */}
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#dadce0] dark:border-[#3c4043]">
+                        {/* Hotel Media Showcase & Info */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-stretch gap-5 min-w-0 flex-1 w-full">
+                            {/* Hero Hotel Photo Container */}
+                            <div
+                                onClick={() => {
+                                    if (heroImage) setShowImageLightbox(true);
+                                    else if (internalHotelId) navigate(`/travel/hotels/detail/${internalHotelId}`);
+                                }}
+                                className="relative group w-full sm:w-56 md:w-64 lg:w-72 sm:self-stretch min-h-[170px] md:min-h-[185px] rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] shadow-2xs shrink-0 cursor-pointer"
+                                title={heroImage ? (currentLang === 'tr' ? "Fotoğrafı Büyüt" : "Zoom Photo") : (currentLang === 'tr' ? "Otel Sayfasına Git" : "Go to Hotel Page")}
+                            >
+                                {heroImage ? (
+                                    <>
+                                        <img
+                                            src={heroImage}
+                                            alt={hotelName}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2.5">
+                                            <span className="text-[11px] font-bold text-white flex items-center gap-1 drop-shadow">
+                                                <span className="material-symbols-outlined text-[16px]">zoom_in</span>
+                                                <span>{currentLang === 'tr' ? 'Büyüt' : 'Zoom'}</span>
                                             </span>
                                         </div>
-                                    );
-                                })()}
-                                {booking.hotel?.isRecommended && (
-                                    <span className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-[14px]">thumb_up</span>
-                                        Tavsiye Edilen
-                                    </span>
+                                        {imagesCount > 1 && (
+                                            <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md text-[11px] font-bold text-white flex items-center gap-1.5 shadow-xs border border-white/10">
+                                                <span className="material-symbols-outlined text-[14px]">photo_library</span>
+                                                <span>{imagesCount}</span>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : propertyLoading ? (
+                                    <div className="w-full h-full min-h-[170px] flex flex-col items-center justify-center animate-pulse bg-slate-100 dark:bg-[#303134] text-slate-400">
+                                        <span className="material-symbols-outlined text-[24px] animate-spin text-[#137fec]">sync</span>
+                                        <span className="text-[11px] font-semibold text-slate-400 mt-2">
+                                            {currentLang === 'tr' ? 'Otel görseli yükleniyor...' : 'Loading hotel image...'}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="w-full h-full min-h-[170px] flex flex-col items-center justify-center bg-gradient-to-br from-[#137fec] to-[#0b5baf] text-white">
+                                        <span className="material-symbols-outlined text-[36px]">hotel</span>
+                                        <span className="text-xs font-semibold mt-1">Travel Of Globe</span>
+                                    </div>
                                 )}
                             </div>
 
-                            {/* Address & Meta */}
-                            {(() => {
-                                const hotelAddress = getHotelAddress();
-                                return (
-                                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#5f6368] dark:text-slate-400">
-                                        {hotelAddress && (
-                                            <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-slate-300">
-                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">location_on</span>
-                                                <span className="font-medium">{hotelAddress}</span>
+                            {/* Hotel Details & Metadata Column */}
+                            <div className="min-w-0 flex-1 flex flex-col justify-between py-0.5 space-y-3">
+                                {/* Stars & Location & Refundable row */}
+                                <div className="flex flex-wrap items-center gap-2">
+                                    {/* Star Rating */}
+                                    {(() => {
+                                        const starData = getHotelStarData();
+                                        if (!starData) return null;
+                                        return (
+                                            <div
+                                                className="inline-flex items-center gap-1 text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-lg border border-amber-200/80 dark:border-amber-900/60 shadow-2xs"
+                                                title={starData.label}
+                                            >
+                                                {[...Array(starData.count)].map((_, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className="material-symbols-outlined text-[14px] text-amber-400 select-none leading-none"
+                                                        style={{ fontVariationSettings: "'FILL' 1" }}
+                                                    >
+                                                        star
+                                                    </span>
+                                                ))}
+                                                <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 ml-0.5">
+                                                    {starData.count} {currentLang === 'tr' ? 'Yıldız' : 'Stars'}
+                                                </span>
                                             </div>
+                                        );
+                                    })()}
+
+                                    {/* Refundable Badge */}
+                                    {isRefundableBooking !== null && (
+                                        <span
+                                            className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-2xs ${
+                                                isRefundableBooking
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200/90 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50'
+                                                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-[#303134] dark:text-slate-400 dark:border-slate-700'
+                                            }`}
+                                        >
+                                            <span className={`w-2 h-2 rounded-full ${isRefundableBooking ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                                            {isRefundableBooking ? (currentLang === 'tr' ? 'İade Edilebilir' : 'Refundable') : (currentLang === 'tr' ? 'İade Edilemez' : 'Non-Refundable')}
+                                        </span>
+                                    )}
+
+                                    {/* Recommended Badge */}
+                                    {booking.hotel?.isRecommended && (
+                                        <span className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[14px]">thumb_up</span>
+                                            <span>{currentLang === 'tr' ? 'Tavsiye Edilen' : 'Recommended'}</span>
+                                        </span>
+                                    )}
+
+                                    {/* Address */}
+                                    {(() => {
+                                        const hotelAddress = getHotelAddress();
+                                        if (!hotelAddress) return null;
+                                        return (
+                                            <span className="inline-flex items-center gap-1 text-xs text-[#5f6368] dark:text-slate-400 max-w-md truncate" title={hotelAddress}>
+                                                <span className="material-symbols-outlined text-[16px] text-rose-500 shrink-0">location_on</span>
+                                                <span className="truncate">{hotelAddress}</span>
+                                            </span>
+                                        );
+                                    })()}
+                                </div>
+
+                                {/* Hotel Title */}
+                                <div>
+                                    <h1 className="text-2xl sm:text-3xl font-black text-[#202124] dark:text-white tracking-tight leading-tight truncate">
+                                        {hotelName}
+                                    </h1>
+                                </div>
+
+                                {/* Structured ID Ribbon Rows */}
+                                <div className="space-y-2 pt-0.5">
+                                    {/* Line 1: Hotel Identifiers */}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {/* TOG Hotel ID */}
+                                        {internalHotelId && (
+                                            <CopyBadge
+                                                label="TOG Hotel ID"
+                                                value={internalHotelId}
+                                                copyId="hero-tog-hotel-id"
+                                                icon="apartment"
+                                                isPrimary={true}
+                                                onClickValue={() => navigate(`/travel/hotels/detail/${internalHotelId}`)}
+                                            />
                                         )}
-                                        {booking.hotel?.internalHotelId && (
-                                            <>
-                                                {hotelAddress && <span>•</span>}
-                                                <span className="font-medium text-[#70757a]">ID: {booking.hotel.internalHotelId}</span>
-                                            </>
+
+                                        {/* Supplier / Expedia Hotel ID */}
+                                        {booking.hotel?.supplierHotelId && (
+                                            <CopyBadge
+                                                label={`${supplierDisplayName} ID`}
+                                                value={booking.hotel.supplierHotelId}
+                                                copyId="hero-sup-hotel-id"
+                                                icon="travel_explore"
+                                            />
+                                        )}
+
+                                        {/* DB ID */}
+                                        {booking.hotel?.dbId && (
+                                            <CopyBadge
+                                                label="DB ID"
+                                                value={booking.hotel.dbId}
+                                                copyId="hero-db-id"
+                                                icon="database"
+                                            />
                                         )}
                                     </div>
-                                );
-                            })()}
+
+                                    {/* Line 2: Booking Vouchers & Client Ref */}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {/* Voucher */}
+                                        {booking.voucher && (
+                                            <CopyBadge
+                                                label="Voucher"
+                                                value={booking.voucher}
+                                                copyId="hero-voucher"
+                                                icon="receipt_long"
+                                            />
+                                        )}
+
+                                        {/* Supplier Voucher */}
+                                        {booking.hotel?.supplierVoucher && (
+                                            <CopyBadge
+                                                label="Supplier Voucher"
+                                                value={booking.hotel.supplierVoucher}
+                                                copyId="hero-sup-voucher"
+                                                icon="confirmation_number"
+                                            />
+                                        )}
+
+                                        {/* Client Reference */}
+                                        {booking.clientReferenceId && (
+                                            <CopyBadge
+                                                label="Ref"
+                                                value={booking.clientReferenceId}
+                                                copyId="hero-client-ref"
+                                                icon="tag"
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Top Total Amount Display */}
-                        <div className="flex flex-col md:items-end">
-                            <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                {L('totalAmount')}
-                            </span>
-                            <div className="text-2xl sm:text-3xl font-bold text-[#1a73e8] dark:text-[#8ab4f8] tracking-tight">
-                                {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                                <span className="text-base font-semibold ml-1.5">{booking.currency || ''}</span>
+                        {/* Top Total Amount & Status Display (Right side) */}
+                        <div className="flex flex-row lg:flex-col items-start lg:items-end justify-between w-full lg:w-auto shrink-0 gap-3">
+                            <div className="flex flex-col lg:items-end">
+                                <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                    {L('totalAmount')}
+                                </span>
+                                <div className="text-2xl sm:text-3xl font-black text-[#137fec] dark:text-[#42a5f5] tracking-tight">
+                                    {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
+                                    <span className="text-base font-bold ml-1.5">{booking.currency || ''}</span>
+                                </div>
+                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">
+                                    {L('taxesAndFeesIncluded')}
+                                </span>
                             </div>
-                            <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                {L('taxesAndFeesIncluded')}
-                            </span>
+
+                            {/* Dual Status Pill Badges */}
+                            <div className="flex items-center gap-2">
+                                {booking.hotel?.bookingStatus && (
+                                    <BookingStatusBadge status={booking.hotel.bookingStatus} showIcon className="text-[11px]" />
+                                )}
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold ${paymentBadge.classes}`}>
+                                    <span className="material-symbols-outlined text-[14px]">{paymentBadge.icon}</span>
+                                    <span>{paymentBadge.label}</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -1850,6 +2100,55 @@ const BookingDetail = () => {
                 navigate(`/task-management/${created.id}`);
             }}
         />
+
+        {/* Hotel Image Lightbox Modal */}
+        {showImageLightbox && heroImage && typeof document !== 'undefined' && createPortal(
+            <div
+                className="fixed inset-0 z-[99999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+                onClick={() => setShowImageLightbox(false)}
+            >
+                <div
+                    className="relative max-w-4xl max-h-[85vh] bg-[#202124] rounded-3xl border border-[#3c4043] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <button
+                        type="button"
+                        onClick={() => setShowImageLightbox(false)}
+                        className="absolute top-4 right-4 z-10 size-9 rounded-full bg-black/60 text-white hover:bg-black/90 flex items-center justify-center cursor-pointer transition-colors"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                    <img
+                        src={heroImage}
+                        alt={hotelName}
+                        className="w-full max-h-[72vh] object-contain bg-black"
+                    />
+                    <div className="p-4 bg-[#202124] flex flex-wrap items-center justify-between gap-3 text-white border-t border-[#3c4043]">
+                        <div>
+                            <h3 className="text-sm font-bold">{hotelName}</h3>
+                            {(() => {
+                                const hotelAddress = getHotelAddress();
+                                return hotelAddress ? <p className="text-xs text-slate-400 mt-0.5">{hotelAddress}</p> : null;
+                            })()}
+                        </div>
+                        {internalHotelId && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setShowImageLightbox(false);
+                                    navigate(`/travel/hotels/detail/${internalHotelId}`);
+                                }}
+                                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#137fec] hover:bg-[#0b5baf] text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                                <span>{currentLang === 'tr' ? 'Otel Detay Sayfasına Git' : 'Go to Hotel Detail'}</span>
+                                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )}
         </>
     );
 };

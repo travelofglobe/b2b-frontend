@@ -91,10 +91,10 @@ function App() {
               <Route path="/operations/tasks" element={<Navigate to="/task-management" replace />} />
               <Route path="/operations/tasks/:id" element={<B2BTaskDetail />} />
               
-              <Route path="/gsa/agency" element={<GSAAgencyManagement />} />
-              <Route path="/gsa/markups" element={<SubAgencyMarkups />} />
-              <Route path="/gsa/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
-              <Route path="/gsa/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
+              <Route path="/subagency/agency" element={<GSAAgencyManagement />} />
+              <Route path="/subagency/markups" element={<SubAgencyMarkups />} />
+              <Route path="/subagency/finance" element={<UnderConstruction title="GSA Finance" icon="attach_money" />} />
+              <Route path="/subagency/reports" element={<UnderConstruction title="GSA Reports" icon="assessment" />} />
 
               {/* Checkout Flow */}
               <Route path="/travel/hotels/checkout/guests" element={<CheckoutGuestDetails />} />

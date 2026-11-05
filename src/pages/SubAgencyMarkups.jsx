@@ -6,6 +6,7 @@ import AgencyMultiSelect from '../components/AgencyMultiSelect';
 import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
 import AppleSwitch from '../components/AppleSwitch';
+import MarkupRevisionModal from '../components/MarkupRevisionModal';
 
 const MK = {
   en: { title: 'Sub Agency Markups', subtitle: 'Define and manage pricing rules for sub agencies', searchPh: 'Rule name, ID...', allRules: 'All Rules', active: 'Active', passive: 'Passive', newRule: 'New Rule', colRule: 'Markup Rule', colHotels: 'Associated Hotels', colAgencies: 'Agencies / Groups', colPriority: 'Priority', colValue: 'Value', colStatus: 'Status', colActions: 'Actions', allHotels: 'All Hotels', allAgencies: 'All Agencies', noRules: 'No markup rules found', showing: 'Showing', to2: 'to', of: 'of', rules: 'rules', deleteTitle: 'Delete Markup', yesDelete: 'Yes, Delete Rule', noKeep: 'No, Keep It', failedLoad: 'Failed to load markups', failedStatus: 'Failed to update status', failedDelete: 'Failed to delete markup', deleted: 'Markup rule deleted', created: 'Markup rule created', updated: 'Markup rule updated', markedAs: 'Markup marked as' },
@@ -50,6 +51,7 @@ const SubAgencyMarkups = () => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [editMarkup, setEditMarkup] = useState(null);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const [revisionModal, setRevisionModal] = useState({ show: false, id: null, name: '' });
 
     const showNotification = useCallback((message, type = 'success') => {
         setToast({ show: true, message, type });
@@ -320,6 +322,13 @@ const SubAgencyMarkups = () => {
                                     </td>
                                     <td className="px-4 py-2.5 text-right">
                                         <div className="flex items-center justify-end gap-0.5">
+                                            <button
+                                                onClick={() => setRevisionModal({ show: true, id: m.id, name: m.name })}
+                                                className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-400 transition-all"
+                                                title="Revision History"
+                                            >
+                                                <span className="material-icons-round text-sm">history</span>
+                                            </button>
                                             <button onClick={() => handleEditMarkup(m)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all">
                                                 <span className="material-icons-round text-sm">edit</span>
                                             </button>
@@ -414,6 +423,14 @@ const SubAgencyMarkups = () => {
                     showNotification(editMarkup ? L('updated') : L('created'));
                     fetchMarkups();
                 }}
+            />
+
+            {/* Revision History Modal */}
+            <MarkupRevisionModal
+                isOpen={revisionModal.show}
+                markupId={revisionModal.id}
+                markupName={revisionModal.name}
+                onClose={() => setRevisionModal({ show: false, id: null, name: '' })}
             />
             </div>
         </div>

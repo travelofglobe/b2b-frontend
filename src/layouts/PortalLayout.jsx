@@ -52,7 +52,8 @@ const PortalLayout = () => {
     const [isMyOfficeOpen, setIsMyOfficeOpen] = useState(location.pathname.startsWith('/my-office'));
     const [isDefinitionsOpen, setIsDefinitionsOpen] = useState(location.pathname.startsWith('/definitions'));
     const [isFinanceOpen, setIsFinanceOpen] = useState(location.pathname.startsWith('/finance'));
-    const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(location.pathname.startsWith('/gsa'));
+    const isGSAPath = location.pathname.startsWith('/gsa') || location.pathname.startsWith('/subagency');
+    const [isGSAManagementOpen, setIsGSAManagementOpen] = useState(isGSAPath);
 
     // Automatically scroll main container to top on route change and close any open drawer
     useEffect(() => {
@@ -336,22 +337,22 @@ const PortalLayout = () => {
                         {agencyType !== 'AGENCY' && <div className="space-y-0.5">
                             <button
                                 onClick={() => handleMenuToggle(setIsGSAManagementOpen, isGSAManagementOpen)}
-                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${location.pathname.startsWith('/gsa')
+                                className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group focus:outline-none cursor-pointer ${isGSAPath
                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300'
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
-                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
+                                <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isGSAPath ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
                                 <span className="text-sm font-medium text-left leading-snug flex-1">{managementLabel}</span>
-                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/gsa') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
+                                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-90' : ''} ${isGSAPath ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
                             {isGSAManagementOpen && (
                                 <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                     {[
-                                        { path: '/gsa/agency', icon: 'business_center', label: t('sidebar.agencyManagement') },
-                                        { path: '/gsa/markups', icon: 'payments', label: t('sidebar.subAgencyMarkups') },
-                                        { path: '/gsa/finance', icon: 'attach_money', label: t('sidebar.finance') },
-                                        { path: '/gsa/reports', icon: 'assessment', label: t('sidebar.reports') },
+                                        { path: '/subagency/agency', icon: 'business_center', label: t('sidebar.agencyManagement') },
+                                        { path: '/subagency/markups', icon: 'payments', label: t('sidebar.subAgencyMarkups') },
+                                        { path: '/subagency/finance', icon: 'attach_money', label: t('sidebar.finance') },
+                                        { path: '/subagency/reports', icon: 'assessment', label: t('sidebar.reports') },
                                     ].map(({ path, icon, label }) => {
                                         const isActive = location.pathname === path;
                                         return (

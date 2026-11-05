@@ -29,6 +29,7 @@ const BookingDetail = () => {
     const [cancelSimLoading, setCancelSimLoading] = useState(false);
     const [cancelConfirmLoading, setCancelConfirmLoading] = useState(false);
     const [cancelError, setCancelError] = useState(null);
+    const [selectedRoomKeys, setSelectedRoomKeys] = useState([]);
     // ──────────────────────────────────────────────────────────────
 
     const { i18n } = useTranslation();
@@ -158,11 +159,25 @@ const BookingDetail = () => {
         return { canCancel: true, reason: null };
     };
 
+    const getRoomKey = (r, i) => r.roomConfirmationCode || r.roomCode || r.roomId || (r.dbId ? String(r.dbId) : `room_${i}`);
+
     // Build the cancel request payload
     const buildCancelPayload = (simulation) => {
-        const roomConfirmationCodes = (booking.hotel?.rooms || [])
-            .map(r => r.roomConfirmationCode)
-            .filter(Boolean);
+        const rooms = booking?.hotel?.rooms || [];
+        const isMultiRoomCancelSupported = Boolean(booking?.supplier?.multiRoomCancelSupported);
+        
+        let roomConfirmationCodes = [];
+        if (isMultiRoomCancelSupported && rooms.length > 1) {
+            roomConfirmationCodes = rooms
+                .filter((r, i) => selectedRoomKeys.includes(getRoomKey(r, i)))
+                .map(r => r.roomConfirmationCode || r.roomCode || r.roomId || (r.dbId ? String(r.dbId) : null))
+                .filter(Boolean);
+        } else {
+            roomConfirmationCodes = rooms
+                .map(r => r.roomConfirmationCode || r.roomCode || r.roomId || (r.dbId ? String(r.dbId) : null))
+                .filter(Boolean);
+        }
+
         return {
             voucher: booking.voucher,
             roomConfirmationCodes,
@@ -180,6 +195,9 @@ const BookingDetail = () => {
         setCancelReason('GUEST_REQUEST');
         setCancelNote('');
         setCancelStep('info');
+        const rooms = booking?.hotel?.rooms || [];
+        const cancelableRooms = rooms.filter(r => r.bookingStatus !== 'CANCELLED' && r.bookingStatus !== 'CANCELLED_WITH_PENALTY');
+        setSelectedRoomKeys(cancelableRooms.map(getRoomKey));
         setIsCancelModalOpen(true);
     };
 
@@ -1469,6 +1487,110 @@ const BookingDetail = () => {
                                         </div>
                                     )}
                                 </div>
+
+                                {/* Multi-room Selection / Notice */}
+                                {(booking.hotel?.rooms || []).length > 1 && (
+                                    <div className="space-y-2.5 pt-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
+                                                {L('selectRoomsToCancel')}
+                                            </span>
+                                            {booking.supplier?.multiRoomCancelSupported && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const cancelable = (booking.hotel?.rooms || []).filter(r => r.bookingStatus !== 'CANCELLED' && r.bookingStatus !== 'CANCELLED_WITH_PENALTY');
+                                                        if (selectedRoomKeys.length === cancelable.length) {
+                                                            setSelectedRoomKeys([]);
+                                                        } else {
+                                                            setSelectedRoomKeys(cancelable.map(getRoomKey));
+                                                        }
+                                                    }}
+                                                    className="text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                                                >
+                                                    {selectedRoomKeys.length === (booking.hotel?.rooms || []).filter(r => r.bookingStatus !== 'CANCELLED' && r.bookingStatus !== 'CANCELLED_WITH_PENALTY').length ? L('deselectAll') : L('selectAll')}
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {!booking.supplier?.multiRoomCancelSupported && (
+                                            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200">
+                                                <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
+                                                <p>
+                                                    {L('noPartialCancelSupplier').replace('{0}', booking.supplier?.name || (currentLang === 'tr' ? 'Tedarikçi' : 'Supplier'))}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-2">
+                                            {(booking.hotel?.rooms || []).map((r, ri) => {
+                                                const key = getRoomKey(r, ri);
+                                                const isChecked = selectedRoomKeys.includes(key);
+                                                const isAlreadyCancelled = r.bookingStatus === 'CANCELLED' || r.bookingStatus === 'CANCELLED_WITH_PENALTY';
+                                                const isMultiSupported = Boolean(booking.supplier?.multiRoomCancelSupported);
+
+                                                return (
+                                                    <label
+                                                        key={key}
+                                                        className={`flex items-start gap-3 p-3 rounded-xl border transition-all ${
+                                                            isAlreadyCancelled
+                                                                ? 'opacity-50 cursor-not-allowed bg-slate-50 dark:bg-[#202124] border-slate-200 dark:border-slate-800'
+                                                                : isChecked
+                                                                    ? 'bg-[#e8f0fe] dark:bg-blue-950/20 border-[#1a73e8] cursor-pointer'
+                                                                    : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-[#3c4043] cursor-pointer hover:border-slate-400'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            disabled={!isMultiSupported || isAlreadyCancelled}
+                                                            onChange={() => {
+                                                                if (!isMultiSupported || isAlreadyCancelled) return;
+                                                                setSelectedRoomKeys(prev =>
+                                                                    prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+                                                                );
+                                                            }}
+                                                            className="mt-0.5 size-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] border-slate-300"
+                                                        />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <span className="text-xs font-bold text-[#202124] dark:text-white">
+                                                                    {r.roomName || `${L('room')} ${ri + 1}`}
+                                                                </span>
+                                                                {r.rates?.[0]?.totalAmount != null && (
+                                                                    <span className="text-xs font-semibold text-[#1a73e8]">
+                                                                        {Number(r.rates[0].totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {r.occupancies?.length > 0 && (
+                                                                <p className="text-[11px] text-[#5f6368] dark:text-slate-400 mt-0.5 truncate">
+                                                                    {r.occupancies.map(o => `${o.name} ${o.surname}`).join(', ')}
+                                                                </p>
+                                                            )}
+                                                            {r.roomConfirmationCode && (
+                                                                <p className="text-[10px] font-mono text-[#70757a] mt-0.5">
+                                                                    {L('confCode')}: {r.roomConfirmationCode}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {booking.supplier?.multiRoomCancelSupported && (
+                                            <div className="flex items-center justify-between px-1 text-xs">
+                                                <span className="text-[#5f6368] dark:text-slate-400">
+                                                    {L('roomsSelected').replace('{0}', selectedRoomKeys.length).replace('{1}', (booking.hotel?.rooms || []).length)}
+                                                </span>
+                                                <span className={`font-semibold ${selectedRoomKeys.length === (booking.hotel?.rooms || []).length ? 'text-[#1a73e8]' : 'text-amber-600 dark:text-amber-400'}`}>
+                                                    {selectedRoomKeys.length === (booking.hotel?.rooms || []).length ? L('fullCancellation') : L('partialCancellation')}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -1668,7 +1790,8 @@ const BookingDetail = () => {
                         {cancelStep === 'info' && (
                             <button
                                 onClick={handleCancelInfoContinue}
-                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-colors shadow-xs active:scale-95 cursor-pointer flex items-center gap-1.5"
+                                disabled={Boolean(booking?.supplier?.multiRoomCancelSupported && (booking.hotel?.rooms || []).length > 1 && selectedRoomKeys.length === 0)}
+                                className="h-9 px-5 rounded-full font-semibold text-xs bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-colors shadow-xs active:scale-95 disabled:opacity-40 disabled:pointer-events-none cursor-pointer flex items-center gap-1.5"
                             >
                                 {currentLang === 'tr' ? 'Devam Et' : 'Continue'}
                                 <span className="material-symbols-outlined text-[16px]">arrow_forward</span>

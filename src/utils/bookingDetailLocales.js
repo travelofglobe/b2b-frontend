@@ -115,7 +115,15 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Check-in / Check-out',
         roomInfo: 'Room',
         stars: 'Stars',
-        freeCancel: 'Free Cancellation'
+        freeCancel: 'Free Cancellation',
+        selectRoomsToCancel: 'Select Rooms to Cancel',
+        selectAll: 'Select All',
+        deselectAll: 'Deselect All',
+        fullCancellation: 'Full Cancellation',
+        partialCancellation: 'Partial Cancellation',
+        noPartialCancelSupplier: 'The supplier ({0}) does not support partial room cancellation. All rooms will be cancelled together.',
+        atLeastOneRoomRequired: 'Please select at least one room to cancel.',
+        roomsSelected: '{0} of {1} rooms selected'
     },
     tr: {
         bookings: "Rezervasyonlar",
@@ -233,7 +241,15 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Giriş / Çıkış',
         roomInfo: 'Oda',
         stars: 'Yıldız',
-        freeCancel: 'Ücretsiz İptal'
+        freeCancel: 'Ücretsiz İptal',
+        selectRoomsToCancel: 'İptal Edilecek Odaları Seçin',
+        selectAll: 'Tümünü Seç',
+        deselectAll: 'Seçimi Kaldır',
+        fullCancellation: 'Tam İptal',
+        partialCancellation: 'Kısmi İptal',
+        noPartialCancelSupplier: 'Tedarikçi ({0}) parçalı oda iptalini desteklemediği için tüm odalar birlikte iptal edilecektir.',
+        atLeastOneRoomRequired: 'Lütfen iptal edilecek en az bir oda seçin.',
+        roomsSelected: '{0} / {1} oda seçili'
     },
     ar: {
         bookings: "الحجوزات",

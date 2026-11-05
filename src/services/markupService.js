@@ -25,7 +25,7 @@ export const markupService = {
         return apiClient.put(`${API_BASE_URL}/markup/update-by-id/${id}`, data);
     },
 
-    findRevisions: async (id) => {
-        return apiClient.get(`${API_BASE_URL}/markup/find-revisions/${id}`);
+    findRevisions: async (id, page = 0, size = 10) => {
+        return apiClient.get(`${API_BASE_URL}/markup/find-revisions/${id}?page=${page}&size=${size}`);
     }
 };

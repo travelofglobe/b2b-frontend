@@ -388,20 +388,30 @@ const MarkupRevisionModal = ({ isOpen, onClose, markupId, markupName }) => {
     const [revisions, setRevisions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const PAGE_SIZE = 10;
+
+    // Reset page when modal opens for a new markup
+    useEffect(() => {
+        if (isOpen) setPage(0);
+    }, [isOpen, markupId]);
 
     useEffect(() => {
         if (!isOpen || !markupId) return;
         let cancelled = false;
         setLoading(true);
         setError(null);
-        setRevisions([]);
-        markupService.findRevisions(markupId)
+        markupService.findRevisions(markupId, page, PAGE_SIZE)
             .then((res) => {
                 if (cancelled) return;
                 const list = Array.isArray(res)
                     ? res
                     : (res?.markups || res?.content || res?.data || []);
                 setRevisions(list);
+                setTotalItems(res?.numberOfItems ?? res?.totalElements ?? list.length);
+                setTotalPages(res?.numberOfPages ?? res?.totalPages ?? Math.max(1, Math.ceil((res?.numberOfItems ?? list.length) / PAGE_SIZE)));
             })
             .catch(() => {
                 if (!cancelled) setError(L('failedLoad'));
@@ -410,7 +420,7 @@ const MarkupRevisionModal = ({ isOpen, onClose, markupId, markupName }) => {
                 if (!cancelled) setLoading(false);
             });
         return () => { cancelled = true; };
-    }, [isOpen, markupId]);
+    }, [isOpen, markupId, page]);
 
     if (!isOpen) return null;
 
@@ -654,7 +664,7 @@ const MarkupRevisionModal = ({ isOpen, onClose, markupId, markupName }) => {
                                         {/* Revision index badge */}
                                         <td className="px-4 py-2.5">
                                             <span className="inline-flex items-center justify-center size-6 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] text-[10px] font-bold">
-                                                {idx + 1}
+                                                {page * PAGE_SIZE + idx + 1}
                                             </span>
                                         </td>
                                         {columns.map((col) => (
@@ -669,15 +679,59 @@ const MarkupRevisionModal = ({ isOpen, onClose, markupId, markupName }) => {
                     )}
                 </div>
 
-                {/* Footer */}
-                {!loading && !error && revisions.length > 0 && (
-                    <div className="px-6 py-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between shrink-0 bg-[#f8f9fa]/50 dark:bg-[#292a2d]/50">
+                {/* Footer — pagination */}
+                {!loading && !error && totalItems > 0 && (
+                    <div className="px-6 py-3 border-t border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 shrink-0 bg-[#f8f9fa]/50 dark:bg-[#292a2d]/50">
+                        {/* Info */}
                         <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
-                            {revisions.length} {L('revision')}{revisions.length !== 1 ? 's' : ''}
+                            {totalItems > 0 ? page * PAGE_SIZE + 1 : 0}–{Math.min((page + 1) * PAGE_SIZE, totalItems)} / {totalItems} {L('revision')}{totalItems !== 1 ? 's' : ''}
                         </span>
+
+                        {/* Pagination controls */}
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                disabled={page === 0}
+                                onClick={() => setPage(p => p - 1)}
+                                className="size-7 rounded-full border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] disabled:opacity-30 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                            </button>
+
+                            {/* Page number buttons — up to 5 */}
+                            <div className="flex items-center gap-1">
+                                {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                    let pageNum = i;
+                                    if (totalPages > 5 && page > 2) {
+                                        pageNum = Math.min(page - 2 + i, totalPages - 5 + i);
+                                    }
+                                    return (
+                                        <button
+                                            key={pageNum}
+                                            onClick={() => setPage(pageNum)}
+                                            className={`size-7 rounded-full text-[11px] font-medium transition-all ${
+                                                page === pageNum
+                                                    ? 'bg-[#1a73e8] text-white shadow-sm'
+                                                    : 'text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                            }`}
+                                        >
+                                            {pageNum + 1}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <button
+                                disabled={page >= totalPages - 1 || totalPages === 0}
+                                onClick={() => setPage(p => p + 1)}
+                                className="size-7 rounded-full border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] disabled:opacity-30 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                            </button>
+                        </div>
+
                         <button
                             onClick={onClose}
-                            className="h-8 px-4 rounded-full border border-[#dadce0] dark:border-[#3c4043] text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors"
+                            className="h-7 px-4 rounded-full border border-[#dadce0] dark:border-[#3c4043] text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-colors"
                         >
                             {L('close')}
                         </button>

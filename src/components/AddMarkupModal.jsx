@@ -42,7 +42,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         salesEndDateTime: '',
         checkinStartDate: '',
         checkoutEndDate: '',
-        locationIds: [],
+        locationRegionIds: [],
         hotelIds: [],
         cancelPolicy: '',
         priceRanges: []
@@ -58,10 +58,16 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
     const [isHotelLoading, setIsHotelLoading] = useState(false);
     const [apiError, setApiError] = useState(null);
     const [nationalitySearch, setNationalitySearch] = useState('');
-    const [locationSearch, setLocationSearch] = useState('');
     const [showHotelSuggestions, setShowHotelSuggestions] = useState(false);
     const [showNationalities, setShowNationalities] = useState(false);
-    const [showLocations, setShowLocations] = useState(false);
+
+    // Location autocomplete states
+    const [locationSearch, setLocationSearch] = useState('');
+    const [locationSuggestions, setLocationSuggestions] = useState([]);
+    const [isLocationLoading, setIsLocationLoading] = useState(false);
+    const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+    // selectedLocations: array of { regionId: string, name: string, locationType: string }
+    const [selectedLocations, setSelectedLocations] = useState([]);
 
     // Refs
     const modalBodyRef = useRef(null);
@@ -79,12 +85,12 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                 agencyIds: editData.agencies?.map(a => a.id) || [],
                 priority: editData.priority || '5',
                 value: editData.value || '',
-                nationalityIds: editData.nationalities?.map(n => n.locationId || n.id) || [],
+                nationalityIds: editData.nationalities?.map(n => n.dbId || n.locationId || n.id).filter(Boolean) || [],
                 salesStartDateTime: editData.salesStartDateTime ? editData.salesStartDateTime.split('T')[0] : '',
                 salesEndDateTime: editData.salesEndDateTime ? editData.salesEndDateTime.split('T')[0] : '',
                 checkinStartDate: editData.checkinStartDate || '',
                 checkoutEndDate: editData.checkoutEndDate || '',
-                locationIds: editData.locations?.map(l => l.locationId) || editData.regions?.map(r => r.locationId) || editData.locationIds || [],
+                locationRegionIds: editData.locations?.map(l => l.regionId || String(l.locationId)).filter(Boolean) || [],
                 hotelIds: editData.hotels?.map(h => h.hotelId || h.id) || [],
                 cancelPolicy: editData.cancelPolicy || '',
                 priceRanges: editData.priceRanges
@@ -103,9 +109,17 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
             })) || []);
 
             setSelectedNationalities(editData.nationalities?.map(n => ({
-                id: n.locationId || n.id,
+                id: n.dbId || n.locationId || n.id,
                 name: getLocalizedName(n.name)
-            })) || []);
+            })).filter(n => n.id) || []);
+
+            // Populate selected locations from edit data
+            const editLocations = editData.locations || editData.regions || [];
+            setSelectedLocations(editLocations.map(l => ({
+                regionId: l.regionId || String(l.locationId),
+                name: typeof l.name === 'string' ? l.name : getLocalizedName(l.name),
+                locationType: l.locationType || l.type || ''
+            })).filter(l => l.regionId));
         } else if (isOpen) {
             resetForm();
         }
@@ -122,16 +136,18 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
             salesEndDateTime: '',
             checkinStartDate: '',
             checkoutEndDate: '',
-            locationIds: [],
+            locationRegionIds: [],
             hotelIds: [],
             cancelPolicy: '',
             priceRanges: []
         });
         setSelectedHotels([]);
         setSelectedNationalities([]);
+        setSelectedLocations([]);
         setHotelSearch('');
         setNationalitySearch('');
         setLocationSearch('');
+        setLocationSuggestions([]);
     };
 
     // Price range helpers
@@ -227,8 +243,9 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
     };
 
 
-    const toggleNationality = (id, name) => {
-        const natId = Number(id);
+    const toggleNationality = (dbId, name) => {
+        const natId = Number(dbId);
+        if (!natId) return; // null/undefined guard
         if (formData.nationalityIds.includes(natId)) {
             setFormData(prev => ({ ...prev, nationalityIds: prev.nationalityIds.filter(nId => nId !== natId) }));
             setSelectedNationalities(prev => prev.filter(n => n.id !== natId));
@@ -238,14 +255,65 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
         }
     };
 
-    const toggleLocation = (id) => {
-        const locId = Number(id);
-        setFormData(prev => ({
-            ...prev,
-            locationIds: prev.locationIds.includes(locId)
-                ? prev.locationIds.filter(id => id !== locId)
-                : [...prev.locationIds, locId]
-        }));
+    // ── Location autocomplete ──────────────────────────────────────────────
+    const getLocalizedLocationName = useCallback((item) => {
+        const translations = item?.name?.translations || {};
+        // Try exact lang, then base lang (e.g. "tr" from "tr-TR"), then "en", then searchName
+        return translations[currentLang]
+            || translations[currentLang.split('-')[0]]
+            || translations['en']
+            || item?.name?.searchName?.split(' ')[0]
+            || '';
+    }, [currentLang]);
+
+    const handleLocationSearch = useCallback(async (query, signal) => {
+        if (!query || query.length < 3) {
+            setLocationSuggestions([]);
+            setIsLocationLoading(false);
+            return;
+        }
+        setIsLocationLoading(true);
+        try {
+            const res = await autocompleteService.search({ query, types: ['GEOGRAPHY_REGION'] }, signal);
+            setLocationSuggestions(res?.content || []);
+        } catch (err) {
+            if (err?.name !== 'AbortError') console.error('Location search error:', err);
+        } finally {
+            setIsLocationLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!locationSearch || locationSearch.length < 3) {
+            setLocationSuggestions([]);
+            setIsLocationLoading(false);
+            return;
+        }
+        setIsLocationLoading(true);
+        const controller = new AbortController();
+        const timer = setTimeout(() => {
+            handleLocationSearch(locationSearch, controller.signal);
+        }, 300);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [locationSearch, handleLocationSearch]);
+
+    const addLocation = (item) => {
+        const regionId = item.regionId;
+        if (!regionId || formData.locationRegionIds.includes(regionId)) return;
+        const name = getLocalizedLocationName(item);
+        setFormData(prev => ({ ...prev, locationRegionIds: [...prev.locationRegionIds, regionId] }));
+        setSelectedLocations(prev => [...prev, { regionId, name, locationType: item.locationType || '' }]);
+        setLocationSearch('');
+        setLocationSuggestions([]);
+        setShowLocationSuggestions(false);
+    };
+
+    const removeLocation = (regionId) => {
+        setFormData(prev => ({ ...prev, locationRegionIds: prev.locationRegionIds.filter(id => id !== regionId) }));
+        setSelectedLocations(prev => prev.filter(l => l.regionId !== regionId));
     };
 
     const handleSubmit = async (e) => {
@@ -272,7 +340,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                 checkinStartDate: formData.checkinStartDate || null,
                 checkoutEndDate: formData.checkoutEndDate || null,
                 hotelIds: formData.hotelIds,
-                locationIds: formData.locationIds,
+                locationIds: formData.locationRegionIds,
                 status: editData ? editData.status : "ACTIVE",
                 cancelPolicy: formData.cancelPolicy || null,
                 priceRanges: formData.priceRanges.length > 0
@@ -476,11 +544,11 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                                 .map(c => (
                                                     <div 
                                                         key={c.id} 
-                                                        onClick={() => toggleNationality(c.locationId, getLocalizedName(c.name))}
-                                                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${formData.nationalityIds.includes(Number(c.locationId)) ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                                                        onClick={() => toggleNationality(c.dbId, getLocalizedName(c.name))}
+                                                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${formData.nationalityIds.includes(c.dbId) ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                                                     >
                                                         {getLocalizedName(c.name)}
-                                                        {formData.nationalityIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
+                                                        {formData.nationalityIds.includes(c.dbId) && <span className="material-icons-round text-xs">check</span>}
                                                     </div>
                                                 ))}
                                             {countries.filter(c => getLocalizedName(c.name).toLowerCase().includes(nationalitySearch.toLowerCase())).length === 0 && (
@@ -606,61 +674,111 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                             )}
                         </div>
 
-                        {/* Location Select */}
+                        {/* Location Autocomplete */}
                         <div className="relative">
                             <label className="text-[11px] font-medium text-slate-600 dark:text-slate-300 mb-1 block">Regions / Cities</label>
-                            <div 
-                                onClick={() => setShowLocations(!showLocations)}
-                                className="min-h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 flex flex-wrap gap-1 items-center cursor-pointer"
-                            >
-                                {formData.locationIds.length > 0 ? (
-                                    formData.locationIds.map(locId => {
-                                        const c = countries.find(co => co.locationId === locId);
-                                        return (
-                                            <span key={locId} className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-[10px] font-semibold flex items-center gap-1">
-                                                {c ? getLocalizedName(c.name) : `Location #${locId}`}
-                                                <span onClick={(e) => { e.stopPropagation(); toggleLocation(locId); }} className="material-icons-round text-[12px] cursor-pointer hover:text-rose-500">close</span>
-                                            </span>
-                                        );
-                                    })
-                                ) : <span className="text-xs text-slate-400 font-medium">Select destinations...</span>}
-                                <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${showLocations ? 'rotate-180' : ''}`}>expand_more</span>
+                            {/* Selected tags */}
+                            {selectedLocations.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-1.5">
+                                    {selectedLocations.map(loc => (
+                                        <span
+                                            key={loc.regionId}
+                                            className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded text-[10px] font-semibold flex items-center gap-1"
+                                        >
+                                            {loc.name}
+                                            {loc.locationType && (
+                                                <span className="text-blue-400 dark:text-blue-500 font-normal">· {loc.locationType}</span>
+                                            )}
+                                            <span
+                                                onClick={() => removeLocation(loc.regionId)}
+                                                className="material-icons-round text-[12px] cursor-pointer hover:text-rose-500 ml-0.5"
+                                            >close</span>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {/* Search input */}
+                            <div className="relative">
+                                <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">search</span>
+                                <input
+                                    type="text"
+                                    value={locationSearch}
+                                    onChange={(e) => {
+                                        setLocationSearch(e.target.value);
+                                        setShowLocationSuggestions(true);
+                                    }}
+                                    onFocus={() => locationSearch.length >= 3 && setShowLocationSuggestions(true)}
+                                    placeholder="Type at least 3 characters to search regions, cities..."
+                                    className="w-full h-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-all"
+                                />
+                                {isLocationLoading && (
+                                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 size-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                )}
                             </div>
 
-                            {showLocations && (
+                            {/* Dropdown */}
+                            {showLocationSuggestions && locationSearch.length >= 3 && (
                                 <>
-                                    <div className="fixed inset-0 z-40" onClick={() => { setShowLocations(false); setLocationSearch(''); }} />
-                                    <div className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2">
-                                        <div className="p-2 border-b border-slate-100 dark:border-slate-800">
-                                            <div className="relative">
-                                                <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="Search locations..." 
-                                                    value={locationSearch}
-                                                    onChange={(e) => setLocationSearch(e.target.value)}
-                                                    autoFocus
-                                                    className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-all"
-                                                />
+                                    <div
+                                        className="fixed inset-0 z-40"
+                                        onClick={() => { setShowLocationSuggestions(false); }}
+                                    />
+                                    <div className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 p-1 custom-scrollbar animate-in fade-in slide-in-from-top-2">
+                                        {isLocationLoading ? (
+                                            <div className="p-3 text-center text-xs font-medium text-slate-400 flex items-center justify-center gap-2">
+                                                <div className="size-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                                Searching...
                                             </div>
-                                        </div>
-                                        <div className="flex-1 overflow-y-auto p-1 custom-scrollbar max-h-48">
-                                            {countries
-                                                .filter(c => getLocalizedName(c.name).toLowerCase().includes(locationSearch.toLowerCase()))
-                                                .map(c => (
-                                                    <div 
-                                                        key={c.id} 
-                                                        onClick={() => toggleLocation(c.locationId)}
-                                                        className={`px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${formData.locationIds.includes(Number(c.locationId)) ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                                        ) : locationSuggestions.length > 0 ? (
+                                            locationSuggestions.map(item => {
+                                                const name = getLocalizedLocationName(item);
+                                                const isSelected = formData.locationRegionIds.includes(item.regionId);
+                                                const locationTypeColors = {
+                                                    city: 'text-blue-500',
+                                                    country: 'text-emerald-500',
+                                                    province_state: 'text-purple-500',
+                                                    continent: 'text-orange-500',
+                                                    airport: 'text-sky-500',
+                                                    neighborhood: 'text-pink-500',
+                                                };
+                                                const typeColor = locationTypeColors[item.locationType] || 'text-slate-400';
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        onClick={() => !isSelected && addLocation(item)}
+                                                        className={`px-3 py-2 rounded-lg cursor-pointer transition-colors flex items-center justify-between gap-2 mb-0.5 ${
+                                                            isSelected
+                                                                ? 'bg-blue-50 dark:bg-blue-900/20 cursor-default'
+                                                                : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                        }`}
                                                     >
-                                                        {getLocalizedName(c.name)}
-                                                        {formData.locationIds.includes(Number(c.locationId)) && <span className="material-icons-round text-xs">check</span>}
+                                                        <div className="flex items-center gap-2 min-w-0">
+                                                            <span className="material-icons-round text-slate-300 text-sm shrink-0">location_on</span>
+                                                            <div className="min-w-0">
+                                                                <div className="flex items-center gap-1.5">
+                                                                    <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">
+                                                                        {name}
+                                                                    </span>
+                                                                    {item.locationType && (
+                                                                        <span className={`text-[10px] font-semibold shrink-0 ${typeColor}`}>
+                                                                            {item.locationType}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {item.locationPath && (
+                                                                    <p className="text-[10px] text-slate-400 truncate">{item.locationPath}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <span className="material-icons-round text-blue-500 text-sm shrink-0">check_circle</span>
+                                                        )}
                                                     </div>
-                                                ))}
-                                            {countries.filter(c => getLocalizedName(c.name).toLowerCase().includes(locationSearch.toLowerCase())).length === 0 && (
-                                                <div className="p-3 text-center text-xs font-medium text-slate-400">No results found</div>
-                                            )}
-                                        </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="p-3 text-center text-xs font-medium text-slate-400">No results found</div>
+                                        )}
                                     </div>
                                 </>
                             )}

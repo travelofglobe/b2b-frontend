@@ -6,6 +6,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import AddMarkupModal from '../components/AddMarkupModal';
 import AppleSwitch from '../components/AppleSwitch';
 import MarkupRevisionModal from '../components/MarkupRevisionModal';
+import Pagination from '../components/Pagination';
 
 const MK = {
   en: {
@@ -640,101 +641,115 @@ const MarkupManagement = () => {
     }, [markups, totalItems, filters.status]);
 
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
-            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0 space-y-4">
-                {/* Header - Google Workspace Material Style */}
-                <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {/* Sticky Header Bar */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
                             <span className="material-symbols-outlined text-[24px]">trending_up</span>
                         </div>
                         <div>
-                            <h1 className="text-xl font-medium text-[#202124] dark:text-[#e8eaed] tracking-tight">{L('title')}</h1>
-                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('subtitle')}</p>
+                            <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">{L('title')}</h1>
+                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">{L('subtitle')}</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2.5">
                         <button
+                            type="button"
                             onClick={() => {
                                 setEditMarkup(null);
                                 setIsAddModalOpen(true);
                             }}
-                            className="h-10 px-5 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium flex items-center gap-1.5 shadow-none hover:shadow-xs active:scale-95 transition-all cursor-pointer"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[18px]">add</span>
                             <span>{L('newRule')}</span>
                         </button>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                {/* Summary Metric Cards matching MyOffice */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 shrink-0">
-                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalRules')}</span>
-                            <div className="size-8 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                <span className="material-symbols-outlined text-[18px]">trending_up</span>
+            {/* Main Content Container */}
+            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-5">
+                {/* 3 Metric Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalRules')}</span>
+                            <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">trending_up</span>
                             </div>
                         </div>
-                        <div className="flex items-end gap-2">
-                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
                                 {loading && markups.length === 0 ? '...' : summaryStats.total}
                             </div>
-                            <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">RULES</div>
+                            <span className="text-xs font-medium text-[#70757a]">kural</span>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeRules')}</span>
-                            <div className="size-8 bg-[#e6f4ea] dark:bg-[#137333]/20 rounded-full flex items-center justify-center text-[#137333] dark:text-[#81c995]">
-                                <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{L('activeRules')}</span>
+                            <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">check_circle</span>
                             </div>
                         </div>
-                        <div className="flex items-end gap-2">
-                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
                                 {loading && markups.length === 0 ? '...' : summaryStats.active}
                             </div>
-                            <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
+                            <span className="text-xs font-medium text-emerald-600">aktif</span>
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                        <div className="flex justify-between items-start mb-2">
-                            <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveRules')}</span>
-                            <div className="size-8 bg-[#fce8e6] dark:bg-[#c5221f]/20 rounded-full flex items-center justify-center text-[#c5221f] dark:text-[#f28b82]">
-                                <span className="material-symbols-outlined text-[18px]">pause_circle</span>
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{L('passiveRules')}</span>
+                            <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">pause_circle</span>
                             </div>
                         </div>
-                        <div className="flex items-end gap-2">
-                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
                                 {loading && markups.length === 0 ? '...' : summaryStats.passive}
                             </div>
-                            <div className="text-[10px] font-medium text-[#c5221f] dark:text-[#f28b82] mb-0.5">DISABLED</div>
+                            <span className="text-xs font-medium text-rose-600">pasif</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Main Table Card matching MyOffice */}
-                <div className="flex-1 flex flex-col bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs min-h-0">
+                {/* Table & Filter Toolbar Card */}
+                <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
                     {/* Toolbar */}
-                    <div className="p-3.5 sm:p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 shrink-0">
-                        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
+                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-xl">
                             <div className="relative flex-1">
-                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">search</span>
                                 <input
                                     type="text"
                                     placeholder={L('searchPh')}
                                     value={filters.query}
                                     onChange={(e) => handleFilterChange('query', e.target.value)}
-                                    className="w-full h-10 bg-[#f1f3f4] dark:bg-[#202124] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] rounded-full pl-10 pr-4 text-xs font-normal text-[#202124] dark:text-[#e8eaed] outline-none transition-all placeholder-[#5f6368] dark:placeholder-[#9aa0a6]"
+                                    className="w-full pl-9 pr-8 h-10 bg-[#f8f9fa] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
                                 />
+                                {filters.query && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleFilterChange('query', '')}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] cursor-pointer"
+                                    >
+                                        <span className="material-symbols-outlined text-[15px]">close</span>
+                                    </button>
+                                )}
                             </div>
+
                             <select
                                 value={filters.status}
                                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                                className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer"
+                                className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer"
                             >
                                 <option value="">{L('allRules')}</option>
                                 <option value="ACTIVE">{L('active')}</option>
@@ -744,9 +759,10 @@ const MarkupManagement = () => {
 
                         <div className="flex items-center gap-2">
                             <button
+                                type="button"
                                 onClick={() => fetchMarkups()}
                                 disabled={loading}
-                                className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
+                                className="size-10 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
                                 title={L('refresh')}
                             >
                                 <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
@@ -755,38 +771,40 @@ const MarkupManagement = () => {
                     </div>
 
                     {/* Table View */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        <table className="w-full border-collapse">
-                            <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
-                                <tr>
-                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colRule')}</th>
-                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colHotels')}</th>
-                                    <th className="px-4 py-3 text-center text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none w-24">{L('colPriority')}</th>
-                                    <th className="px-4 py-3 text-center text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none w-28">{L('colValue')}</th>
-                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none w-32">{L('colStatus')}</th>
-                                    <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none w-24">{L('colActions')}</th>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
+                                    <th className="px-4 py-3">{L('colRule')}</th>
+                                    <th className="px-4 py-3">{L('colHotels')}</th>
+                                    <th className="px-4 py-3 text-center w-28">{L('colPriority')}</th>
+                                    <th className="px-4 py-3 text-center w-32">{L('colValue')}</th>
+                                    <th className="px-4 py-3 text-center w-32">{L('colStatus')}</th>
+                                    <th className="px-4 py-3 text-right w-28">{L('colActions')}</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
                                 {loading && markups.length === 0 ? (
-                                    <TableSkeleton columns={6} rows={6} />
+                                    <TableSkeleton columns={6} rows={5} />
                                 ) : markups.length > 0 ? (
                                     markups.map((m) => (
                                         <tr
                                             key={m.id}
-                                            className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs"
+                                            className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors"
                                         >
                                             {/* Markup Rule */}
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="size-9 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium text-xs flex items-center justify-center shrink-0">
-                                                        <span className="material-symbols-outlined text-[18px]">trending_up</span>
+                                                    <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
+                                                        <span className="material-symbols-outlined text-[19px]">trending_up</span>
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-[#202124] dark:text-[#e8eaed] leading-tight mb-0.5">{m.name}</p>
-                                                        <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">
+                                                        <div className="font-semibold text-[#202124] dark:text-[#e8eaed] leading-tight">
+                                                            {m.name}
+                                                        </div>
+                                                        <div className="text-[10px] text-[#70757a] font-mono mt-0.5">
                                                             ID: #{m.id} {m.updatedBy || m.createdBy ? `• By: ${m.updatedBy || m.createdBy}` : ''}
-                                                        </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -799,30 +817,33 @@ const MarkupManagement = () => {
                                                             {m.hotels.slice(0, 2).map((h, idx) => (
                                                                 <span
                                                                     key={h.id || idx}
-                                                                    className="px-2.5 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] text-[11px] font-medium rounded-full truncate max-w-[160px]"
-                                                                    title={h.name}
+                                                                    className="px-2.5 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] text-[11px] font-medium rounded-full truncate max-w-[130px]"
+                                                                    title={h.hotelName || h.name}
                                                                 >
-                                                                    {h.name}
+                                                                    {h.hotelName || h.name}
                                                                 </span>
                                                             ))}
                                                             {m.hotels.length > 2 && (
-                                                                <span className="px-2 py-0.5 bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-[#bdc1c6] text-[11px] font-medium rounded-full">
+                                                                <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold rounded-full">
                                                                     +{m.hotels.length - 2}
                                                                 </span>
                                                             )}
                                                         </>
                                                     ) : (
-                                                        <span className="text-[#5f6368] dark:text-[#9aa0a6] text-[11px] italic">{L('allHotels')}</span>
+                                                        <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full">
+                                                            <span className="material-symbols-outlined text-[13px]">public</span>
+                                                            {L('allHotels')}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </td>
 
                                             {/* Priority */}
                                             <td className="px-4 py-3 text-center">
-                                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                                                <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                                                     m.priority === 1
-                                                        ? 'bg-[#fce8e6] text-[#c5221f] dark:bg-[#c5221f]/20 dark:text-[#f28b82]'
-                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'
+                                                        ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300'
                                                 }`}>
                                                     #{m.priority}
                                                 </span>
@@ -830,43 +851,44 @@ const MarkupManagement = () => {
 
                                             {/* Markup Value */}
                                             <td className="px-4 py-3 text-center">
-                                                <span className="font-semibold text-[#137333] dark:text-[#81c995] text-xs bg-[#e6f4ea] dark:bg-[#137333]/20 px-2.5 py-0.5 rounded-full">
+                                                <span className="font-bold text-emerald-700 dark:text-emerald-400 text-xs bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-full tabular-nums">
                                                     +{m.value}%
                                                 </span>
                                             </td>
 
                                             {/* Status with AppleSwitch */}
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center">
-                                                    <AppleSwitch
-                                                        checked={m.status === 'ACTIVE'}
-                                                        onChange={() => handleToggleStatus(m)}
-                                                        size="sm"
-                                                    />
-                                                </div>
+                                            <td className="px-4 py-3 text-center">
+                                                <AppleSwitch
+                                                    checked={m.status === 'ACTIVE'}
+                                                    onChange={() => handleToggleStatus(m)}
+                                                    size="sm"
+                                                />
                                             </td>
 
                                             {/* Actions */}
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button
+                                                        type="button"
                                                         onClick={() => setRevisionModal({ show: true, id: m.id, name: m.name })}
-                                                        className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#c5221f] dark:text-[#9aa0a6] dark:hover:bg-[#c5221f]/20 dark:hover:text-[#f28b82] transition-colors cursor-pointer"
-                                                        title="Revision History"
+                                                        className="size-8 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors flex items-center justify-center cursor-pointer"
+                                                        title="Revizyon Geçmişi"
                                                     >
                                                         <span className="material-symbols-outlined text-[18px]">history</span>
                                                     </button>
                                                     <button
+                                                        type="button"
                                                         onClick={() => handleEditMarkup(m)}
-                                                        className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer"
-                                                        title="Edit"
+                                                        className="size-8 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer"
+                                                        title="Düzenle"
                                                     >
                                                         <span className="material-symbols-outlined text-[18px]">edit</span>
                                                     </button>
                                                     <button
+                                                        type="button"
                                                         onClick={() => handleDeleteMarkup(m)}
-                                                        className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors cursor-pointer"
-                                                        title="Delete"
+                                                        className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors flex items-center justify-center cursor-pointer"
+                                                        title="Sil"
                                                     >
                                                         <span className="material-symbols-outlined text-[18px]">delete</span>
                                                     </button>
@@ -890,53 +912,21 @@ const MarkupManagement = () => {
                         </table>
                     </div>
 
-                    {/* Footer Pagination */}
+                    {/* Pagination */}
                     {totalItems > 0 && (
-                        <div className="px-4 py-3 border-t border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 shrink-0 bg-[#f8f9fa]/50 dark:bg-[#202124]/30">
-                            <span className="text-xs font-normal text-[#5f6368] dark:text-[#9aa0a6]">
-                                {L('showing')} {totalItems > 0 ? filters.page * filters.size + 1 : 0} {L('to2')} {Math.min((filters.page + 1) * filters.size, totalItems)} {L('of')} {totalItems} {L('rules')}
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                                <button
-                                    disabled={filters.page === 0}
-                                    onClick={() => handlePageChange(filters.page - 1)}
-                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] disabled:opacity-30 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all cursor-pointer"
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
-                                </button>
-                                <div className="flex items-center gap-1">
-                                    {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                                        let pageNum = i;
-                                        if (totalPages > 5 && filters.page > 2) {
-                                            pageNum = Math.min(filters.page - 2 + i, totalPages - 5 + i);
-                                        }
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => handlePageChange(pageNum)}
-                                                className={`size-8 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                                                    filters.page === pageNum
-                                                        ? 'bg-[#1a73e8] text-white shadow-xs'
-                                                        : 'text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
-                                                }`}
-                                            >
-                                                {pageNum + 1}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <button
-                                    disabled={filters.page >= totalPages - 1 || totalPages === 0}
-                                    onClick={() => handlePageChange(filters.page + 1)}
-                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] disabled:opacity-30 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all cursor-pointer"
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
-                                </button>
-                            </div>
+                        <div className="border-t border-[#dadce0] dark:border-[#3c4043]">
+                            <Pagination
+                                currentPage={filters.page}
+                                totalPages={totalPages}
+                                pageSize={filters.size}
+                                totalElements={totalItems}
+                                onPageChange={handlePageChange}
+                                onPageSizeChange={(s) => setFilters(prev => ({ ...prev, size: s, page: 0 }))}
+                            />
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
 
             {/* Notification Toast */}
             {toast.show && (

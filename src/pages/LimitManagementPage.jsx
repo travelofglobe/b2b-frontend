@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { financeService } from '../services/financeService';
 import { agencyService } from '../services/agencyService';
@@ -9,12 +9,11 @@ import { useToast } from '../context/ToastContext';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const fmt = (num) => {
-    if (num === null || num === undefined) return '-';
+    if (num === null || num === undefined) return '0,00';
     return Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 // Format a raw digit string with tr-TR thousand separators (no decimals).
-// "30000" → "30.000", "0" → "0", "" → ""
 const formatInteger = (digits) => {
     if (!digits || digits === '') return '';
     const num = parseInt(digits, 10);
@@ -45,20 +44,20 @@ const AGENCY_TYPE_OPTIONS = [
 const UsageBar = ({ rate }) => {
     const pct = Math.min(Math.max(Number(rate) || 0, 0), 100);
     const color =
-        pct >= 90 ? 'bg-red-500'
+        pct >= 90 ? 'bg-rose-500'
         : pct >= 70 ? 'bg-amber-400'
         : 'bg-emerald-500';
 
     return (
         <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden min-w-[80px]">
+            <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden min-w-[70px]">
                 <div
                     className={`h-full rounded-full transition-all duration-500 ${color}`}
                     style={{ width: `${pct}%` }}
                 />
             </div>
-            <span className={`text-xs font-semibold tabular-nums w-8 text-right ${
-                pct >= 90 ? 'text-red-600 dark:text-red-400'
+            <span className={`text-[11px] font-bold tabular-nums w-8 text-right ${
+                pct >= 90 ? 'text-rose-600 dark:text-rose-400'
                 : pct >= 70 ? 'text-amber-600 dark:text-amber-400'
                 : 'text-emerald-600 dark:text-emerald-400'
             }`}>
@@ -73,22 +72,22 @@ const UsageBar = ({ rate }) => {
 const StatusBadge = ({ status }) => {
     if (status === 'ACTIVE') {
         return (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
                 Aktif
             </span>
         );
     }
     if (status === 'PASSIVE') {
         return (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                <span className="size-1.5 rounded-full bg-slate-400" />
                 Pasif
             </span>
         );
     }
     return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             -
         </span>
     );
@@ -97,80 +96,126 @@ const StatusBadge = ({ status }) => {
 // ─── Warning Badge ─────────────────────────────────────────────────────────────
 
 const WarningBadge = () => (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 ml-1">
-        <span className="material-symbols-outlined text-[12px]">warning</span>
-        Uyarı
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+        <span className="material-symbols-outlined text-[13px]">warning</span>
+        Limit Uyarı
     </span>
 );
 
 // ─── Summary Cards ─────────────────────────────────────────────────────────────
 
-const SummaryCards = ({ summary, loading }) => {
+const SummaryCards = ({ summary, loading, limits = [], totalItems = 0 }) => {
+    const computed = useMemo(() => {
+        if (summary) {
+            const credit = Number(summary.totalCreditLimit) || 0;
+            const addition = Number(summary.totalAdditionLimit) || 0;
+            const total = summary.totalLimit != null ? Number(summary.totalLimit) : (credit + addition);
+            const used = Number(summary.totalUsedLimit) || 0;
+            const available = summary.totalAvailableLimit != null ? Number(summary.totalAvailableLimit) : Math.max(0, total - used);
+            const rate = summary.usedRate != null ? Number(summary.usedRate) : (total > 0 ? (used / total) * 100 : 0);
+            const count = summary.totalLimitCount ?? totalItems ?? limits.length ?? 0;
+
+            return { credit, addition, total, used, available, count, rate };
+        }
+
+        if (limits && limits.length > 0) {
+            let totalCredit = 0;
+            let totalAddition = 0;
+            let totalUsed = 0;
+
+            limits.forEach(item => {
+                totalCredit += Number(item.creditLimit) || 0;
+                totalAddition += Number(item.additionLimit) || 0;
+                totalUsed += Number(item.totalUsedLimit ?? ((Number(item.usedCreditLimit) || 0) + (Number(item.usedAdditionLimit) || 0))) || 0;
+            });
+
+            const total = totalCredit + totalAddition;
+            const available = Math.max(0, total - totalUsed);
+            const rate = total > 0 ? (totalUsed / total) * 100 : 0;
+
+            return {
+                credit: totalCredit,
+                addition: totalAddition,
+                total: total,
+                used: totalUsed,
+                available: available,
+                count: totalItems || limits.length,
+                rate: rate,
+            };
+        }
+
+        return {
+            credit: 0,
+            addition: 0,
+            total: 0,
+            used: 0,
+            available: 0,
+            count: totalItems || 0,
+            rate: 0,
+        };
+    }, [summary, limits, totalItems]);
+
     const cards = [
         {
-            label: 'Toplam Credit Limit',
-            value: summary ? fmt(summary.totalCreditLimit) : '—',
-            sub: summary ? `${summary.totalLimitCount ?? 0} adet limit tanımı` : '',
-            color: 'text-slate-800 dark:text-slate-100',
+            label: 'Toplam Kredi Limiti',
+            value: fmt(computed.credit),
+            sub: `${computed.count} adet limit tanımı`,
+            color: 'text-[#202124] dark:text-white',
             icon: 'credit_card',
-            iconBg: 'bg-slate-100 dark:bg-slate-700',
-            iconColor: 'text-slate-500 dark:text-slate-300',
-            border: 'border-slate-200 dark:border-slate-700',
+            iconBg: 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20',
+            iconColor: 'text-[#1a73e8] dark:text-[#8ab4f8]',
         },
         {
-            label: 'Toplam Addition Limit',
-            value: summary ? fmt(summary.totalAdditionLimit) : '—',
-            sub: summary ? `Toplam: ${fmt(summary.totalLimit)}` : '',
+            label: 'Toplam Ek Limit',
+            value: fmt(computed.addition),
+            sub: `Toplam: ${fmt(computed.total)}`,
             color: 'text-violet-600 dark:text-violet-400',
             icon: 'add_circle',
             iconBg: 'bg-violet-50 dark:bg-violet-900/20',
-            iconColor: 'text-violet-500 dark:text-violet-400',
-            border: 'border-violet-100 dark:border-violet-900/30',
+            iconColor: 'text-violet-600 dark:text-violet-400',
         },
         {
-            label: 'Toplam Used Limit',
-            value: summary ? fmt(summary.totalUsedLimit) : '—',
-            sub: summary ? `Kullanım oranı: %${Number(summary.usedRate ?? 0).toFixed(0)}` : '',
-            color: 'text-red-600 dark:text-red-400',
+            label: 'Kullanılan Limit',
+            value: fmt(computed.used),
+            sub: `Kullanım: %${computed.rate.toFixed(0)}`,
+            color: 'text-rose-600 dark:text-rose-400',
             icon: 'trending_up',
-            iconBg: 'bg-red-50 dark:bg-red-900/20',
-            iconColor: 'text-red-500 dark:text-red-400',
-            border: 'border-red-100 dark:border-red-900/30',
+            iconBg: 'bg-rose-50 dark:bg-rose-900/20',
+            iconColor: 'text-rose-600 dark:text-rose-400',
         },
         {
-            label: 'Toplam Available Limit',
-            value: summary ? fmt(summary.totalAvailableLimit) : '—',
-            sub: 'Kalan kullanılabilir',
+            label: 'Kullanılabilir Limit',
+            value: fmt(computed.available),
+            sub: 'Kalan serbest limit',
             color: 'text-emerald-600 dark:text-emerald-400',
             icon: 'savings',
             iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
-            iconColor: 'text-emerald-500 dark:text-emerald-400',
-            border: 'border-emerald-100 dark:border-emerald-900/30',
+            iconColor: 'text-emerald-600 dark:text-emerald-400',
         },
     ];
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {cards.map((c) => (
                 <div
                     key={c.label}
-                    className={`border ${c.border} rounded-xl p-5 bg-white dark:bg-[#2c2c2e] shadow-sm flex items-center gap-4`}
+                    className="border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 bg-white dark:bg-[#202124] shadow-xs hover:shadow-sm transition-all duration-200 flex items-center gap-4"
                 >
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${c.iconBg}`}>
+                    <div className={`size-11 rounded-2xl flex items-center justify-center shrink-0 ${c.iconBg}`}>
                         <span className={`material-symbols-outlined text-[22px] ${c.iconColor}`}>{c.icon}</span>
                     </div>
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
                             {c.label}
                         </span>
                         {loading ? (
-                            <div className="h-7 w-32 bg-slate-200 dark:bg-slate-700 animate-pulse rounded mt-0.5" />
+                            <div className="h-7 w-28 bg-slate-200 dark:bg-slate-700 animate-pulse rounded mt-0.5" />
                         ) : (
-                            <span className={`text-2xl font-bold tabular-nums leading-tight ${c.color}`}>
+                            <span className={`text-2xl sm:text-3xl font-bold tabular-nums leading-tight tracking-tight ${c.color}`}>
                                 {c.value}
                             </span>
                         )}
-                        <span className="text-xs text-slate-400 dark:text-slate-500">{c.sub}</span>
+                        <span className="text-[11px] text-[#70757a] mt-0.5">{c.sub}</span>
                     </div>
                 </div>
             ))}
@@ -178,23 +223,15 @@ const SummaryCards = ({ summary, loading }) => {
     );
 };
 
-// ─── Create / Edit Modal ───────────────────────────────────────────────────────
-
 // ─── Agency Type Badge ─────────────────────────────────────────────────────────
 
 const agencyTypeBadgeClass = (type) => {
-    if (type === 'RSA')    return 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300';
-    if (type === 'AGENCY') return 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300';
-    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+    if (type === 'RSA')    return 'bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 border border-violet-200 dark:border-violet-800/40';
+    if (type === 'AGENCY') return 'bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-200 dark:border-sky-800/40';
+    return 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40';
 };
 
 // ─── Formatted Number Input ─────────────────────────────────────────────────────
-//
-// A text input that displays an integer with tr-TR thousand separators (e.g.
-// "30000" → "30.000") while keeping the parent state as a raw digit string.
-// Cursor position is preserved across formatting changes, and non-digit
-// input is blocked at the keyboard level (with a paste safety net in
-// handleChange).
 
 const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, className }) => {
     const inputRef = useRef(null);
@@ -205,16 +242,13 @@ const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, classNa
         const newValue = input.value;
         const cursorPos = input.selectionStart ?? 0;
 
-        // Count digits that appear before the cursor in the *new* raw text.
         let digitsBeforeCursor = 0;
         for (let i = 0; i < cursorPos && i < newValue.length; i++) {
             if (/\d/.test(newValue[i])) digitsBeforeCursor++;
         }
 
-        // Extract digits only (strips thousand separators, letters, etc.)
         let digits = newValue.replace(/\D/g, '');
 
-        // Enforce maxDigits — extra digits are silently truncated.
         if (maxDigits && digits.length > maxDigits) {
             digits = digits.slice(0, maxDigits);
             if (digitsBeforeCursor > maxDigits) digitsBeforeCursor = maxDigits;
@@ -222,7 +256,6 @@ const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, classNa
 
         onChange(digits);
 
-        // After formatting, find where the same logical digit position lands.
         const newDisplay = formatInteger(digits);
         let newPos = 0;
         let count = 0;
@@ -236,8 +269,6 @@ const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, classNa
             }
             newPos = i + 1;
         }
-        // If fewer digits survived than the cursor counted (e.g. leading
-        // zeros collapsed by parseInt), park at the end.
         if (count < digitsBeforeCursor) newPos = newDisplay.length;
 
         requestAnimationFrame(() => {
@@ -253,7 +284,7 @@ const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, classNa
             'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End',
         ];
         if (allowedKeys.includes(e.key)) return;
-        if (e.ctrlKey || e.metaKey) return;   // allow copy/paste/cut/select-all
+        if (e.ctrlKey || e.metaKey) return;
         if (!/\d/.test(e.key)) e.preventDefault();
     };
 
@@ -287,15 +318,12 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
     const isEdit = !!editData;
     const toast = useToast();
 
-    // On open: reset form and load agencies (create mode only)
     useEffect(() => {
         if (!isOpen) return;
         setError(null);
         setSaving(false);
 
         if (isEdit) {
-            // Safely convert backend values to raw digit strings (handles
-            // numbers, strings, null, and accidental float values).
             setCreditLimit(editData.creditLimit != null ? String(Math.trunc(Number(editData.creditLimit))) : '');
             setAdditionLimit(editData.additionLimit != null ? String(Math.trunc(Number(editData.additionLimit))) : '0');
             setStatus(editData.status ?? 'ACTIVE');
@@ -306,7 +334,6 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
             setAdditionLimit('0');
             setStatus('ACTIVE');
             setSelectedAgencyId('');
-            // Fetch full agency list on modal open
             const ctrl = new AbortController();
             setAgenciesLoading(true);
             const filterAgencyType = agencyType === 'RSA' ? 'AGENCY' : undefined;
@@ -334,7 +361,6 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
         if (!creditLimit || isNaN(Number(creditLimit)) || Number(creditLimit) <= 0) {
             setError('Geçerli bir credit limit girin.'); return;
         }
-        // Addition Limit: required, must be >= 0, max 6 digits (999999).
         if (!additionLimit || isNaN(Number(additionLimit)) || Number(additionLimit) < 0) {
             setError('Geçerli bir addition limit girin.'); return;
         }
@@ -374,48 +400,48 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-[1000] flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#2c2c2e] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden">
+        <div className="fixed inset-0 bg-[#202124]/40 backdrop-blur-xs z-[1000] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-[#202124] rounded-2xl shadow-2xl w-full max-w-lg border border-[#dadce0] dark:border-[#3c4043] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8]">tune</span>
+                        <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
+                            <span className="material-symbols-outlined text-[20px]">tune</span>
                         </div>
                         <div>
-                            <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                            <h2 className="text-base font-bold text-[#202124] dark:text-white">
                                 {isEdit ? 'Limit Düzenle' : `${agencyType === 'GSA' ? 'GSA' : 'RSA'} → Agency Limit Tanımla`}
                             </h2>
-                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
                                 {agencyType === 'GSA' ? 'GSA → RSA / Agency' : 'RSA → Agency'}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors cursor-pointer"
+                        className="size-8 rounded-lg flex items-center justify-center text-[#70757a] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                 </div>
 
                 {/* Info banner */}
-                <div className="mx-6 mt-4 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
-                    Her kademe kendi verdiği limitten sorumludur. Üst kademe limiti, alt kademe için matematiksel bir üst sınır değildir.
+                <div className="mx-6 mt-4 px-3.5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 text-xs text-blue-700 dark:text-blue-300 leading-relaxed flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[17px] text-[#1a73e8] shrink-0">info</span>
+                    <span>Her kademe kendi verdiği limitten sorumludur. Üst kademe limiti alt kademe için matematiksel bir üst sınır değildir.</span>
                 </div>
 
                 {/* Body */}
                 <div className="px-6 py-5 flex flex-col gap-4">
-
-                    {/* ── Agency dropdown — create only ── */}
+                    {/* Agency dropdown — create only */}
                     {!isEdit && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
                                 Agency Adı
                             </label>
 
                             {agenciesLoading ? (
-                                <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse flex items-center px-3 gap-2">
+                                <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse flex items-center px-3 gap-2">
                                     <span className="material-symbols-outlined text-[16px] text-slate-400 animate-spin">progress_activity</span>
                                     <span className="text-xs text-slate-400">Acenteler yükleniyor...</span>
                                 </div>
@@ -425,7 +451,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                                         <select
                                             value={selectedAgencyId}
                                             onChange={(e) => setSelectedAgencyId(e.target.value)}
-                                            className="w-full h-10 pl-3 pr-9 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer appearance-none"
+                                            className="w-full h-10 pl-3.5 pr-9 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors cursor-pointer appearance-none shadow-2xs"
                                         >
                                             <option value="">Seçiniz...</option>
                                             {agencies.map((ag) => (
@@ -434,28 +460,28 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                                                 </option>
                                             ))}
                                         </select>
-                                        <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-[18px] text-slate-400">
+                                        <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2.5 text-[18px] text-[#70757a]">
                                             expand_more
                                         </span>
                                     </div>
 
                                     {/* Selected agency detail card */}
                                     {selectedAgency && (
-                                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                                            <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">business_center</span>
+                                        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043]">
+                                            <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">business_center</span>
                                             </div>
                                             <div className="flex flex-col min-w-0 flex-1">
-                                                <span className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">
+                                                <span className="text-xs font-semibold text-[#202124] dark:text-white truncate">
                                                     {selectedAgency.name}
                                                 </span>
                                                 {selectedAgency.email && (
-                                                    <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
+                                                    <span className="text-[10px] text-[#70757a] truncate">
                                                         {selectedAgency.email}
                                                     </span>
                                                 )}
                                             </div>
-                                            <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${agencyTypeBadgeClass(selectedAgency.agencyType)}`}>
+                                            <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${agencyTypeBadgeClass(selectedAgency.agencyType)}`}>
                                                 {selectedAgency.agencyType}
                                             </span>
                                         </div>
@@ -465,15 +491,15 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         </div>
                     )}
 
-                    {/* ── Edit: show agency as read-only ── */}
+                    {/* Edit: show agency as read-only */}
                     {isEdit && editData?.agency && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Agency</label>
-                            <div className="flex items-center gap-3 px-3 h-10 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg">
-                                <span className="material-symbols-outlined text-[16px] text-slate-400">business_center</span>
-                                <span className="text-sm text-slate-600 dark:text-slate-300 flex-1 truncate">{editData.agency.name}</span>
+                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Agency</label>
+                            <div className="flex items-center gap-3 px-3.5 h-10 bg-slate-50 dark:bg-[#303134]/50 border border-[#dadce0] dark:border-[#3c4043] rounded-xl">
+                                <span className="material-symbols-outlined text-[17px] text-[#70757a]">business_center</span>
+                                <span className="text-xs font-semibold text-[#202124] dark:text-white flex-1 truncate">{editData.agency.name}</span>
                                 {editData.agency.agencyType && (
-                                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${agencyTypeBadgeClass(editData.agency.agencyType)}`}>
+                                    <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${agencyTypeBadgeClass(editData.agency.agencyType)}`}>
                                         {editData.agency.agencyType}
                                     </span>
                                 )}
@@ -481,60 +507,60 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         </div>
                     )}
 
-                    {/* ── Credit Limit ── */}
+                    {/* Credit Limit */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Credit Limit</label>
+                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Credit Limit</label>
                         <FormattedNumberInput
                             value={creditLimit}
                             onChange={setCreditLimit}
                             placeholder="10.000"
-                            className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
+                            className="h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors shadow-2xs font-mono font-medium"
                         />
                     </div>
 
-                    {/* ── Addition Limit ── */}
+                    {/* Addition Limit */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Addition Limit</label>
+                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Addition Limit</label>
                         <FormattedNumberInput
                             value={additionLimit}
                             onChange={setAdditionLimit}
                             placeholder="0"
                             maxDigits={6}
-                            className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
+                            className="h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors shadow-2xs font-mono font-medium"
                         />
                     </div>
 
-                    {/* ── Used Limit — create only, read-only ── */}
+                    {/* Used Limit — create only, read-only */}
                     {!isEdit && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                Kullanılan Limit <span className="normal-case font-normal text-slate-400">(Salt Okunur)</span>
+                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
+                                Kullanılan Limit <span className="normal-case font-normal text-[#70757a]">(Salt Okunur)</span>
                             </label>
                             <input
                                 type="number"
                                 value="0"
                                 readOnly
-                                className="h-10 px-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 outline-none cursor-not-allowed"
+                                className="h-10 px-3.5 bg-slate-50 dark:bg-[#303134]/50 border border-[#dadce0] dark:border-[#3c4043] rounded-xl text-xs text-[#70757a] outline-none cursor-not-allowed font-mono"
                             />
                         </div>
                     )}
 
-                    {/* ── Available limit preview ── */}
-                    <div className="px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Toplam Limit (Credit + Addition):</span>
-                        <span className="text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400">
+                    {/* Available limit preview */}
+                    <div className="px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                        <span className="text-xs text-[#5f6368] dark:text-[#9aa0a6] font-medium">Toplam Limit (Credit + Addition):</span>
+                        <span className="text-sm font-bold tabular-nums text-[#1a73e8] dark:text-blue-400">
                             {(creditLimit || additionLimit) ? fmt(totalLimit) : '—'}
                         </span>
                     </div>
 
-                    {/* ── Status — edit only ── */}
+                    {/* Status — edit only */}
                     {isEdit && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Durum</label>
+                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Durum</label>
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
-                                className="h-10 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                className="h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs"
                             >
                                 <option value="ACTIVE">Aktif</option>
                                 <option value="PASSIVE">Pasif</option>
@@ -542,31 +568,35 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         </div>
                     )}
 
-                    {/* ── Error ── */}
+                    {/* Error */}
                     {error && (
-                        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40">
-                            <span className="material-symbols-outlined text-[16px] text-red-500">error</span>
-                            <span className="text-xs text-red-600 dark:text-red-400">{error}</span>
+                        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/40 text-xs text-rose-600 dark:text-rose-400">
+                            <span className="material-symbols-outlined text-[16px] text-rose-500">error</span>
+                            <span>{error}</span>
                         </div>
                     )}
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
+                <div className="px-6 py-4 border-t border-[#dadce0] dark:border-[#3c4043] flex justify-end gap-3 bg-slate-50/50 dark:bg-[#202124]">
                     <button
                         onClick={onClose}
                         disabled={saving}
-                        className="h-9 px-5 rounded-full border border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer disabled:opacity-50"
+                        className="h-10 px-5 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors cursor-pointer disabled:opacity-50"
                     >
-                        İptal
+                        Vazgeç
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className="h-9 px-6 rounded-full bg-[#1a73e8] hover:bg-[#1558b0] text-white text-sm font-medium transition-colors cursor-pointer disabled:opacity-60 flex items-center gap-2"
+                        className="h-10 px-6 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                     >
-                        {saving && <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>}
-                        {isEdit ? 'Güncelle' : 'Kaydet'}
+                        {saving ? (
+                            <div className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            <span className="material-symbols-outlined text-[17px]">check</span>
+                        )}
+                        <span>{saving ? 'Kaydediliyor...' : (isEdit ? 'Güncelle' : 'Kaydet')}</span>
                     </button>
                 </div>
             </div>
@@ -574,21 +604,23 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
     );
 };
 
-// ─── LimitManagementPage ──────────────────────────────────────────────────────
+// ─── LimitManagementPage ───────────────────────────────────────────────────────
 
 const LimitManagementPage = () => {
     const navigate = useNavigate();
     const { agencyType } = useAuth();
 
-    // ── Filter state ──────────────────────────────────────────────────────────
+    // Summary state
+    const [summary, setSummary] = useState(null);
+    const [summaryLoading, setSummaryLoading] = useState(false);
+
+    // Filter inputs
     const [queryInput, setQueryInput] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
-    const [agencyTypeFilter, setAgencyTypeFilter] = useState(
-        agencyType === 'RSA' ? 'AGENCY' : ''
-    );
+    const [agencyTypeFilter, setAgencyTypeFilter] = useState(agencyType === 'RSA' ? 'AGENCY' : '');
     const [currencyFilter, setCurrencyFilter] = useState('');
 
-    // ── Applied filters (trigger fetch) ───────────────────────────────────────
+    // Applied filters
     const [appliedFilters, setAppliedFilters] = useState({
         query: '',
         status: '',
@@ -596,7 +628,7 @@ const LimitManagementPage = () => {
         currency: '',
     });
 
-    // ── Table state ───────────────────────────────────────────────────────────
+    // Table state
     const [limits, setLimits] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -605,48 +637,29 @@ const LimitManagementPage = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
-    // ── Summary ───────────────────────────────────────────────────────────────
-    const [summary, setSummary] = useState(null);
-    const [summaryLoading, setSummaryLoading] = useState(false);
-
-    // ── Currency list ─────────────────────────────────────────────────────────
-    const [currencies, setCurrencies] = useState([]);
-
-    // ── Modal ─────────────────────────────────────────────────────────────────
+    // Modal state
     const [modalOpen, setModalOpen] = useState(false);
     const [editData, setEditData] = useState(null);
 
     const queryTimerRef = useRef(null);
 
-    // AGENCY users should not access this page
-    useEffect(() => {
-        if (agencyType === 'AGENCY') {
-            navigate('/finance', { replace: true });
-        }
-    }, [agencyType, navigate]);
-
-    // Fetch currencies once
-    useEffect(() => {
-        const ctrl = new AbortController();
-        financeService.listActiveCurrencies(ctrl.signal)
-            .then((list) => {
-                if (Array.isArray(list)) setCurrencies(list.filter((c) => c.status === 'ACTIVE'));
-            })
-            .catch(() => {});
-        return () => ctrl.abort();
-    }, []);
-
-    // Fetch summary (and refresh after mutations)
+    // Fetch summary on mount
     const fetchSummary = useCallback(async () => {
         setSummaryLoading(true);
         try {
-            const res = await financeService.getLimitSummary();
-            setSummary(res);
-        } catch { /* non-critical */ }
-        finally { setSummaryLoading(false); }
+            const data = await financeService.getLimitSummary();
+            setSummary(data);
+        } catch (err) {
+            console.error('getLimitSummary error:', err);
+            setSummary(null);
+        } finally {
+            setSummaryLoading(false);
+        }
     }, []);
 
-    useEffect(() => { fetchSummary(); }, [fetchSummary]);
+    useEffect(() => {
+        fetchSummary();
+    }, [fetchSummary]);
 
     // Fetch limits on filter/page change
     useEffect(() => {
@@ -732,272 +745,285 @@ const LimitManagementPage = () => {
     const showAgencyTypeFilter = agencyType === 'GSA';
 
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
-            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0">
-
-                {/* ── Page Header ──────────────────────────────────────────── */}
-                <div className="flex items-start justify-between mb-5">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                            <span className="material-symbols-outlined text-[26px] text-[#1a73e8]">tune</span>
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {/* Sticky Header Bar */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
+                            <span className="material-symbols-outlined text-[24px]">tune</span>
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Limit Yönetimi</h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Limit Yönetimi</h1>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                                    {agencyType}
+                                </span>
+                            </div>
+                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
                                 {agencyType === 'GSA'
-                                    ? 'RSA ve acentelere tanımlı kredi limitlerini yönetin'
+                                    ? 'RSA ve acentelere tanımlı kredi limitlerini ve risk dağılımını yönetin'
                                     : 'Acentelere tanımlı kredi limitlerini yönetin'}
                             </p>
                         </div>
                     </div>
 
-                    {canCreate && (
+                    <div className="flex items-center gap-2.5">
                         <button
-                            onClick={handleOpenCreate}
-                            className="flex items-center gap-2 h-10 px-5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition-colors cursor-pointer shrink-0"
+                            type="button"
+                            onClick={() => navigate('/finance?tab=transactions')}
+                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all shadow-xs cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-[18px]">add</span>
-                            Limit Tanımla
+                            <span className="material-symbols-outlined text-[17px] text-[#1a73e8]">receipt_long</span>
+                            <span>Hesap Hareketleri</span>
                         </button>
-                    )}
+                        {canCreate && (
+                            <button
+                                type="button"
+                                onClick={handleOpenCreate}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                <span>Limit Tanımla</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
+            </header>
 
-                {/* ── Summary Cards ─────────────────────────────────────────── */}
-                <SummaryCards summary={summary} loading={summaryLoading} />
+            {/* Main Content Area */}
+            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-5">
+                {/* 4 Summary Cards */}
+                <SummaryCards summary={summary} loading={summaryLoading} limits={limits} totalItems={totalItems} />
 
-                {/* ── Main Content Card ──────────────────────────────────────── */}
-                <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-[#2c2c2e] rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-
+                {/* Table & Toolbar Container */}
+                <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
                     {/* Filter Bar */}
-                    <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40">
-                        <div className="flex flex-wrap items-end gap-3">
-                            {/* Query */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
-                                    {agencyType === 'GSA' ? 'GSA / RSA Ara' : 'Acente Ara'}
-                                </label>
-                                <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-2.5 top-2 text-[16px] text-slate-400">search</span>
-                                    <input
-                                        type="text"
-                                        placeholder="Arama... (min. 3 karakter)"
-                                        value={queryInput}
-                                        onChange={(e) => handleQueryChange(e.target.value)}
-                                        className="h-9 pl-8 pr-3 w-52 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Currency */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Para Birimi</label>
-                                <select
-                                    value={currencyFilter}
-                                    onChange={(e) => setCurrencyFilter(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
-                                >
-                                    <option value="">Tümü</option>
-                                    {currencies.map((c) => (
-                                        <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Status */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Durum</label>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
-                                >
-                                    {LIMIT_STATUS_OPTIONS.map((o) => (
-                                        <option key={o.value} value={o.value}>{o.label}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Agency Type — GSA only */}
-                            {showAgencyTypeFilter && (
-                                <div className="flex flex-col gap-1">
-                                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Acente Tipi</label>
-                                    <select
-                                        value={agencyTypeFilter}
-                                        onChange={(e) => setAgencyTypeFilter(e.target.value)}
-                                        className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 bg-slate-50/50 dark:bg-[#202124]">
+                        <div className="flex flex-wrap items-center gap-3 flex-1">
+                            {/* Search */}
+                            <div className="relative min-w-[220px] flex-1 max-w-xs">
+                                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">search</span>
+                                <input
+                                    type="text"
+                                    placeholder={agencyType === 'GSA' ? 'GSA / RSA / Acente ara...' : 'Acente ara...'}
+                                    value={queryInput}
+                                    onChange={(e) => handleQueryChange(e.target.value)}
+                                    className="w-full pl-9 pr-7 h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
+                                />
+                                {queryInput && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleQueryChange('')}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] cursor-pointer"
                                     >
-                                        {AGENCY_TYPE_OPTIONS.map((o) => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                        <span className="material-symbols-outlined text-[15px]">close</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Agency Type Filter */}
+                            {showAgencyTypeFilter && (
+                                <select
+                                    value={agencyTypeFilter}
+                                    onChange={(e) => setAgencyTypeFilter(e.target.value)}
+                                    className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
+                                >
+                                    {AGENCY_TYPE_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label === 'Tümü' ? 'Tüm Türler' : opt.label}
+                                        </option>
+                                    ))}
+                                </select>
                             )}
 
-                            {/* Buttons */}
-                            <div className="flex items-center gap-2 pb-0.5">
-                                <button
-                                    onClick={handleSearch}
-                                    className="flex items-center gap-2 h-9 px-5 rounded-full bg-[#1a73e8] hover:bg-[#1558b0] text-white text-sm font-medium transition-colors cursor-pointer"
-                                >
-                                    <span className="material-symbols-outlined text-[16px]">search</span>
-                                    Ara
-                                </button>
-                                <button
-                                    onClick={handleClear}
-                                    className="flex items-center gap-2 h-9 px-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors cursor-pointer"
-                                >
-                                    <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-                                    Temizle
-                                </button>
-                            </div>
+                            {/* Status Filter */}
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
+                            >
+                                {LIMIT_STATUS_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label === 'Tümü' ? 'Tüm Durumlar' : opt.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {/* Currency Filter */}
+                            <select
+                                value={currencyFilter}
+                                onChange={(e) => setCurrencyFilter(e.target.value)}
+                                className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
+                            >
+                                <option value="">Tüm Para Birimleri</option>
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                                <option value="TRY">TRY</option>
+                                <option value="GBP">GBP</option>
+                            </select>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleSearch}
+                                className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[17px]">search</span>
+                                <span>Filtrele</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClear}
+                                className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-slate-700 dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium transition-all shadow-2xs cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[17px]">restart_alt</span>
+                                <span>Sıfırla</span>
+                            </button>
                         </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="flex-1 overflow-auto">
+                    {/* Table View */}
+                    <div className="overflow-x-auto">
                         {error ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <span className="material-symbols-outlined text-4xl text-red-400">error</span>
-                                <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-                                <button onClick={handleSearch} className="text-sm text-[#1a73e8] hover:underline cursor-pointer">Tekrar dene</button>
+                            <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                <div className="size-12 rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[26px]">error</span>
+                                </div>
+                                <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">{error}</p>
+                                <button
+                                    type="button"
+                                    onClick={handleSearch}
+                                    className="text-xs text-[#1a73e8] hover:underline cursor-pointer font-semibold"
+                                >
+                                    Yeniden Dene
+                                </button>
                             </div>
                         ) : loading ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 animate-spin">progress_activity</span>
-                                <p className="text-sm text-slate-400">Veriler yükleniyor...</p>
+                            <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                <div className="size-9 border-3 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                <span className="text-xs text-[#70757a]">Limitler yükleniyor...</span>
                             </div>
                         ) : limits.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700">tune</span>
-                                <p className="text-sm text-slate-400 dark:text-slate-500">Kayıt bulunamadı.</p>
+                            <div className="flex flex-col items-center justify-center py-16 gap-3">
+                                <div className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                    <span className="material-symbols-outlined text-[26px]">tune</span>
+                                </div>
+                                <p className="text-xs font-medium text-[#70757a]">Tanımlı limit kaydı bulunamadı</p>
                                 {canCreate && (
                                     <button
+                                        type="button"
                                         onClick={handleOpenCreate}
-                                        className="flex items-center gap-1.5 text-sm text-[#1a73e8] hover:underline cursor-pointer"
+                                        className="text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
                                     >
-                                        <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                                        İlk limiti tanımla
+                                        İlk limiti şimdi tanımlayın
                                     </button>
                                 )}
                             </div>
                         ) : (
-                            <table className="w-full text-sm border-collapse">
+                            <table className="w-full text-xs text-left border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 sticky top-0 z-10">
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>
-                                            {agencyType === 'GSA' ? 'RSA / Agency Adı' : 'Agency Adı'}
+                                    <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
+                                        <th className="px-4 py-3" rowSpan={2}>
+                                            {agencyType === 'GSA' ? 'RSA / Acente Bilgisi' : 'Acente Bilgisi'}
                                         </th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Para Birimi</th>
+                                        <th className="px-4 py-3" rowSpan={2}>Birim</th>
                                         {/* Credit Group */}
-                                        <th colSpan={2} className="text-center px-4 py-1.5 text-xs font-bold text-sky-700 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50 dark:bg-sky-900/20 border-x border-sky-200 dark:border-sky-800/40">
-                                            Credit
+                                        <th colSpan={2} className="px-4 py-1.5 text-center text-sky-700 dark:text-sky-300 bg-sky-50/50 dark:bg-sky-900/20 border-x border-[#dadce0]/70 dark:border-[#3c4043]">
+                                            Kredi Limiti
                                         </th>
                                         {/* Addition Group */}
-                                        <th colSpan={2} className="text-center px-4 py-1.5 text-xs font-bold text-violet-700 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50 dark:bg-violet-900/20 border-x border-violet-200 dark:border-violet-800/40">
-                                            Addition
+                                        <th colSpan={2} className="px-4 py-1.5 text-center text-violet-700 dark:text-violet-300 bg-violet-50/50 dark:bg-violet-900/20 border-r border-[#dadce0]/70 dark:border-[#3c4043]">
+                                            Ek Limit (Addition)
                                         </th>
-                                        {/* Separator + Cumulative group */}
-                                        <th className="w-px p-0 bg-slate-300 dark:bg-slate-600" rowSpan={2} />
-                                        <th colSpan={3} className="text-center px-4 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide whitespace-nowrap bg-slate-100 dark:bg-slate-700/60 border-x border-slate-300 dark:border-slate-600">
-                                            Kümülatif
+                                        {/* Total / Cumulative */}
+                                        <th colSpan={3} className="px-4 py-1.5 text-center text-slate-700 dark:text-slate-300 bg-slate-100/60 dark:bg-slate-800/60 border-r border-[#dadce0]/70 dark:border-[#3c4043]">
+                                            Kümülatif Toplam
                                         </th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Kullanım %</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Görselleştirme</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Durum</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>Tanımlanma Tarihi</th>
+                                        <th className="px-4 py-3 text-center min-w-[130px]" rowSpan={2}>Kullanım Oranı</th>
+                                        <th className="px-4 py-3 text-center" rowSpan={2}>Durum</th>
+                                        <th className="px-4 py-3" rowSpan={2}>Tarih</th>
                                         {canCreate && (
-                                            <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap" rowSpan={2}>İşlem</th>
+                                            <th className="px-4 py-3 text-right" rowSpan={2}>İşlemler</th>
                                         )}
                                     </tr>
-                                    <tr className="border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 sticky top-[41px] z-10">
+                                    <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[10px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
                                         {/* Credit sub-headers */}
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50/70 dark:bg-sky-900/10 border-l border-sky-200 dark:border-sky-800/40">Limit</th>
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wide whitespace-nowrap bg-sky-50/70 dark:bg-sky-900/10 border-r border-sky-200 dark:border-sky-800/40">Kullanılan</th>
+                                        <th className="text-right px-4 py-1.5 border-l border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">Limit</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">Kullanılan</th>
                                         {/* Addition sub-headers */}
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50/70 dark:bg-violet-900/10 border-l border-violet-200 dark:border-violet-800/40">Limit</th>
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-wide whitespace-nowrap bg-violet-50/70 dark:bg-violet-900/10 border-r border-violet-200 dark:border-violet-800/40">Kullanılan</th>
+                                        <th className="text-right px-4 py-1.5 text-violet-700 dark:text-violet-300">Limit</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-violet-700 dark:text-violet-300">Kullanılan</th>
                                         {/* Cumulative sub-headers */}
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40 border-l border-slate-300 dark:border-slate-600">Total</th>
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40">Kullanılan</th>
-                                        <th className="text-right px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/40 border-r border-slate-300 dark:border-slate-600">Available</th>
+                                        <th className="text-right px-4 py-1.5 text-[#1a73e8] dark:text-blue-400">Total</th>
+                                        <th className="text-right px-4 py-1.5 text-rose-600 dark:text-rose-400">Kullanılan</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-emerald-600 dark:text-emerald-400">Kalan</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
                                     {limits.map((item, idx) => {
                                         const currency = item.agency?.currency || item.currency || '—';
                                         const rate = Number(item.usageRate ?? 0);
                                         const isWarning = rate >= 90;
 
                                         return (
-                                            <tr key={idx} className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-blue-50/60 dark:hover:bg-slate-800/50 transition-colors">
+                                            <tr key={item.id || idx} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
                                                 {/* Agency Name */}
                                                 <td className="px-4 py-3">
                                                     <div className="flex flex-col">
-                                                        <span className="text-slate-800 dark:text-slate-100 font-medium">{item.agency?.name || '-'}</span>
-                                                        <span className="text-xs text-slate-400 dark:text-slate-500">{item.agency?.agencyType || ''}</span>
+                                                        <span className="font-semibold text-[#202124] dark:text-white">{item.agency?.name || '-'}</span>
+                                                        <span className="text-[10px] text-[#70757a]">{item.agency?.agencyType || ''}</span>
                                                     </div>
                                                 </td>
 
                                                 {/* Currency */}
                                                 <td className="px-4 py-3">
-                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300">
                                                         {currency}
                                                     </span>
                                                 </td>
 
-                                                {/* ── Credit group ── */}
-                                                <td className="px-4 py-3 text-right font-medium text-sky-700 dark:text-sky-300 tabular-nums whitespace-nowrap bg-sky-50/40 dark:bg-sky-900/10 border-l border-sky-200 dark:border-sky-800/40">
-                                                    {fmt(item.creditLimit)} {currency !== '—' ? currency : ''}
+                                                {/* Credit Limit */}
+                                                <td className="px-4 py-3 text-right font-medium text-sky-700 dark:text-sky-300 tabular-nums whitespace-nowrap border-l border-[#dadce0]/60 dark:border-[#3c4043]/60">
+                                                    {fmt(item.creditLimit)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-sky-50/40 dark:bg-sky-900/10 border-r border-sky-200 dark:border-sky-800/40">
+                                                {/* Credit Used */}
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap border-r border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                                     <span className={`font-medium ${Number(item.usedCreditLimit) > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-slate-400'}`}>
-                                                        {fmt(item.usedCreditLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                        {fmt(item.usedCreditLimit ?? 0)}
                                                     </span>
                                                 </td>
 
-                                                {/* ── Addition group ── */}
-                                                <td className="px-4 py-3 text-right font-medium text-violet-700 dark:text-violet-300 tabular-nums whitespace-nowrap bg-violet-50/40 dark:bg-violet-900/10 border-l border-violet-200 dark:border-violet-800/40">
+                                                {/* Addition Limit */}
+                                                <td className="px-4 py-3 text-right font-medium text-violet-700 dark:text-violet-300 tabular-nums whitespace-nowrap">
                                                     <span className={Number(item.additionLimit) > 0 ? '' : 'text-slate-400'}>
-                                                        {fmt(item.additionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                        {fmt(item.additionLimit ?? 0)}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-violet-50/40 dark:bg-violet-900/10 border-r border-violet-200 dark:border-violet-800/40">
+                                                {/* Addition Used */}
+                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap border-r border-[#dadce0]/60 dark:border-[#3c4043]/60">
                                                     <span className={`font-medium ${Number(item.usedAdditionLimit) > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-slate-400'}`}>
-                                                        {fmt(item.usedAdditionLimit ?? 0)} {currency !== '—' ? currency : ''}
+                                                        {fmt(item.usedAdditionLimit ?? 0)}
                                                     </span>
                                                 </td>
 
-                                                {/* ── Separator ── */}
-                                                <td className="w-px p-0 bg-slate-300 dark:bg-slate-600" />
-
-                                                {/* ── Cumulative group ── */}
-                                                <td className="px-4 py-3 text-right text-blue-700 dark:text-blue-300 font-semibold tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20 border-l border-slate-300 dark:border-slate-600">
-                                                    {fmt(item.totalLimit ?? ((item.creditLimit ?? 0) + (item.additionLimit ?? 0)))} {currency !== '—' ? currency : ''}
+                                                {/* Total Limit */}
+                                                <td className="px-4 py-3 text-right font-bold text-[#1a73e8] dark:text-blue-400 tabular-nums whitespace-nowrap">
+                                                    {fmt(item.totalLimit)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20">
-                                                    <span className={`font-medium ${Number(item.usedLimit) > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-400'}`}>
-                                                        {fmt(item.usedLimit)} {currency !== '—' ? currency : ''}
-                                                    </span>
+                                                {/* Total Used */}
+                                                <td className="px-4 py-3 text-right font-semibold text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">
+                                                    {fmt(item.totalUsedLimit ?? 0)}
                                                 </td>
-                                                <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap bg-slate-50/60 dark:bg-slate-700/20 border-r border-slate-300 dark:border-slate-600">
-                                                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                                                        {fmt(item.availableLimit)} {currency !== '—' ? currency : ''}
-                                                    </span>
+                                                {/* Total Available */}
+                                                <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap border-r border-[#dadce0]/60 dark:border-[#3c4043]/60">
+                                                    {fmt(item.totalAvailableLimit ?? 0)}
                                                 </td>
 
-                                                {/* Usage % */}
-                                                <td className="px-4 py-3 text-center">
-                                                    <span className={`text-xs font-semibold tabular-nums ${
-                                                        rate >= 90 ? 'text-red-600 dark:text-red-400'
-                                                        : rate >= 70 ? 'text-amber-600 dark:text-amber-400'
-                                                        : 'text-slate-600 dark:text-slate-300'
-                                                    }`}>
-                                                        {rate.toFixed(0)}%
-                                                    </span>
-                                                </td>
-
-                                                {/* Visual bar */}
-                                                <td className="px-4 py-3 min-w-[140px]">
+                                                {/* Usage Bar */}
+                                                <td className="px-4 py-3 min-w-[130px]">
                                                     <UsageBar rate={rate} />
                                                 </td>
 
@@ -1010,27 +1036,29 @@ const LimitManagementPage = () => {
                                                 </td>
 
                                                 {/* Date */}
-                                                <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                                <td className="px-4 py-3 text-[11px] text-[#70757a] whitespace-nowrap tabular-nums">
                                                     {fmtDate(item.createDateTime)}
                                                 </td>
 
                                                 {/* Actions */}
                                                 {canCreate && (
-                                                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                                                        <div className="flex items-center justify-center gap-3">
+                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                        <div className="flex items-center justify-end gap-2">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => handleOpenEdit(item)}
-                                                                className="text-xs text-[#1a73e8] dark:text-blue-400 font-medium hover:underline cursor-pointer"
+                                                                className="text-xs text-[#1a73e8] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                             >
                                                                 Düzenle
                                                             </button>
                                                             <button
+                                                                type="button"
                                                                 onClick={() => handleOpenEdit({
                                                                     ...item,
                                                                     status: item.status === 'ACTIVE' ? 'PASSIVE' : 'ACTIVE',
                                                                     _presetStatus: true,
                                                                 })}
-                                                                className={`text-xs font-medium hover:underline cursor-pointer ${
+                                                                className={`text-xs font-semibold hover:underline cursor-pointer ${
                                                                     item.status === 'ACTIVE'
                                                                         ? 'text-amber-600 dark:text-amber-400'
                                                                         : 'text-emerald-600 dark:text-emerald-400'
@@ -1051,7 +1079,7 @@ const LimitManagementPage = () => {
 
                     {/* Pagination */}
                     {!loading && totalItems > 0 && (
-                        <div className="border-t border-slate-200 dark:border-slate-700">
+                        <div className="border-t border-[#dadce0] dark:border-[#3c4043]">
                             <Pagination
                                 currentPage={page}
                                 totalPages={totalPages}
@@ -1063,9 +1091,9 @@ const LimitManagementPage = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </main>
 
-            {/* Modal */}
+            {/* Create/Edit Modal */}
             <CreateEditLimitModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}

@@ -3,10 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { COMMON, getLang } from '../utils/sharedLocales';
 import { MY_OFFICE_LOCALES } from '../utils/myOfficeLocales';
 import * as XLSX from 'xlsx';
-import { downloadPdfDoc, downloadXlsxWorkbook, downloadCsvContent } from '../utils/fileDownloadHelper';
+import { downloadPdfDoc, downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
 
 const MO = MY_OFFICE_LOCALES;
-const tMO = (lang, key) => { const l = getLang(lang); return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; };
+const tMO = (lang, key) => { 
+    const l = getLang(lang); 
+    return MO[l]?.[key] ?? MO.en[key] ?? COMMON[l]?.[key] ?? COMMON.en[key] ?? key; 
+};
+
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -36,9 +40,6 @@ let DefaultIcon = L.icon({
     iconAnchor: [12, 41]
 });
 L.Marker.prototype.options.icon = DefaultIcon;
-
-// Module-level cache removed to allow dynamic data refresh on every mount
-
 
 // Helper to format YYYY-MM-DD to DD.MM.YYYY for backend
 const formatToBackendDate = (dateStr) => {
@@ -76,21 +77,6 @@ const getCountryName = (countries, codeOrName, lang = 'tr') => {
     return c.name?.translations?.[lang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || getCountryCode(c) || codeOrName;
 };
 
-// Export to CSV Helper
-const downloadCSV = (data, filename) => {
-    if (!data || data.length === 0) return;
-    const headers = Object.keys(data[0]);
-    const csvRows = [
-        headers.join(','),
-        ...data.map(row => headers.map(fieldName => {
-            const value = row[fieldName] === null || row[fieldName] === undefined ? '' : row[fieldName];
-            return `"${String(value).replace(/"/g, '""')}"`;
-        }).join(','))
-    ];
-    const csvString = csvRows.join('\n');
-    downloadCsvContent(csvString, filename);
-};
-
 const formatDateTime = (dateVal) => {
     if (!dateVal) return 'N/A';
     try {
@@ -114,35 +100,14 @@ const formatDateTime = (dateVal) => {
     }
 };
 
-// Skeleton Loading Component matching Sales-Channel Table Row Heights
-const TableSkeleton = ({ columns = 7, rows = 10 }) => (
+// Skeleton Loading Component
+const TableSkeleton = ({ columns = 6, rows = 6 }) => (
     <>
         {[...Array(rows)].map((_, i) => (
-            <tr key={`skel-row-${i}`} className="animate-pulse border-b border-solid border-slate-100 dark:border-slate-800/60 even:bg-slate-50/20 dark:even:bg-slate-900/20">
+            <tr key={`skel-row-${i}`} className="animate-pulse border-b border-[#dadce0]/50 dark:border-[#3c4043]/50">
                 {[...Array(columns)].map((_, j) => (
-                    <td key={`skel-col-${j}`} className="px-4 py-3">
-                        {j === 0 ? (
-                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-8"></div>
-                        ) : j === 1 ? (
-                            <div className="flex items-center gap-2.5">
-                                <div className="size-7 rounded-lg bg-slate-200 dark:bg-slate-800 shrink-0"></div>
-                                <div className="space-y-1.5 flex-1 min-w-0">
-                                    <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4"></div>
-                                </div>
-                            </div>
-                        ) : j === columns - 2 ? (
-                            <div className="flex items-center gap-2">
-                                <div className="h-5 w-9 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0"></div>
-                                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-10"></div>
-                            </div>
-                        ) : j === columns - 1 ? (
-                            <div className="flex items-center justify-end gap-1">
-                                <div className="size-7 rounded-lg bg-slate-200/80 dark:bg-slate-800/80"></div>
-                                <div className="size-7 rounded-lg bg-slate-200/80 dark:bg-slate-800/80"></div>
-                            </div>
-                        ) : (
-                            <div className="h-3.5 bg-slate-200/80 dark:bg-slate-800/80 rounded-md w-28"></div>
-                        )}
+                    <td key={`skel-col-${j}`} className="px-4 py-3.5">
+                        <div className="h-4 bg-slate-200 dark:bg-slate-700/60 rounded-md w-3/4"></div>
                     </td>
                 ))}
             </tr>
@@ -179,28 +144,38 @@ const LocationMarker = ({ position, setPosition }) => {
 const MyOffice = () => {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    const { user, logout } = useAuth();
-    const { favorites, isFavorite, addFavorite, removeFavorite, refreshFavorites } = useFavorites();
+    // Auth hook
+    useAuth();
+    const { isFavorite, addFavorite, refreshFavorites } = useFavorites();
     const { i18n } = useTranslation();
     const [currentLang, setCurrentLang] = useState(() => (i18n.language || localStorage.getItem('i18nextLng') || 'en').split('-')[0].toLowerCase());
+    
     useEffect(() => {
         setCurrentLang((i18n.language || 'en').split('-')[0].toLowerCase());
         const handler = (lng) => setCurrentLang((lng || 'en').split('-')[0].toLowerCase());
         i18n.on('languageChanged', handler);
         return () => i18n.off('languageChanged', handler);
     }, [i18n]);
-    const L = (key) => tMO(currentLang, key);
+
+    const L = useCallback((key) => tMO(currentLang, key), [currentLang]);
+
     const initialTab = searchParams.get('tab') || 'general';
     const [activeTab, setActiveTab] = useState(initialTab);
+    
     useEffect(() => {
         const param = searchParams.get('tab') || 'general';
         setActiveTab(param);
     }, [searchParams]);
 
+    const handleTabChange = (tabId) => {
+        setActiveTab(tabId);
+        setSearchParams({ tab: tabId });
+    };
+
     const [countries, setCountries] = useState([]);
     const [cities, setCities] = useState([]);
-    const [finCities, setFinCities] = useState([]);
-    const [currencies, setCurrencies] = useState([]);
+    const [, setFinCities] = useState([]);
+    const [, setCurrencies] = useState([]);
 
     // Favorite Backend Table & Autocomplete State
     const [favoriteBackendItems, setFavoriteBackendItems] = useState([]);
@@ -209,20 +184,16 @@ const MyOffice = () => {
     const [favoritePageSize, setFavoritePageSize] = useState(10);
     const [favoriteTotalPages, setFavoriteTotalPages] = useState(1);
     const [favoriteTotalElements, setFavoriteTotalElements] = useState(0);
-    const [favoriteStatusFilter, setFavoriteStatusFilter] = useState('');
+    const [favoriteStatusFilter] = useState('');
     const [favoriteSearchQuery, setFavoriteSearchQuery] = useState('');
     const [favoriteCountryFilter, setFavoriteCountryFilter] = useState('');
-    const [favoriteCityFilter, setFavoriteCityFilter] = useState('');
+    const [favoriteCityFilter] = useState('');
     const [showFavCountryDropdown, setShowFavCountryDropdown] = useState(false);
     const [favCountrySearch, setFavCountrySearch] = useState('');
     const favCountryDropdownRef = useRef(null);
 
-    const [favoriteCityOptions, setFavoriteCityOptions] = useState([]);
-    const [favoriteCityLoading, setFavoriteCityLoading] = useState(false);
-    const [showFavCityDropdown, setShowFavCityDropdown] = useState(false);
-    const [favCitySearch, setFavCitySearch] = useState('');
-    const favCityDropdownRef = useRef(null);
-    const [auditTooltip, setAuditTooltip] = useState(null);
+    // ref removed
+    // tooltip removed
 
     const [hotelAutocompleteQuery, setHotelAutocompleteQuery] = useState('');
     const [hotelAutocompleteResults, setHotelAutocompleteResults] = useState([]);
@@ -247,8 +218,8 @@ const MyOffice = () => {
                 setFavoriteTotalPages(res.totalPages || 1);
                 setFavoriteTotalElements(res.totalElements || 0);
             }
-        } catch (e) {
-            console.error('Failed to fetch favorite hotels from backend:', e);
+        } catch (err) {
+            console.error('Failed to fetch favorite hotels from backend:', err);
         } finally {
             setFavoriteLoading(false);
         }
@@ -260,47 +231,7 @@ const MyOffice = () => {
         }
     }, [activeTab, fetchFavoriteHotels]);
 
-    // Fetch sub-regions/cities when favoriteCountryFilter changes
-    useEffect(() => {
-        if (!favoriteCountryFilter) {
-            setFavoriteCityOptions([]);
-            setFavoriteCityFilter('');
-            return;
-        }
-        const clean = favoriteCountryFilter.trim().toLowerCase();
-        const countryObj = countries.find(c => {
-            const c2 = (c.countryIso2 || c.alphaTwoCode || c.code || '').toLowerCase();
-            const c3 = (c.countryIso3 || '').toLowerCase();
-            const defName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
-            const trN = (c.name?.translations?.tr || '').toLowerCase();
-            const enN = (c.name?.translations?.en || '').toLowerCase();
-            return c2 === clean || c3 === clean || defName === clean || trN === clean || enN === clean || String(c.id) === clean || String(c.locationId) === clean;
-        });
-
-        const countryId = countryObj?.id || countryObj?.locationId;
-        if (!countryId) {
-            setFavoriteCityOptions([]);
-            return;
-        }
-
-        setFavoriteCityLoading(true);
-        const abortController = new AbortController();
-        geographyService.listSubRegions(countryId, abortController.signal)
-            .then(res => {
-                const list = Array.isArray(res) ? res : (res?.regionList || res?.locationList || res?.data || []);
-                setFavoriteCityOptions(list);
-            })
-            .catch(err => {
-                if (err.name !== 'CanceledError' && err.name !== 'AbortError') {
-                    console.error('Failed to fetch sub-regions for favorite country:', err);
-                }
-            })
-            .finally(() => {
-                setFavoriteCityLoading(false);
-            });
-
-        return () => abortController.abort();
-    }, [favoriteCountryFilter, countries]);
+// favorite city effect cleaned
 
     useEffect(() => {
         if (!hotelAutocompleteQuery || hotelAutocompleteQuery.trim().length < 2) {
@@ -314,8 +245,8 @@ const MyOffice = () => {
                 const results = await favoriteService.searchHotelsForAdd(hotelAutocompleteQuery);
                 setHotelAutocompleteResults(results || []);
                 setShowHotelAutocompleteDropdown(true);
-            } catch (e) {
-                console.error('Failed to search hotels for add:', e);
+            } catch (err) {
+                console.error('Failed to search hotels for add:', err);
             } finally {
                 setHotelAutocompleteLoading(false);
             }
@@ -331,34 +262,20 @@ const MyOffice = () => {
             if (favCountryDropdownRef.current && !favCountryDropdownRef.current.contains(event.target)) {
                 setShowFavCountryDropdown(false);
             }
-            if (favCityDropdownRef.current && !favCityDropdownRef.current.contains(event.target)) {
-                setShowFavCityDropdown(false);
-            }
+            // dropdown click outside removed
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const filteredFavorites = React.useMemo(() => {
-        if (!favoriteSearchQuery.trim()) return favorites;
-        const q = favoriteSearchQuery.toLowerCase();
-        return favorites.filter(item =>
-            item.name?.toLowerCase().includes(q) ||
-            item.city?.toLowerCase().includes(q) ||
-            item.country?.toLowerCase().includes(q) ||
-            item.supplier?.toLowerCase().includes(q) ||
-            item.location?.toLowerCase().includes(q)
-        );
-    }, [favorites, favoriteSearchQuery]);
-
     const handleToggleFavoriteStatus = async (item) => {
         try {
             await favoriteService.toggleStatus(item.id);
-            setToast({ show: true, message: 'Favori otel durumu güncellendi', type: 'success' });
+            showNotification('Favori otel durumu güncellendi', 'success');
             fetchFavoriteHotels(favoritePage);
             refreshFavorites();
-        } catch (e) {
-            console.error(e);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -371,11 +288,11 @@ const MyOffice = () => {
             onConfirm: async () => {
                 try {
                     await favoriteService.deleteFavorite(item.id);
-                    setToast({ show: true, message: 'Favori otel silindi', type: 'success' });
+                    showNotification('Favori otel silindi', 'success');
                     fetchFavoriteHotels(favoritePage);
                     refreshFavorites();
-                } catch (e) {
-                    setToast({ show: true, message: 'Silme işlemi başarısız', type: 'danger' });
+                } catch {
+                    showNotification('Silme işlemi başarısız', 'error');
                 }
             }
         });
@@ -388,10 +305,12 @@ const MyOffice = () => {
                 hotelId: hotel.hotelId
             });
             addFavorite(hotel);
-            setToast({ show: true, message: `"${hotel.hotelName || 'Otel'}" favorilere eklendi`, type: 'success' });
+            showNotification(`"${hotel.hotelName || 'Otel'}" favorilere eklendi`, 'success');
+            setHotelAutocompleteQuery('');
+            setShowHotelAutocompleteDropdown(false);
             fetchFavoriteHotels(0);
-        } catch (e) {
-            setToast({ show: true, message: 'Favori ekleme hatası', type: 'danger' });
+        } catch {
+            showNotification('Favori ekleme hatası', 'error');
         }
     };
 
@@ -400,7 +319,8 @@ const MyOffice = () => {
     const [guestsLoading, setGuestsLoading] = useState(false);
     const [statsLoading, setStatsLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(null);
+    // error removed
+    const [, setError] = useState(null);
 
     const [isExportingUserExcel, setIsExportingUserExcel] = useState(false);
     const [isExportingUserPdf, setIsExportingUserPdf] = useState(false);
@@ -410,7 +330,7 @@ const MyOffice = () => {
     const [isExportingFavPdf, setIsExportingFavPdf] = useState(false);
 
     const [mapCenter, setMapCenter] = useState([36.6826845, 30.9089719]);
-    const [zoom, setZoom] = useState(13);
+    const [zoom] = useState(13);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
     // Confirm Modal State
@@ -466,17 +386,16 @@ const MyOffice = () => {
         phoneNumber: '',
         status: 'ACTIVE'
     });
-    const [guestCountrySearch, setGuestCountrySearch] = useState('');
-    const [showGuestCountries, setShowGuestCountries] = useState(false);
+    // guest country search modal helper removed
 
     // Form data (General Info)
     const [formData, setFormData] = useState({
         id: null,
         name: '',
         officialTitle: '',
-        agencyType: '', // Initialized to avoid controlled/uncontrolled warning
+        agencyType: '',
         defaultLanguage: 'EN',
-        parentId: '', // Added missing initial state
+        parentId: '',
         countryId: '',
         cityId: '',
         zipCode: '',
@@ -506,7 +425,6 @@ const MyOffice = () => {
         updatedBy: ''
     });
 
-    // Single Mount Effect
     useEffect(() => {
         const abortController = new AbortController();
         const fetchOnMount = async () => {
@@ -553,7 +471,7 @@ const MyOffice = () => {
                 try {
                     const citiesData = await geographyService.listSubRegions(agencyData.countryId);
                     initialCities = citiesData.regionList || citiesData.locationList || [];
-                } catch (e) { console.error(e); }
+                } catch (err) { console.error(err); }
             }
             setCities(initialCities);
 
@@ -562,7 +480,7 @@ const MyOffice = () => {
                 try {
                     const finCitiesData = await geographyService.listSubRegions(agencyData.agencyFinancialInfo.countryId);
                     initialFinCities = finCitiesData.regionList || finCitiesData.locationList || [];
-                } catch (e) { console.error(e); }
+                } catch (err) { console.error(err); }
             }
             setFinCities(initialFinCities);
 
@@ -594,7 +512,6 @@ const MyOffice = () => {
         } finally {
             setLoading(false);
         }
-        // Fetch logo in background after main data
         fetchLogoData();
     };
 
@@ -622,7 +539,6 @@ const MyOffice = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate format
         const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
             showNotification(L('logoInvalidFormat'), 'error');
@@ -630,7 +546,6 @@ const MyOffice = () => {
             return;
         }
 
-        // Validate size (2MB)
         const MAX_SIZE = 2 * 1024 * 1024;
         if (file.size > MAX_SIZE) {
             showNotification(L('logoSizeExceeded'), 'error');
@@ -641,7 +556,6 @@ const MyOffice = () => {
         setLogoUploading(true);
         try {
             await agencyService.uploadLogo(file);
-            // Refetch to show the new logo
             await fetchLogoData();
             showNotification(L('logoUploadSuccess'));
         } catch (err) {
@@ -655,17 +569,17 @@ const MyOffice = () => {
     const handleDeleteLogo = () => {
         setConfirmModal({
             show: true,
-            title: L('deleteLogoTitle'),
-            message: L('confirmDeleteLogo'),
+            title: L('deleteLogoTitle') || 'Logoyu Sil',
+            message: L('confirmDeleteLogo') || 'Acente logosunu silmek istediğinize emin misiniz?',
             type: 'danger',
             onConfirm: async () => {
                 try {
                     await agencyService.deleteLogo();
                     if (logoUrl) URL.revokeObjectURL(logoUrl);
                     setLogoUrl(null);
-                    showNotification(L('logoDeleteSuccess'));
+                    showNotification(L('logoDeleteSuccess') || 'Logo başarıyla silindi.');
                 } catch (err) {
-                    showNotification(err.message || L('logoDeleteError'), 'error');
+                    showNotification(err.message || L('logoDeleteError') || 'Logo silinirken hata oluştu.', 'error');
                 }
             }
         });
@@ -749,19 +663,7 @@ const MyOffice = () => {
         } else { setCities([]); }
     };
 
-    const handleFinCountryChange = async (e) => {
-        const countryId = e.target.value;
-        setFormData(prev => ({
-            ...prev,
-            agencyFinancialInfo: { ...prev.agencyFinancialInfo, countryId, cityId: '' }
-        }));
-        if (countryId) {
-            try {
-                const citiesData = await geographyService.listSubRegions(countryId);
-                setFinCities(citiesData.regionList || citiesData.locationList || []);
-            } catch (err) { console.error(err); setFinCities([]); }
-        } else { setFinCities([]); }
-    };
+// handleFinCountryChange omitted
 
     const handleInputChange = (field, value) => {
         if (field.includes('.')) {
@@ -774,10 +676,11 @@ const MyOffice = () => {
             setFormData(prev => ({ ...prev, [field]: value }));
         }
     };
+
     const setMapLocation = (latlng) => setFormData(prev => ({ ...prev, latitude: latlng[0], longitude: latlng[1] }));
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         try {
             setSaving(true);
 
@@ -802,7 +705,7 @@ const MyOffice = () => {
             delete payload.countryName;
 
             await agencyService.updateAgency(formData.id, payload);
-            showNotification(L('profileUpdated'));
+            showNotification(L('profileUpdated') || 'Profil başarıyla güncellendi.');
             await fetchInitialData();
         } catch (err) {
             showNotification(err.message || L('updateFailed'), 'error');
@@ -811,15 +714,36 @@ const MyOffice = () => {
         }
     };
 
-    const openAddUser = () => { setUserApiError(null); setShowPassword(false); setEditingUser(null); setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); setIsUserModalOpen(true); };
-    const openEditUser = (u) => { setUserApiError(null); setShowPassword(false); setEditingUser(u); setUserFormData({ name: u.name, surname: u.surname, email: u.email, phoneCountryCode: u.phoneCountryCode || '90', phoneNumber: u.phoneNumber || '', status: u.status || 'ACTIVE', roleIds: u.roles?.map(r => r.id) || [] }); setIsUserModalOpen(true); };
+    const openAddUser = () => { 
+        setUserApiError(null); 
+        setShowPassword(false); 
+        setEditingUser(null); 
+        setUserFormData({ name: '', surname: '', email: '', password: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE', roleIds: [] }); 
+        setIsUserModalOpen(true); 
+    };
+
+    const openEditUser = (u) => { 
+        setUserApiError(null); 
+        setShowPassword(false); 
+        setEditingUser(u); 
+        setUserFormData({ 
+            name: u.name, 
+            surname: u.surname, 
+            email: u.email, 
+            phoneCountryCode: u.phoneCountryCode || '90', 
+            phoneNumber: u.phoneNumber || '', 
+            status: u.status || 'ACTIVE', 
+            roleIds: u.roles?.map(r => r.id) || [] 
+        }); 
+        setIsUserModalOpen(true); 
+    };
 
     const validatePassword = (p) => ({
         length: (p || '').length >= 12,
         uppercase: /[A-Z]/.test(p || ''),
         lowercase: /[a-z]/.test(p || ''),
         number: /[0-9]/.test(p || ''),
-        special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p || '') || /[^A-Za-z0-9]/.test(p || '')
+        special: /[!@#$%^&*()_+\-=[\]{};':"|,.<>/?]/.test(p || '') || /[^A-Za-z0-9]/.test(p || '')
     });
 
     const openUpdatePasswordModal = (u) => {
@@ -889,8 +813,10 @@ const MyOffice = () => {
                 if (userFormData.roleIds.length > 0) await userService.assignRoles(newUser.id, userFormData.roleIds);
                 showNotification(L('userCreated'));
             }
-            setIsUserModalOpen(false); fetchUsersData();
-            const sumData = await userService.getSummary(); setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
+            setIsUserModalOpen(false); 
+            fetchUsersData();
+            const sumData = await userService.getSummary(); 
+            setSummary(prev => ({ ...prev, totalCount: sumData.totalCount, activeCount: sumData.activeCount, passiveCount: sumData.passiveCount }));
         } catch (err) {
             const msg = err.response?.data?.message || err.message || L('errorSavingUser');
             setUserApiError(msg);
@@ -904,8 +830,8 @@ const MyOffice = () => {
 
     const handleDeleteUser = (id) => {
         requestConfirmation(
-            'Delete User',
-            'This action cannot be undone. All access for this user will be revoked immediately.',
+            L('deleteUser') || 'Kullanıcıyı Sil',
+            L('deleteUserMsg') || 'Bu kullanıcının tüm erişim yetkileri anında iptal edilecektir. Devam etmek istiyor musunuz?',
             async () => {
                 try {
                     await userService.deleteUser(id);
@@ -1001,8 +927,8 @@ const MyOffice = () => {
 
     const handleDeleteGuest = (id) => {
         requestConfirmation(
-            L('deleteGuest') || 'Delete Guest',
-            L('deleteGuestMsg') || 'Are you sure you want to remove this guest from your CRM?',
+            L('deleteGuest') || 'Misafiri Sil',
+            L('deleteGuestMsg') || 'Bu misafiri CRM kayıtlarınızdan silmek istediğinize emin misiniz?',
             async () => {
                 try {
                     await guestService.deleteGuest(id);
@@ -1015,15 +941,38 @@ const MyOffice = () => {
         );
     };
 
-    const openAddGuest = () => { setGuestApiError(null); setEditingGuest(null); setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); setIsGuestModalOpen(true); };
-    const openEditGuest = (g) => { setGuestApiError(null); setEditingGuest(g); setGuestFormData({ gender: g.gender || 'MALE', firstName: g.firstName, lastName: g.lastName, birthDate: g.birthDate, country: g.country, passportNo: g.passportNo, passportExpiry: g.passportExpiry, email: g.email, phoneCountryCode: g.phoneCountryCode || '90', phoneNumber: g.phoneNumber || '', status: g.status || 'ACTIVE' }); setIsGuestModalOpen(true); };
+    const openAddGuest = () => { 
+        setGuestApiError(null); 
+        setEditingGuest(null); 
+        setGuestFormData({ gender: 'MALE', firstName: '', lastName: '', birthDate: '', country: '', passportNo: '', passportExpiry: '', email: '', phoneCountryCode: '90', phoneNumber: '', status: 'ACTIVE' }); 
+        setIsGuestModalOpen(true); 
+    };
+
+    const openEditGuest = (g) => { 
+        setGuestApiError(null); 
+        setEditingGuest(g); 
+        setGuestFormData({ 
+            gender: g.gender || 'MALE', 
+            firstName: g.firstName, 
+            lastName: g.lastName, 
+            birthDate: g.birthDate, 
+            country: g.country, 
+            passportNo: g.passportNo, 
+            passportExpiry: g.passportExpiry, 
+            email: g.email, 
+            phoneCountryCode: g.phoneCountryCode || '90', 
+            phoneNumber: g.phoneNumber || '', 
+            status: g.status || 'ACTIVE' 
+        }); 
+        setIsGuestModalOpen(true); 
+    };
 
     const fetchAllFilteredUsers = async () => {
         try {
             const response = await userService.filterUsers(userFilters, 0, 10000);
             return response.agencyUsers || response.content || [];
-        } catch (e) {
-            console.error("Failed to fetch all users for export", e);
+        } catch (err) {
+            console.error("Failed to fetch all users for export", err);
             return users;
         }
     };
@@ -1128,9 +1077,9 @@ const MyOffice = () => {
     const fetchAllFilteredGuests = async () => {
         try {
             const response = await guestService.filterGuests(guestFilters, 0, 10000);
-            return response.agencyGuests || response.content || [];
-        } catch (e) {
-            console.error("Failed to fetch all guests for export", e);
+            return response.guests || response.agencyCrmGuests || response.content || [];
+        } catch (err) {
+            console.error("Failed to fetch all guests for export", err);
             return guests;
         }
     };
@@ -1147,7 +1096,8 @@ const MyOffice = () => {
 
             const exportData = allGuests.map(g => ({
                 'ID': g.id ?? '',
-                [L('colGuest') || 'Guest']: `${g.gender === 'MALE' ? 'Mr' : 'Mrs'} ${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                [L('colGuest') || 'Guest']: `${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                [L('gender') || 'Gender']: g.gender || '-',
                 [L('birthDate') || 'Birth Date']: g.birthDate || '-',
                 [L('country') || 'Country']: getCountryName(countries, g.country, currentLang) || g.country || '-',
                 [L('passportNo') || 'Passport No']: g.passportNo || '-',
@@ -1161,8 +1111,9 @@ const MyOffice = () => {
             worksheet['!cols'] = [
                 { wch: 8 },
                 { wch: 24 },
+                { wch: 10 },
                 { wch: 14 },
-                { wch: 18 },
+                { wch: 20 },
                 { wch: 16 },
                 { wch: 16 },
                 { wch: 28 },
@@ -1208,14 +1159,14 @@ const MyOffice = () => {
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Matching Guests: ${allGuests.length}`, 10, 17);
 
-            const headers = ['ID', L('colGuest') || 'Guest', 'Birth Date', 'Country', 'Passport No', 'Expires', 'Email', 'Phone', L('colStatus') || 'Status'];
+            const headers = ['ID', L('colGuest') || 'Guest', L('gender') || 'Gender', L('birthDate') || 'Birth Date', L('country') || 'Country', L('passportNo') || 'Passport No', 'Email', 'Phone', L('colStatus') || 'Status'];
             const rows = allGuests.map(g => [
                 g.id ?? '',
-                `${g.gender === 'MALE' ? 'Mr' : 'Mrs'} ${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                `${g.firstName || ''} ${g.lastName || ''}`.trim(),
+                g.gender || '-',
                 g.birthDate || '-',
                 getCountryName(countries, g.country, currentLang) || g.country || '-',
                 g.passportNo || '-',
-                g.passportExpiry || '-',
                 g.email || '-',
                 g.phoneNumber ? `+${g.phoneCountryCode || ''}${g.phoneNumber}` : '-',
                 g.status === 'ACTIVE' ? L('active') : L('passive')
@@ -1226,7 +1177,7 @@ const MyOffice = () => {
                 head: [headers],
                 body: rows,
                 theme: 'striped',
-                styles: { fontSize: 7.5, cellPadding: 2 },
+                styles: { fontSize: 8, cellPadding: 2 },
                 headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' }
             });
 
@@ -1243,10 +1194,10 @@ const MyOffice = () => {
 
     const fetchAllFilteredFavorites = async () => {
         try {
-            const response = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter);
-            return response.content || response.favoriteHotels || response.items || [];
-        } catch (e) {
-            console.error("Failed to fetch all favorites for export", e);
+            const res = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter);
+            return res?.content || [];
+        } catch (err) {
+            console.error("Failed to fetch all favorites for export", err);
             return favoriteBackendItems;
         }
     };
@@ -1354,19 +1305,26 @@ const MyOffice = () => {
         }
     };
 
-    const openInMaps = () => { const addressStr = `${formData.address} ${formData.zipCode}`; const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`; window.open(url, '_blank'); };
+    const openInMaps = () => { 
+        const addressStr = `${formData.address} ${formData.zipCode}`; 
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressStr)}`; 
+        window.open(url, '_blank'); 
+    };
 
-    if (loading) { return <div className="flex h-screen items-center justify-center bg-[#f8fafc] dark:bg-[#0f172a]"><div className="size-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>; }
+    if (loading) { 
+        return (
+            <div className="flex-1 flex items-center justify-center min-h-[400px] bg-[#f8f9fa] dark:bg-[#18191c]">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="size-10 border-3 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6]">Yükleniyor...</span>
+                </div>
+            </div>
+        ); 
+    }
 
     return (
-        <>
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #dadce0; border-radius: 9999px; }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #5f6368; }
-                .modal-overlay { background: rgba(32, 33, 36, 0.6); backdrop-filter: blur(4px); }
-            `}</style>
-
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {/* Toast Notification */}
             {toast.show && (
                 <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="px-4 py-2.5 bg-[#202124] dark:bg-[#e8eaed] text-white dark:text-[#202124] shadow-lg rounded-full flex items-center gap-2.5 border border-[#3c4043] dark:border-transparent">
@@ -1376,1392 +1334,1496 @@ const MyOffice = () => {
                 </div>
             )}
 
-            <main className="flex-1 p-4 md:p-6 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#202124]">
-                <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0">
-                    <header className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-4 shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
-                                <span className="material-symbols-outlined text-[24px]">corporate_fare</span>
-                            </div>
-                            <div>
-                                <h1 className="text-xl font-medium text-[#202124] dark:text-[#e8eaed] tracking-tight">{L('title')}</h1>
-                                <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
-                                    {activeTab === 'general' ? L('tabGeneral') : activeTab === 'users' ? L('tabUsers') : activeTab === 'guests' ? L('tabGuests') : L('tabFavorites')}
-                                </p>
-                            </div>
+            {/* Page Header Bar */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    {/* Left: Icon & Page Title */}
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
+                            <span className="material-symbols-outlined text-[24px]">corporate_fare</span>
                         </div>
-
-                        {/* Google Material Workspace Tabs */}
-                        <div className="flex items-center gap-1 p-1 bg-white dark:bg-[#303134] rounded-full border border-[#dadce0] dark:border-[#5f6368] shadow-xs overflow-x-auto">
-                            {[
-                                { id: 'general', icon: 'info', label: L('tabGeneral') },
-                                { id: 'users', icon: 'groups', label: L('tabUsers') },
-                                { id: 'guests', icon: 'recent_actors', label: L('tabGuests') },
-                                { id: 'favorites', icon: 'bookmark', label: L('tabFavorites') },
-                            ].map((tab) => {
-                                const isCurrent = activeTab === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        type="button"
-                                        onClick={() => {
-                                            setActiveTab(tab.id);
-                                            setSearchParams({ tab: tab.id });
-                                        }}
-                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${isCurrent
-                                                ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
-                                                : 'text-[#5f6368] dark:text-[#bdc1c6] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
-                                            }`}
-                                    >
-                                        <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>{tab.icon}</span>
-                                        <span>{tab.label}</span>
-                                    </button>
-                                );
-                            })}
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">{L('title')}</h1>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                                    {formData.agencyType || 'AGENCY'}
+                                </span>
+                            </div>
+                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
+                                {activeTab === 'general' ? 'Acente profilini, kurumsal kimlik ve mali bilgilerinizi yönetin'
+                                    : activeTab === 'users' ? 'Acente personeli, yetkilendirmeler ve kullanıcı hesapları'
+                                    : activeTab === 'guests' ? 'Misafir CRM rehberi, pasaport ve seyahat geçmişi'
+                                    : 'Acentenize özel favori ve önerilen oteller'}
+                            </p>
                         </div>
-                    </header>
+                    </div>
 
-                    <div className="flex-1 min-h-0 h-full overflow-hidden">
-                        {activeTab === 'general' ? (
-                            <div className="h-full flex flex-col lg:flex-row gap-5 overflow-hidden pb-2">
-                                {/* Left Sidebar Info */}
-                                <div className="w-full lg:w-[320px] flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1 flex-shrink-0">
-                                    {/* Agency Identity Card */}
-                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 shadow-xs relative overflow-hidden flex-shrink-0">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="px-3 py-1 rounded-full text-[11px] font-medium tracking-wide bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                                {formData.agencyType || 'AGENCY'}
+                    {/* Right: Tab-specific Header Actions */}
+                    <div className="flex items-center gap-2.5">
+                        {activeTab === 'general' && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => fetchInitialData()}
+                                    disabled={loading || saving}
+                                    className="flex items-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                                >
+                                    <span className="material-symbols-outlined text-[17px]">refresh</span>
+                                    <span>Yenile</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleSubmit}
+                                    disabled={saving}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50"
+                                >
+                                    {saving ? (
+                                        <div className="size-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <span className="material-symbols-outlined text-[17px]">save</span>
+                                    )}
+                                    <span>{saving ? (L('saving') || 'Kaydediliyor...') : (L('saveBtn') || 'Değişiklikleri Kaydet')}</span>
+                                </button>
+                            </>
+                        )}
+
+                        {activeTab === 'users' && (
+                            <button
+                                type="button"
+                                onClick={openAddUser}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">person_add</span>
+                                <span>{L('addUser') || 'Yeni Kullanıcı Ekle'}</span>
+                            </button>
+                        )}
+
+                        {activeTab === 'guests' && (
+                            <button
+                                type="button"
+                                onClick={openAddGuest}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">person_add</span>
+                                <span>{L('addGuest') || 'Yeni Misafir Ekle'}</span>
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* Tab Navigation Pill Bar */}
+                <div className="max-w-7xl mx-auto mt-3.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                    {[
+                        { id: 'general', icon: 'info', label: L('tabGeneral') || 'Genel Bilgiler' },
+                        { id: 'users', icon: 'groups', label: L('tabUsers') || 'Kullanıcılar', count: summary.totalCount },
+                        { id: 'guests', icon: 'recent_actors', label: L('tabGuests') || 'Misafirler', count: summary.totalGuestCount },
+                        { id: 'favorites', icon: 'bookmark', label: L('tabFavorites') || 'Favori Oteller', count: favoriteTotalElements },
+                    ].map((tab) => {
+                        const isCurrent = activeTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => handleTabChange(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap cursor-pointer border ${isCurrent
+                                    ? 'bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:border-[#8ab4f8] dark:text-[#8ab4f8] shadow-xs'
+                                    : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]'
+                                }`}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a]'}`}>{tab.icon}</span>
+                                <span>{tab.label}</span>
+                                {tab.count != null && tab.count > 0 && (
+                                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${isCurrent ? 'bg-[#1a73e8] text-white dark:bg-[#8ab4f8] dark:text-[#202124]' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
+                                        {tab.count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+                {/* ─── TAB 1: GENERAL INFO ──────────────────────────────────── */}
+                {activeTab === 'general' && (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Profile Header Hero Card */}
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                                {/* Logo Avatar Container */}
+                                <div className="relative group shrink-0">
+                                    <input
+                                        ref={logoInputRef}
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/jpg,image/svg+xml"
+                                        className="hidden"
+                                        onChange={handleLogoFileSelect}
+                                    />
+                                    <div className="size-20 rounded-2xl border-2 border-dashed border-[#dadce0] dark:border-[#5f6368] bg-[#f8f9fa] dark:bg-[#303134] flex items-center justify-center overflow-hidden transition-all group-hover:border-[#1a73e8]">
+                                        {logoLoading || logoUploading ? (
+                                            <div className="size-6 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                        ) : logoUrl ? (
+                                            <img src={logoUrl} alt="Logo" className="w-full h-full object-contain p-1.5" />
+                                        ) : (
+                                            <span className="material-symbols-outlined text-[32px] text-[#70757a]">domain</span>
+                                        )}
+                                    </div>
+                                    <div className="absolute -bottom-2 -right-2 flex items-center gap-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => logoInputRef.current?.click()}
+                                            disabled={logoUploading}
+                                            className="size-7 rounded-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] shadow-sm flex items-center justify-center text-[#1a73e8] hover:bg-[#e8f0fe] transition-colors cursor-pointer"
+                                            title="Logo Değiştir"
+                                        >
+                                            <span className="material-symbols-outlined text-[15px]">edit</span>
+                                        </button>
+                                        {logoUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={handleDeleteLogo}
+                                                disabled={logoUploading}
+                                                className="size-7 rounded-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] shadow-sm flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                                                title="Logo Sil"
+                                            >
+                                                <span className="material-symbols-outlined text-[15px]">delete</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Title & Metadata */}
+                                <div className="space-y-1.5">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h2 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed]">{formData.name || 'Acente Adı'}</h2>
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                                            {formData.agencyType || 'AGENCY'}
+                                        </span>
+                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                                            {formData.currency || 'EUR'}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{formData.officialTitle || 'Resmi Ticari Unvan Belirtilmedi'}</p>
+                                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#70757a] pt-1">
+                                        <span className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[15px]">location_on</span>
+                                            {formData.cityName || '-'}, {formData.countryName || '-'}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[15px]">mail</span>
+                                            {formData.email || '-'}
+                                        </span>
+                                        {formData.phoneNumber && (
+                                            <span className="flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-[15px]">call</span>
+                                                +{formData.phoneCountryCode} {formData.phoneNumber}
                                             </span>
-                                            <div className="size-8 rounded-full bg-[#f1f3f4] dark:bg-[#202124] text-[#5f6368] dark:text-[#9aa0a6] flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-[18px]">domain</span>
-                                            </div>
-                                        </div>
-                                        <div className="mb-3">
-                                            <p className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider mb-1">{L('agencyName')}</p>
-                                            <h2 className="text-base font-medium truncate text-[#202124] dark:text-[#e8eaed]">{formData.name || 'Your Agency'}</h2>
-                                            {formData.officialTitle && (
-                                                <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] truncate mt-0.5">{formData.officialTitle}</p>
-                                            )}
-                                        </div>
-                                        <div className="space-y-2.5 pt-3 border-t border-[#f1f3f4] dark:border-[#3c4043] text-xs">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[#5f6368] dark:text-[#9aa0a6] text-xs">{L('baseLocation')}:</span>
-                                                <span className="font-medium text-[#202124] dark:text-[#e8eaed] truncate max-w-[150px] text-right">{formData.cityName}, {formData.countryName}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-[#5f6368] dark:text-[#9aa0a6] text-xs">{L('currency')}:</span>
-                                                <span className="font-medium text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/20 px-2.5 py-0.5 rounded-full text-[11px]">{formData.currency}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Audit & Timeline Card */}
-                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-4 shadow-xs flex-shrink-0">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <div className="size-7 bg-[#f1f3f4] dark:bg-[#202124] rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6]">
-                                                <span className="material-symbols-outlined text-[16px]">history</span>
-                                            </div>
-                                            <h3 className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] uppercase tracking-wider">{L('auditTimeline')}</h3>
-                                        </div>
-                                        <div className="space-y-3 text-xs">
-                                            <div className="flex items-start gap-2.5">
-                                                <div className="size-2 bg-[#1a73e8] rounded-full mt-1 shrink-0"></div>
-                                                <div>
-                                                    <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{L('created')}</p>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{new Date(formData.createDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] italic">by {formData.createdBy}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-start gap-2.5">
-                                                <div className="size-2 bg-[#137333] rounded-full mt-1 shrink-0"></div>
-                                                <div>
-                                                    <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{L('lastUpdate')}</p>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{new Date(formData.updateDateTime).toLocaleString(localStorage.getItem('language') || 'tr')}</p>
-                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] italic">by {formData.updatedBy}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Map Preview */}
-                                    <div className="h-[185px] relative group rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex-shrink-0 bg-white dark:bg-[#303134]">
-                                        <MapContainer center={mapCenter} zoom={zoom} scrollWheelZoom={true} style={{ height: '100%', width: '100%' }}>
-                                            <ChangeView center={mapCenter} zoom={zoom} />
-                                            <TileLayer attribution='&copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-                                            <LocationMarker position={[formData.latitude, formData.longitude]} setPosition={setMapLocation} />
-                                        </MapContainer>
-                                        <div className="absolute bottom-3 right-3 z-[1000] opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={openInMaps} className="h-8 px-3 bg-white dark:bg-[#202124] rounded-full shadow-md border border-[#dadce0] dark:border-[#5f6368] flex items-center gap-1.5 text-xs font-medium text-[#1a73e8] dark:text-[#8ab4f8] hover:bg-[#f8fafd] dark:hover:bg-[#303134] active:scale-95 transition-all cursor-pointer">
-                                                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                                                <span>Google Maps</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Agency Logo Card */}
-                                    <div className="bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl overflow-hidden shadow-xs flex-shrink-0 p-4">
-                                        {/* Header */}
-                                        <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
-                                            <div className="flex items-center gap-2">
-                                                <div className="size-7 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                                    <span className="material-symbols-outlined text-[16px]">image</span>
-                                                </div>
-                                                <h3 className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] uppercase tracking-wider">{L('agencyLogo')}</h3>
-                                            </div>
-                                            {logoUrl && !logoLoading && (
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => logoInputRef.current?.click()}
-                                                        disabled={logoUploading}
-                                                        title={L('changeLogo')}
-                                                        className="size-7 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] dark:text-[#9aa0a6] transition-colors disabled:opacity-50 cursor-pointer"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleDeleteLogo}
-                                                        disabled={logoUploading}
-                                                        title={L('deleteLogo')}
-                                                        className="size-7 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors disabled:opacity-50 cursor-pointer"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Logo display / upload area */}
-                                        <div className="pt-3">
-                                            <input
-                                                ref={logoInputRef}
-                                                type="file"
-                                                accept="image/png,image/jpeg,image/jpg,image/svg+xml"
-                                                className="hidden"
-                                                onChange={handleLogoFileSelect}
-                                            />
-
-                                            {logoLoading ? (
-                                                <div className="w-full h-[100px] rounded-xl bg-[#f8f9fa] dark:bg-[#202124] flex items-center justify-center">
-                                                    <div className="flex flex-col items-center gap-2">
-                                                        <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-[10px] text-[#5f6368] font-medium">{L('processing')}</span>
-                                                    </div>
-                                                </div>
-                                            ) : logoUrl ? (
-                                                <div className="relative w-full h-[100px] rounded-xl overflow-hidden bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center group p-2">
-                                                    <img
-                                                        src={logoUrl}
-                                                        alt={L('agencyLogo')}
-                                                        className="max-w-full max-h-full object-contain"
-                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                                    />
-                                                    {logoUploading && (
-                                                        <div className="absolute inset-0 bg-white/80 dark:bg-[#202124]/80 flex items-center justify-center rounded-xl">
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                                                <span className="text-[10px] text-[#5f6368] font-medium">{L('processing')}</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => logoInputRef.current?.click()}
-                                                    disabled={logoUploading}
-                                                    className="w-full h-[100px] rounded-xl border border-dashed border-[#dadce0] dark:border-[#5f6368] hover:border-[#1a73e8] dark:hover:border-[#8ab4f8] bg-[#f8f9fa] dark:bg-[#202124] hover:bg-[#f8fafd] dark:hover:bg-[#1a73e8]/10 transition-colors flex flex-col items-center justify-center gap-1.5 group disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-                                                >
-                                                    {logoUploading ? (
-                                                        <>
-                                                            <div className="w-5 h-5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                                            <span className="text-[10px] font-medium text-[#5f6368]">{L('processing')}</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <div className="size-8 rounded-full bg-white dark:bg-[#303134] text-[#5f6368] group-hover:text-[#1a73e8] group-hover:bg-[#e8f0fe] dark:group-hover:bg-[#1a73e8]/20 flex items-center justify-center transition-colors border border-[#dadce0] dark:border-[#3c4043]">
-                                                                <span className="material-symbols-outlined text-[20px]">add_photo_alternate</span>
-                                                            </div>
-                                                            <div className="text-center">
-                                                                <p className="text-[11px] font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] dark:group-hover:text-[#8ab4f8] transition-colors leading-tight">{L('agencyLogoPlaceholder')}</p>
-                                                                <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">{L('clickToUpload')}</p>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </button>
-                                            )}
-
-                                            {/* Requirements info */}
-                                            <div className="mt-3 space-y-1.5 pt-2 border-t border-[#f1f3f4] dark:border-[#3c4043]">
-                                                <p className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('logoRequirementsTitle')}</p>
-                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
-                                                    <span className="material-symbols-outlined text-[13px]">aspect_ratio</span>
-                                                    <span className="text-[10px]">{L('logoMaxRatioInfo')}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
-                                                    <span className="material-symbols-outlined text-[13px]">storage</span>
-                                                    <span className="text-[10px]">{L('logoMaxSizeInfo')}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6]">
-                                                    <span className="material-symbols-outlined text-[13px]">image</span>
-                                                    <span className="text-[10px]">{L('logoFormatsInfo')}</span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Right Structured Information Grid */}
-                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6">
-                                        {/* Section 01: Agency Identity */}
-                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
-                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
-                                                <div className="size-7 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                                    <span className="material-symbols-outlined text-[18px]">badge</span>
-                                                </div>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec01')}</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('agencyName')}</label>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.name || '-'}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('officialTitle')}</label>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.officialTitle || '-'}</p>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('type')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.agencyType || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('language')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.defaultLanguage === 'TR' ? 'Turkish' : 'English'}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                            {/* Audit Metadata Card */}
+                            <div className="shrink-0 w-full md:w-auto self-stretch md:self-auto flex flex-col justify-center bg-[#f8f9fa] dark:bg-[#303134]/50 border border-[#dadce0]/80 dark:border-[#3c4043] rounded-xl px-4 py-3 min-w-[270px]">
+                                <div className="text-[10px] font-bold text-[#70757a] uppercase tracking-wider mb-2 flex items-center gap-1.5 pb-1.5 border-b border-[#dadce0]/60 dark:border-[#3c4043]">
+                                    <span className="material-symbols-outlined text-[13px] text-[#1a73e8]">verified_user</span>
+                                    <span>Kayıt ve Denetim Bilgisi</span>
+                                </div>
+                                <div className="space-y-1.5 text-xs">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px] text-[#70757a]">calendar_add_on</span>
+                                            <span>Kayıt Tarihi</span>
+                                        </span>
+                                        <span className="font-medium text-[#202124] dark:text-white tabular-nums">
+                                            {formatDateTime(formData.createDateTime)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px] text-[#70757a]">update</span>
+                                            <span>Son Güncelleme</span>
+                                        </span>
+                                        <span className="font-medium text-[#202124] dark:text-white tabular-nums">
+                                            {formatDateTime(formData.updateDateTime)}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px] text-[#70757a]">person</span>
+                                            <span>Güncelleyen</span>
+                                        </span>
+                                        <span
+                                            className="font-medium text-[#1a73e8] dark:text-[#8ab4f8] max-w-[150px] truncate"
+                                            title={formData.updatedBy || formData.createdBy || '-'}
+                                        >
+                                            {formData.updatedBy || formData.createdBy || '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Structured 4-Card Form Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Card 1: Temel Acente Bilgileri */}
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                                <div className="flex items-center gap-2.5 pb-3 border-b border-[#dadce0]/70 dark:border-[#3c4043]">
+                                    <div className="size-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-[19px]">domain</span>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-[#202124] dark:text-white">Temel Acente Bilgileri</h3>
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Acente Ticari Adı
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.name || ''}
+                                            onChange={(e) => handleInputChange('name', e.target.value)}
+                                            placeholder="Acente adı giriniz"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Resmi Ticari Unvan
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.officialTitle || ''}
+                                            onChange={(e) => handleInputChange('officialTitle', e.target.value)}
+                                            placeholder="Ticaret sicilindeki tam şirket unvanı"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Acente Türü
+                                            </label>
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={formData.agencyType || 'AGENCY'}
+                                                className="w-full h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#303134]/50 border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-[#70757a] cursor-not-allowed outline-none"
+                                            />
                                         </div>
-
-                                        {/* Section 02: Contact Details */}
-                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
-                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
-                                                <div className="size-7 rounded-full bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] flex items-center justify-center shrink-0">
-                                                    <span className="material-symbols-outlined text-[18px]">contact_phone</span>
-                                                </div>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec02')}</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('directEmail')}</label>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.email || '-'}</p>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('phone')}</label>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">+{formData.phoneCountryCode} {formData.phoneNumber || '-'}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Section 03: Geography & Location */}
-                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
-                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
-                                                <div className="size-7 rounded-full bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82] flex items-center justify-center shrink-0">
-                                                    <span className="material-symbols-outlined text-[18px]">place</span>
-                                                </div>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec03')}</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('country')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.countryName || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('city')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.cityName || '-'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-4 gap-3">
-                                                    <div className="col-span-3">
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('streetAddress')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.address || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('zipCode')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] text-center">{formData.zipCode || '-'}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Section 04: Finance */}
-                                        <div className="bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs transition-shadow hover:shadow-sm">
-                                            <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[#f1f3f4] dark:border-[#3c4043]">
-                                                <div className="size-7 rounded-full bg-[#fef7e0] dark:bg-[#ea8600]/20 text-[#b06000] dark:text-[#fdd663] flex items-center justify-center shrink-0">
-                                                    <span className="material-symbols-outlined text-[18px]">payments</span>
-                                                </div>
-                                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">{L('sec04')}</h3>
-                                            </div>
-                                            <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('taxOffice')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.taxOffice || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('taxNumber')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.taxNumber || '-'}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accEmail')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.agencyFinancialInfo?.email || '-'}</p>
-                                                    </div>
-                                                    <div>
-                                                        <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accPhone')}</label>
-                                                        <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043]">{formData.agencyFinancialInfo?.phoneCountryCode ? `+${formData.agencyFinancialInfo.phoneCountryCode} ${formData.agencyFinancialInfo.phoneNumber || ''}` : '-'}</p>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <label className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">{L('accAddress')}</label>
-                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] bg-[#f8f9fa] dark:bg-[#202124] rounded-xl px-3.5 py-2.5 border border-[#dadce0] dark:border-[#3c4043] truncate">{formData.agencyFinancialInfo?.address || '-'}</p>
-                                                </div>
-                                            </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Varsayılan Dil
+                                            </label>
+                                            <select
+                                                value={formData.defaultLanguage || 'TR'}
+                                                onChange={(e) => handleInputChange('defaultLanguage', e.target.value)}
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs cursor-pointer"
+                                            >
+                                                <option value="TR">Türkçe (TR)</option>
+                                                <option value="EN">English (EN)</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        ) : activeTab === 'users' ? (
-                            <div className="h-full flex flex-col gap-4 overflow-hidden">
-                                {/* User Summary Cards */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalUsers')}</span>
-                                            <div className="size-8 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                                <span className="material-symbols-outlined text-[18px]">groups</span>
-                                            </div>
+
+                            {/* Card 2: İletişim Bilgileri */}
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                                <div className="flex items-center gap-2.5 pb-3 border-b border-[#dadce0]/70 dark:border-[#3c4043]">
+                                    <div className="size-8 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-[19px]">call</span>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-[#202124] dark:text-white">İletişim Bilgileri</h3>
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Acente E-posta Adresi
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={formData.email || ''}
+                                            onChange={(e) => handleInputChange('email', e.target.value)}
+                                            placeholder="info@acente.com"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Ülke Kodu
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.phoneCountryCode || ''}
+                                                onChange={(e) => handleInputChange('phoneCountryCode', e.target.value)}
+                                                placeholder="90"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
                                         </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.totalCount}</div>
-                                            <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">MEMBERS</div>
+                                        <div className="col-span-2">
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Telefon Numarası
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.phoneNumber || ''}
+                                                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                                                placeholder="5XX XXX XX XX"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeUsers')}</span>
-                                            <div className="size-8 bg-[#e6f4ea] dark:bg-[#137333]/20 rounded-full flex items-center justify-center text-[#137333] dark:text-[#81c995]">
-                                                <span className="material-symbols-outlined text-[18px]">person_check</span>
-                                            </div>
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Web Sitesi
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={formData.website || ''}
+                                            onChange={(e) => handleInputChange('website', e.target.value)}
+                                            placeholder="https://www.acente.com"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Fatura & Mali Bilgiler */}
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                                <div className="flex items-center gap-2.5 pb-3 border-b border-[#dadce0]/70 dark:border-[#3c4043]">
+                                    <div className="size-8 rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-[19px]">receipt_long</span>
+                                    </div>
+                                    <h3 className="text-sm font-bold text-[#202124] dark:text-white">Fatura & Mali Bilgiler</h3>
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Mali Fatura Unvanı
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.agencyFinancialInfo?.title || ''}
+                                            onChange={(e) => handleInputChange('agencyFinancialInfo.title', e.target.value)}
+                                            placeholder="Fatura kesilecek resmi ticari unvan"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Vergi Dairesi
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.agencyFinancialInfo?.taxOffice || formData.taxOffice || ''}
+                                                onChange={(e) => {
+                                                    handleInputChange('taxOffice', e.target.value);
+                                                    handleInputChange('agencyFinancialInfo.taxOffice', e.target.value);
+                                                }}
+                                                placeholder="Vergi dairesi"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
                                         </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.activeCount}</div>
-                                            <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Vergi Numarası
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.agencyFinancialInfo?.taxNumber || formData.taxNumber || ''}
+                                                onChange={(e) => {
+                                                    handleInputChange('taxNumber', e.target.value);
+                                                    handleInputChange('agencyFinancialInfo.taxNumber', e.target.value);
+                                                }}
+                                                placeholder="VKN / TCKN"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
                                         </div>
                                     </div>
 
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveUsers')}</span>
-                                            <div className="size-8 bg-[#fce8e6] dark:bg-[#c5221f]/20 rounded-full flex items-center justify-center text-[#c5221f] dark:text-[#f28b82]">
-                                                <span className="material-symbols-outlined text-[18px]">person_off</span>
-                                            </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Muhasebe E-postası
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={formData.agencyFinancialInfo?.email || ''}
+                                                onChange={(e) => handleInputChange('agencyFinancialInfo.email', e.target.value)}
+                                                placeholder="muhasebe@acente.com"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
                                         </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.passiveCount}</div>
-                                            <div className="text-[10px] font-medium text-[#c5221f] dark:text-[#f28b82] mb-0.5">DISABLED</div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Muhasebe Telefonu
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.agencyFinancialInfo?.phoneNumber || ''}
+                                                onChange={(e) => handleInputChange('agencyFinancialInfo.phoneNumber', e.target.value)}
+                                                placeholder="Telefon numarası"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                            Fatura Adresi
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formData.agencyFinancialInfo?.address || ''}
+                                            onChange={(e) => handleInputChange('agencyFinancialInfo.address', e.target.value)}
+                                            placeholder="Resmi fatura adresi"
+                                            className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 4: Konum ve Harita */}
+                            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+                                <div className="flex items-center justify-between pb-3 border-b border-[#dadce0]/70 dark:border-[#3c4043]">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="size-8 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-[19px]">place</span>
+                                        </div>
+                                        <h3 className="text-sm font-bold text-[#202124] dark:text-white">Konum ve Harita</h3>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={openInMaps}
+                                        className="text-xs font-medium text-[#1a73e8] dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                                        <span>Google Maps</span>
+                                    </button>
+                                </div>
+
+                                <div className="space-y-3.5">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Ülke
+                                            </label>
+                                            <select
+                                                value={formData.countryId || ''}
+                                                onChange={handleCountryChange}
+                                                className="w-full h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs cursor-pointer"
+                                            >
+                                                <option value="">Ülke Seçiniz</option>
+                                                {countries.map((c, idx) => (
+                                                    <option key={c.id || c.locationId || idx} value={c.id || c.locationId}>
+                                                        {getCountryName(countries, c.countryIso2 || c.code || c.id, currentLang)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Şehir
+                                            </label>
+                                            <select
+                                                value={formData.cityId || ''}
+                                                onChange={(e) => handleInputChange('cityId', e.target.value)}
+                                                className="w-full h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs cursor-pointer"
+                                            >
+                                                <option value="">Şehir Seçiniz</option>
+                                                {cities.map((city, idx) => (
+                                                    <option key={city.id || city.locationId || idx} value={city.id || city.locationId}>
+                                                        {city.name?.translations?.[currentLang] || city.name?.translations?.tr || city.name?.defaultName || city.name || `City #${idx}`}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="col-span-2">
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Açık Adres
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.address || ''}
+                                                onChange={(e) => handleInputChange('address', e.target.value)}
+                                                placeholder="Cadde, sokak, bina no, ilçe"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">
+                                                Posta Kodu
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.zipCode || ''}
+                                                onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                                                placeholder="34000"
+                                                className="w-full h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white outline-none transition-all shadow-2xs"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Leaflet Map Preview */}
+                                    <div className="rounded-xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] h-48 relative z-10 shadow-2xs">
+                                        <MapContainer
+                                            center={mapCenter}
+                                            zoom={zoom}
+                                            scrollWheelZoom={false}
+                                            className="w-full h-full"
+                                        >
+                                            <ChangeView center={mapCenter} zoom={zoom} />
+                                            <TileLayer
+                                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            />
+                                            <LocationMarker
+                                                position={[Number(formData.latitude) || 36.6826845, Number(formData.longitude) || 30.9089719]}
+                                                setPosition={setMapLocation}
+                                            />
+                                        </MapContainer>
+                                        <div className="absolute bottom-2 left-2 z-[400] bg-white/90 dark:bg-[#202124]/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[10px] font-mono text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xs">
+                                            Konum: {Number(formData.latitude).toFixed(5)}, {Number(formData.longitude).toFixed(5)} (Haritaya tıklayarak güncelleyebilirsiniz)
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
 
-                                <div className="flex-1 flex flex-col bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs">
-                                    <div className="p-3.5 sm:p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
-                                            <div className="relative flex-1">
-                                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                                <input type="text" placeholder={L('searchUsers')} value={userFilters.query} onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })} className="w-full h-10 bg-[#f1f3f4] dark:bg-[#202124] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] rounded-full pl-10 pr-4 text-xs font-normal text-[#202124] dark:text-[#e8eaed] outline-none transition-all placeholder-[#5f6368] dark:placeholder-[#9aa0a6]" />
-                                            </div>
-                                            <select value={userFilters.roleIds[0] || ''} onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                <option value="">{L('allRoles')}</option>
-                                                {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
-                                            </select>
-                                            <select value={userFilters.status} onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                <option value="ACTIVE">Active</option>
-                                                <option value="PASSIVE">Passive</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={handleExportUsersExcel}
-                                                disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
-                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                                title="Export all matching records to Excel"
-                                            >
-                                                {isExportingUserExcel ? (
-                                                    <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-[18px]">table_view</span>
-                                                )}
-                                                <span>{isExportingUserExcel ? L('exporting') : L('exportExcel')}</span>
-                                            </button>
+                        {/* Bottom Floating Save Action Bar */}
+                        <div className="p-4 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div className="flex items-center gap-2 text-xs text-[#5f6368] dark:text-[#9aa0a6]">
+                                <span className="material-symbols-outlined text-[18px] text-[#1a73e8]">info</span>
+                                <span>Yapılan değişiklikler kaydedilene kadar sistemde güncellenmez.</span>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={() => fetchInitialData()}
+                                    disabled={saving}
+                                    className="flex-1 sm:flex-none h-10 px-5 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-medium text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] transition-all cursor-pointer"
+                                >
+                                    Vazgeç
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="flex-1 sm:flex-none h-10 px-6 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {saving ? (
+                                        <div className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <span className="material-symbols-outlined text-[18px]">check</span>
+                                    )}
+                                    <span>{saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                )}
 
-                                            <button
-                                                onClick={handleExportUsersPdf}
-                                                disabled={isExportingUserExcel || isExportingUserPdf || usersLoading}
-                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                                title="Export all matching records to PDF"
-                                            >
-                                                {isExportingUserPdf ? (
-                                                    <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                                                )}
-                                                <span>{isExportingUserPdf ? L('exporting') : L('exportPdf')}</span>
-                                            </button>
-
-                                            <button
-                                                onClick={() => fetchUsersData(true)}
-                                                disabled={usersLoading}
-                                                className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
-                                                title={L('refresh')}
-                                            >
-                                                <span className={`material-symbols-outlined text-[18px] ${usersLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                            </button>
-
-                                            <button onClick={openAddUser} className="h-10 px-5 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium flex items-center gap-1.5 shadow-none hover:shadow-xs active:scale-95 transition-all cursor-pointer"><span className="material-symbols-outlined text-[18px]">add</span> {L('addUser')}</button>
-                                        </div>
+                {/* ─── TAB 2: USERS ─────────────────────────────────────────── */}
+                {activeTab === 'users' && (
+                    <div className="space-y-5">
+                        {/* 3 Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalUsers')}</span>
+                                    <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">groups</span>
                                     </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full border-collapse">
-                                            <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colUser')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colRole')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
-                                                    <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {usersLoading ? <TableSkeleton columns={5} /> : users.length > 0 ? users.map((u) => (
-                                                    <tr key={u.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs">
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.totalCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-[#70757a]">kullanıcı</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{L('activeUsers')}</span>
+                                    <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">person_check</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.activeCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-emerald-600">aktif</span>
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{L('passiveUsers')}</span>
+                                    <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">person_off</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.passiveCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-rose-600">pasif</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* User Table & Toolbar Card */}
+                        <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
+                            {/* Toolbar */}
+                            <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-xl">
+                                    <div className="relative flex-1">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#70757a]">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder={L('searchUsers') || 'İsim veya e-posta ile ara...'}
+                                            value={userFilters.query}
+                                            onChange={(e) => handleUserFilterChange({ ...userFilters, query: e.target.value })}
+                                            className="w-full pl-9 pr-8 h-10 bg-[#f8f9fa] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
+                                        />
+                                        {userFilters.query && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleUserFilterChange({ ...userFilters, query: '' })}
+                                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[15px]">close</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <select
+                                        value={userFilters.roleIds[0] || ''}
+                                        onChange={(e) => handleUserFilterChange({ ...userFilters, roleIds: e.target.value ? [parseInt(e.target.value)] : [] })}
+                                        className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer"
+                                    >
+                                        <option value="">{L('allRoles') || 'Tüm Roller'}</option>
+                                        {roles.map(r => <option key={r.id} value={r.id}>{r.roleName || r.name}</option>)}
+                                    </select>
+
+                                    <select
+                                        value={userFilters.status}
+                                        onChange={(e) => handleUserFilterChange({ ...userFilters, status: e.target.value })}
+                                        className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer"
+                                    >
+                                        <option value="ACTIVE">{L('active') || 'Aktif'}</option>
+                                        <option value="PASSIVE">{L('passive') || 'Pasif'}</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleExportUsersExcel}
+                                        disabled={isExportingUserExcel || usersLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Excel'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">table_view</span>
+                                        <span className="hidden sm:inline">Excel</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleExportUsersPdf}
+                                        disabled={isExportingUserPdf || usersLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="PDF'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                        <span className="hidden sm:inline">PDF</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchUsersData(true)}
+                                        disabled={usersLoading}
+                                        className="size-10 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Yenile"
+                                    >
+                                        <span className={`material-symbols-outlined text-[18px] ${usersLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Table */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">
+                                            <th className="px-4 py-3">Kullanıcı</th>
+                                            <th className="px-4 py-3">E-posta</th>
+                                            <th className="px-4 py-3">Telefon</th>
+                                            <th className="px-4 py-3">Roller</th>
+                                            <th className="px-4 py-3 text-center">Durum</th>
+                                            <th className="px-4 py-3 text-right">İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
+                                        {usersLoading ? (
+                                            <TableSkeleton columns={6} rows={5} />
+                                        ) : users.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={6} className="px-4 py-12 text-center text-[#70757a]">
+                                                    <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">person_off</span>
+                                                    <p className="text-sm font-medium">Kullanıcı bulunamadı</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            users.map((u) => {
+                                                const initials = `${u.name?.[0] || ''}${u.surname?.[0] || ''}`.toUpperCase() || 'U';
+                                                return (
+                                                    <tr key={u.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="size-9 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium text-xs flex items-center justify-center shrink-0">
-                                                                    <span className="uppercase">{u.name?.[0] || 'U'}{u.surname?.[0] || ''}</span>
+                                                                <div className="size-8 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/25 text-[#1a73e8] dark:text-[#8ab4f8] font-bold text-xs flex items-center justify-center shrink-0">
+                                                                    {initials}
                                                                 </div>
                                                                 <div>
-                                                                    <p className="font-medium text-[#202124] dark:text-[#e8eaed] leading-tight mb-0.5">{u.name} {u.surname}</p>
-                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">ID: #{u.id}</p>
+                                                                    <div className="font-semibold text-[#202124] dark:text-white leading-tight">
+                                                                        {u.name} {u.surname}
+                                                                    </div>
+                                                                    <div className="text-[10px] text-[#70757a] font-mono mt-0.5">ID: #{u.id}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="space-y-0.5 text-xs">
-                                                                <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-[#e8eaed]">
-                                                                    <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6]">mail</span>
-                                                                    <span>{u.email}</span>
-                                                                </div>
-                                                                {u.phoneNumber && (
-                                                                    <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6] text-[11px]">
-                                                                        <span className="material-symbols-outlined text-[15px]">call</span>
-                                                                        <span>+{u.phoneCountryCode} {u.phoneNumber}</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-mono text-[11px]">{u.email || '-'}</td>
+                                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">
+                                                            {u.phoneNumber ? `+${u.phoneCountryCode || ''} ${u.phoneNumber}` : '-'}
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex flex-wrap gap-1">
-                                                                {u.roles?.length > 0 ? u.roles.map((r, idx) => (
-                                                                    <span key={r.id || idx} className="px-2.5 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] text-[11px] font-medium rounded-full">
-                                                                        {r.roleName || r.name}
-                                                                    </span>
-                                                                )) : (
-                                                                    <span className="text-[#5f6368] dark:text-[#9aa0a6] text-[11px] italic">No Role</span>
+                                                                {(u.roles || []).length > 0 ? (
+                                                                    u.roles.map(r => (
+                                                                        <span key={r.id} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/40 dark:text-blue-300">
+                                                                            {r.roleName || r.name}
+                                                                        </span>
+                                                                    ))
+                                                                ) : (
+                                                                    <span className="text-slate-400 text-[11px]">Rol yok</span>
                                                                 )}
                                                             </div>
                                                         </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center">
-                                                                <AppleSwitch
-                                                                    checked={u.status === 'ACTIVE'}
-                                                                    onChange={() => handleToggleUserStatus(u)}
-                                                                    size="sm"
-                                                                />
-                                                            </div>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <AppleSwitch
+                                                                checked={u.status === 'ACTIVE'}
+                                                                onChange={() => handleToggleUserStatus(u)}
+                                                                size="sm"
+                                                            />
                                                         </td>
                                                         <td className="px-4 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <button
+                                                                    type="button"
                                                                     onClick={() => openUpdatePasswordModal(u)}
-                                                                    className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#e8f0fe] hover:text-[#1a73e8] dark:text-[#9aa0a6] dark:hover:bg-[#1a73e8]/20 dark:hover:text-[#8ab4f8] transition-colors cursor-pointer"
-                                                                    title={L('updatePassword') || 'Şifre Güncelle'}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-[#1a73e8] hover:bg-[#e8f0fe] dark:hover:bg-blue-900/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Şifre Değiştir"
                                                                 >
-                                                                    <span className="material-symbols-outlined text-[18px]">lock_reset</span>
+                                                                    <span className="material-symbols-outlined text-[17px]">lock_reset</span>
                                                                 </button>
-                                                                <button onClick={() => openEditUser(u)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer" title={L('editUser')}>
-                                                                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => openEditUser(u)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Düzenle"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[17px]">edit</span>
                                                                 </button>
-                                                                <button onClick={() => handleDeleteUser(u.id)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors cursor-pointer" title={L('deleteUser')}>
-                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                )) : (
-                                                    <tr>
-                                                        <td colSpan="5" className="px-4 py-12 text-center">
-                                                            <p className="text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">{L('noUsers')}</p>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : activeTab === 'guests' ? (
-                            <div className="h-full flex flex-col gap-4 overflow-hidden">
-                                {/* Guest Summary Cards */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalGuests')}</span>
-                                            <div className="size-8 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-full flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                                <span className="material-symbols-outlined text-[18px]">recent_actors</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.totalGuestCount}</div>
-                                            <div className="text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] mb-0.5">PROFILES</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#137333] dark:text-[#81c995] uppercase tracking-wider">{L('activeGuests')}</span>
-                                            <div className="size-8 bg-[#e6f4ea] dark:bg-[#137333]/20 rounded-full flex items-center justify-center text-[#137333] dark:text-[#81c995]">
-                                                <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.activeGuestCount}</div>
-                                            <div className="text-[10px] font-medium text-[#137333] dark:text-[#81c995] mb-0.5">ACTIVE</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-white dark:bg-[#303134] p-4 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[11px] font-medium text-[#c5221f] dark:text-[#f28b82] uppercase tracking-wider">{L('passiveGuests')}</span>
-                                            <div className="size-8 bg-[#fce8e6] dark:bg-[#c5221f]/20 rounded-full flex items-center justify-center text-[#c5221f] dark:text-[#f28b82]">
-                                                <span className="material-symbols-outlined text-[18px]">person_remove</span>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-end gap-2">
-                                            <div className="text-2xl font-normal text-[#202124] dark:text-white leading-none">{statsLoading ? '...' : summary.passiveGuestCount}</div>
-                                            <div className="text-[10px] font-medium text-[#c5221f] dark:text-[#f28b82] mb-0.5">ARCHIVED</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 flex flex-col bg-white dark:bg-[#303134] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs">
-                                    <div className="p-3.5 sm:p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
-                                        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
-                                            <div className="relative flex-1">
-                                                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                                <input type="text" placeholder={L('searchGuests')} value={guestFilters.query} onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })} className="w-full h-10 bg-[#f1f3f4] dark:bg-[#202124] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] rounded-full pl-10 pr-4 text-xs font-normal text-[#202124] dark:text-[#e8eaed] outline-none transition-all placeholder-[#5f6368] dark:placeholder-[#9aa0a6]" />
-                                            </div>
-                                            <select value={guestFilters.countryCodes[0] || ''} onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                <option value="">{L('allCountries')}</option>
-                                                {countries.map((c, idx) => {
-                                                    const code = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
-                                                    return (
-                                                        <option key={c.locationId || c.id || code || idx} value={code}>
-                                                            {getCountryName(countries, code, currentLang)}
-                                                        </option>
-                                                    );
-                                                })}
-                                            </select>
-                                            <select value={guestFilters.status} onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })} className="h-10 px-3.5 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#3c4043] dark:text-[#bdc1c6] focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                <option value="ACTIVE">Active</option>
-                                                <option value="PASSIVE">Passive</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={handleExportGuestsExcel}
-                                                disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
-                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                                title="Export all matching records to Excel"
-                                            >
-                                                {isExportingGuestExcel ? (
-                                                    <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-[18px]">table_view</span>
-                                                )}
-                                                <span>{isExportingGuestExcel ? L('exporting') : L('exportExcel')}</span>
-                                            </button>
-
-                                            <button
-                                                onClick={handleExportGuestsPdf}
-                                                disabled={isExportingGuestExcel || isExportingGuestPdf || guestsLoading}
-                                                className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                                title="Export all matching records to PDF"
-                                            >
-                                                {isExportingGuestPdf ? (
-                                                    <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
-                                                ) : (
-                                                    <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                                                )}
-                                                <span>{isExportingGuestPdf ? L('exporting') : L('exportPdf')}</span>
-                                            </button>
-
-                                            <button
-                                                onClick={() => fetchGuestsData(true)}
-                                                disabled={guestsLoading}
-                                                className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
-                                                title={L('refresh')}
-                                            >
-                                                <span className={`material-symbols-outlined text-[18px] ${guestsLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                            </button>
-
-                                            <button onClick={openAddGuest} className="h-10 px-5 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium flex items-center gap-1.5 shadow-none hover:shadow-xs active:scale-95 transition-all cursor-pointer"><span className="material-symbols-outlined text-[18px]">add</span> {L('addGuest')}</button>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <table className="w-full border-collapse">
-                                            <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colGuest')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colBirth')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colPassport')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colContact')}</th>
-                                                    <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colStatus')}</th>
-                                                    <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap select-none">{L('colActions')}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {guestsLoading ? <TableSkeleton columns={6} /> : guests.length > 0 ? guests.map((g) => (
-                                                    <tr key={g.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs">
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`size-9 rounded-full flex items-center justify-center font-medium text-xs shrink-0 ${g.gender === 'FEMALE'
-                                                                        ? 'bg-[#fce8e6] dark:bg-[#c5221f]/20 text-[#c5221f] dark:text-[#f28b82]'
-                                                                        : 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]'
-                                                                    }`}>
-                                                                    <span className="uppercase">{g.firstName?.[0]}{g.lastName?.[0]}</span>
-                                                                </div>
-                                                                <div>
-                                                                    <p className="font-medium text-[#202124] dark:text-[#e8eaed] leading-tight mb-0.5">{g.gender === 'MALE' ? 'Mr' : 'Mrs'} {g.firstName} {g.lastName}</p>
-                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6] font-mono">ID: #{g.id}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="px-2 py-0.5 bg-[#f1f3f4] dark:bg-[#202124] rounded text-[10px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase">{g.country || 'N/A'}</span>
-                                                                <div>
-                                                                    <p className="text-xs font-medium text-[#3c4043] dark:text-[#e8eaed]">{getCountryName(countries, g.country, currentLang)}</p>
-                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">Born: {g.birthDate || 'Unknown'}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center gap-1.5">
-                                                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8] dark:text-[#8ab4f8]">badge</span>
-                                                                <div>
-                                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed]">{g.passportNo || 'N/A'}</p>
-                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">Expires: {g.passportExpiry || 'N/A'}</p>
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="space-y-0.5 text-xs">
-                                                                <div className="flex items-center gap-1.5 text-[#3c4043] dark:text-[#e8eaed]">
-                                                                    <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6]">mail</span>
-                                                                    <span>{g.email}</span>
-                                                                </div>
-                                                                {g.phoneNumber && (
-                                                                    <div className="flex items-center gap-1.5 text-[#5f6368] dark:text-[#9aa0a6] text-[11px]">
-                                                                        <span className="material-symbols-outlined text-[15px]">call</span>
-                                                                        <span>+{g.phoneCountryCode} {g.phoneNumber}</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <div className="flex items-center">
-                                                                <AppleSwitch
-                                                                    checked={g.status === 'ACTIVE'}
-                                                                    onChange={() => handleToggleGuestStatus(g)}
-                                                                    size="sm"
-                                                                />
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-right">
-                                                            <div className="flex items-center justify-end gap-1">
-                                                                <button onClick={() => openEditGuest(g)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#f1f3f4] dark:text-[#9aa0a6] dark:hover:bg-[#202124] transition-colors cursor-pointer" title={L('editGuest')}>
-                                                                    <span className="material-symbols-outlined text-[18px]">edit</span>
-                                                                </button>
-                                                                <button onClick={() => handleDeleteGuest(g.id)} className="size-8 rounded-full flex items-center justify-center text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors cursor-pointer" title={L('deleteGuest')}>
-                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteUser(u.id)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Sil"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[17px]">delete</span>
                                                                 </button>
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                )) : (
-                                                    <tr>
-                                                        <td colSpan="6" className="px-4 py-12 text-center">
-                                                            <p className="text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">{L('noGuests')}</p>
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : activeTab === 'favorites' ? (
-                            <div className="h-full flex flex-col min-h-0 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xs relative z-20 overflow-visible">
-                                {/* Filter and Autocomplete Controls Bar */}
-                                <div className="p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 relative z-50 select-none">
-                                    {/* Autocomplete Search Dropdown */}
-                                    <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-md">
-                                        <div className="relative">
-                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                            <input
-                                                type="text"
-                                                placeholder={L('searchAutocompletePlaceholder')}
-                                                value={hotelAutocompleteQuery}
-                                                onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
-                                                onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
-                                                className="w-full pl-10 pr-8 py-2.5 border border-[#dadce0] dark:border-[#5f6368] rounded-full text-xs font-normal bg-[#f1f3f4] dark:bg-[#202124] text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#303134] transition-all"
-                                            />
-                                            {hotelAutocompleteLoading && (
-                                                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 border-2 border-[#1a73e8]/30 border-t-[#1a73e8] rounded-full animate-spin"></div>
-                                            )}
-                                        </div>
-
-                                        {/* Autocomplete Dropdown Overlay */}
-                                        {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
-                                            <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-2xl shadow-2xl max-h-64 overflow-y-auto z-[9999] p-2 space-y-1 ring-1 ring-black/5 animate-in fade-in-50 zoom-in-95">
-                                                {hotelAutocompleteResults.map((h, idx) => {
-                                                    const isFav = isFavorite(h.hotelId);
-                                                    return (
-                                                        <div
-                                                            key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
-                                                            className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#202124] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
-                                                        >
-                                                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                                                <div className={`size-8 rounded-full ${isFav ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center font-medium text-xs shrink-0`}>
-                                                                    <span className="material-symbols-outlined text-[18px]">{isFav ? 'bookmark' : 'hotel'}</span>
-                                                                </div>
-                                                                <div className="min-w-0">
-                                                                    <p className="text-xs font-medium text-[#202124] dark:text-[#e8eaed] group-hover:text-[#1a73e8] transition-colors truncate">
-                                                                        {h.hotelName}
-                                                                    </p>
-                                                                    <p className="text-[10px] text-[#5f6368] dark:text-[#9aa0a6]">
-                                                                        ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
-                                                                disabled={isFav}
-                                                                className={`h-7 px-3 rounded-full text-[11px] font-medium transition-all flex items-center gap-1 shrink-0 ${isFav
-                                                                        ? 'bg-[#e6f4ea] dark:bg-[#137333]/20 text-[#137333] dark:text-[#81c995] cursor-default'
-                                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] hover:bg-[#1a73e8] hover:text-white active:scale-95'
-                                                                    }`}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[14px]">{isFav ? 'check' : 'add'}</span>
-                                                                <span>{isFav ? L('addedBtn') : L('addBtn')}</span>
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                );
+                                            })
                                         )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── TAB 3: GUESTS ────────────────────────────────────────── */}
+                {activeTab === 'guests' && (
+                    <div className="space-y-5">
+                        {/* 3 Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{L('totalGuests')}</span>
+                                    <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">recent_actors</span>
                                     </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.totalGuestCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-[#70757a]">profil</span>
+                                </div>
+                            </div>
 
-                                    {/* Table Search & Filter Controls */}
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <div className="relative">
-                                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[18px]">search</span>
-                                            <input
-                                                type="text"
-                                                placeholder={L('searchTablePlaceholder') || 'Search...'}
-                                                value={favoriteSearchQuery}
-                                                onChange={(e) => setFavoriteSearchQuery(e.target.value)}
-                                                className="w-36 sm:w-44 pl-9 pr-3 py-2 bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal text-[#202124] dark:text-[#e8eaed] placeholder-[#5f6368] dark:placeholder-[#9aa0a6] focus:outline-none focus:border-[#1a73e8] transition-colors"
-                                            />
-                                        </div>
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{L('activeGuests')}</span>
+                                    <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">how_to_reg</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.activeGuestCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-emerald-600">aktif</span>
+                                </div>
+                            </div>
 
-                                        {/* Country Dropdown Filter */}
-                                        <div className="relative" ref={favCountryDropdownRef}>
-                                            <div
-                                                onClick={() => setShowFavCountryDropdown(!showFavCountryDropdown)}
-                                                className={`h-9 px-3 bg-[#f8f9fa] dark:bg-[#202124] border ${favoriteCountryFilter ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'border-[#dadce0] dark:border-[#3c4043] text-[#3c4043] dark:text-[#bdc1c6]'} rounded-full text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
-                                                title={favoriteCountryFilter ? (getCountryName(countries, favoriteCountryFilter, currentLang) || favoriteCountryFilter) : (L('hotelCountry') || 'Otel Ülkesi')}
-                                            >
-                                                <span className="material-symbols-outlined text-[16px] shrink-0">public</span>
-                                                <span className="truncate max-w-[100px] sm:max-w-[130px]">
-                                                    {favoriteCountryFilter ? (getCountryName(countries, favoriteCountryFilter, currentLang) || favoriteCountryFilter) : (L('hotelCountry') || 'Otel Ülkesi')}
-                                                </span>
-                                                {favoriteCountryFilter ? (
-                                                    <span
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setFavoriteCountryFilter('');
-                                                        }}
-                                                        className="material-symbols-outlined text-[15px] hover:text-[#d93025] transition-colors ml-0.5"
-                                                    >
-                                                        close
-                                                    </span>
-                                                ) : (
-                                                    <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-[#9aa0a6] transition-transform ${showFavCountryDropdown ? 'rotate-180' : ''}`}>
-                                                        expand_more
-                                                    </span>
-                                                )}
-                                            </div>
+                            <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 uppercase tracking-wider">{L('passiveGuests')}</span>
+                                    <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                                        <span className="material-symbols-outlined text-[22px]">person_remove</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                    <div className="text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                        {statsLoading ? '...' : summary.passiveGuestCount}
+                                    </div>
+                                    <span className="text-xs font-medium text-rose-600">arşiv</span>
+                                </div>
+                            </div>
+                        </div>
 
-                                            {showFavCountryDropdown && (
-                                                <div className="absolute top-full left-0 mt-1.5 w-64 max-h-72 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
-                                                    <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                                        <div className="relative">
-                                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[16px]">search</span>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Ülke ara..."
-                                                                value={favCountrySearch}
-                                                                onChange={(e) => setFavCountrySearch(e.target.value)}
-                                                                autoFocus
-                                                                className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
-                                                        <div
-                                                            onClick={() => {
-                                                                setFavoriteCountryFilter('');
-                                                                setShowFavCountryDropdown(false);
-                                                                setFavCountrySearch('');
-                                                            }}
-                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${!favoriteCountryFilter ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                        >
-                                                            <span>{L('allCountries') || 'Tüm Ülkeler'}</span>
-                                                            {!favoriteCountryFilter && <span className="material-symbols-outlined text-[16px]">check</span>}
-                                                        </div>
-                                                        {countries
-                                                            .filter(c => {
-                                                                const cCode = (c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '').toLowerCase();
-                                                                const nameTr = (c.name?.translations?.tr || '').toLowerCase();
-                                                                const nameEn = (c.name?.translations?.en || '').toLowerCase();
-                                                                const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
-                                                                const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
-                                                                const search = (favCountrySearch || '').trim().toLowerCase();
-                                                                return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search) || cCode.includes(search);
-                                                            })
-                                                            .map((c, i) => {
-                                                                const cCode = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
-                                                                const cName = getCountryName(countries, cCode, currentLang) || c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || cCode || `Country #${c.id || c.locationId || i}`;
-                                                                const isSelected = Boolean(favoriteCountryFilter) && (
-                                                                    favoriteCountryFilter.toLowerCase() === cCode.toLowerCase() ||
-                                                                    favoriteCountryFilter.toLowerCase() === cName.toLowerCase()
-                                                                );
-                                                                return (
-                                                                    <div
-                                                                        key={c.id || c.locationId || cCode || `country-${i}`}
-                                                                        onClick={() => {
-                                                                            setFavoriteCountryFilter(cCode || cName);
-                                                                            setShowFavCountryDropdown(false);
-                                                                            setFavCountrySearch('');
-                                                                        }}
-                                                                        className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                                    >
-                                                                        <div className="flex items-center gap-2 truncate">
-                                                                            {cCode && <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{cCode}</span>}
-                                                                            <span className="truncate">{cName}</span>
-                                                                        </div>
-                                                                        {isSelected && <span className="material-symbols-outlined text-[16px]">check</span>}
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* City Dropdown Filter */}
-                                        <div className="relative" ref={favCityDropdownRef}>
-                                            <div
-                                                onClick={() => {
-                                                    if (!favoriteCountryFilter) {
-                                                        setShowFavCountryDropdown(true);
-                                                        return;
-                                                    }
-                                                    setShowFavCityDropdown(!showFavCityDropdown);
-                                                }}
-                                                className={`h-9 px-3 bg-[#f8f9fa] dark:bg-[#202124] border ${favoriteCityFilter ? 'border-[#1a73e8] text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'border-[#dadce0] dark:border-[#3c4043] text-[#3c4043] dark:text-[#bdc1c6]'} rounded-full text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
-                                                title={favoriteCityFilter || (L('filterCity') || 'Şehir Filtrele')}
-                                            >
-                                                <span className="material-symbols-outlined text-[16px] shrink-0">location_city</span>
-                                                <span className="truncate max-w-[90px] sm:max-w-[120px]">
-                                                    {favoriteCityFilter || (L('filterCity') || 'Şehir Filtrele')}
-                                                </span>
-                                                {favoriteCityFilter ? (
-                                                    <span
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setFavoriteCityFilter('');
-                                                        }}
-                                                        className="material-symbols-outlined text-[15px] hover:text-[#d93025] transition-colors ml-0.5"
-                                                    >
-                                                        close
-                                                    </span>
-                                                ) : (
-                                                    <span className={`material-symbols-outlined text-[16px] text-[#5f6368] dark:text-[#9aa0a6] transition-transform ${showFavCityDropdown ? 'rotate-180' : ''}`}>
-                                                        expand_more
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {showFavCityDropdown && (
-                                                <div className="absolute top-full left-0 mt-1.5 w-64 max-h-72 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
-                                                    <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                                        <div className="relative">
-                                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-[16px]">search</span>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Şehir ara..."
-                                                                value={favCitySearch}
-                                                                onChange={(e) => setFavCitySearch(e.target.value)}
-                                                                autoFocus
-                                                                className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
-                                                        <div
-                                                            onClick={() => {
-                                                                setFavoriteCityFilter('');
-                                                                setShowFavCityDropdown(false);
-                                                                setFavCitySearch('');
-                                                            }}
-                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${!favoriteCityFilter ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                        >
-                                                            <span>{L('allCities') || 'Tüm Şehirler'}</span>
-                                                            {!favoriteCityFilter && <span className="material-symbols-outlined text-[16px]">check</span>}
-                                                        </div>
-                                                        {favoriteCityLoading ? (
-                                                            <div className="py-4 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6] flex items-center justify-center gap-2">
-                                                                <div className="size-3.5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                                                <span>Şehirler yükleniyor...</span>
-                                                            </div>
-                                                        ) : favoriteCityOptions.length === 0 ? (
-                                                            <div className="py-4 text-center text-xs text-[#5f6368] dark:text-[#9aa0a6]">
-                                                                {!favoriteCountryFilter ? 'Lütfen önce ülke seçiniz' : 'Şehir bulunamadı'}
-                                                            </div>
-                                                        ) : (
-                                                            favoriteCityOptions
-                                                                .filter(c => {
-                                                                    const nameTr = (c.name?.translations?.tr || '').toLowerCase();
-                                                                    const nameEn = (c.name?.translations?.en || '').toLowerCase();
-                                                                    const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
-                                                                    const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
-                                                                    const search = (favCitySearch || '').trim().toLowerCase();
-                                                                    return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search);
-                                                                })
-                                                                .map((c, i) => {
-                                                                    const cityName = c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || `City #${c.id || i}`;
-                                                                    const isSelected = Boolean(favoriteCityFilter) && favoriteCityFilter.toLowerCase() === cityName.toLowerCase();
-                                                                    return (
-                                                                        <div
-                                                                            key={c.id || c.locationId || `city-${i}`}
-                                                                            onClick={() => {
-                                                                                setFavoriteCityFilter(cityName);
-                                                                                setShowFavCityDropdown(false);
-                                                                                setFavCitySearch('');
-                                                                            }}
-                                                                            className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${isSelected ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                                        >
-                                                                            <span className="truncate">{cityName}</span>
-                                                                            {isSelected && <span className="material-symbols-outlined text-[16px]">check</span>}
-                                                                        </div>
-                                                                    );
-                                                                })
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <select
-                                            value={favoriteStatusFilter}
-                                            onChange={(e) => setFavoriteStatusFilter(e.target.value)}
-                                            className="px-3.5 py-2 border border-[#dadce0] dark:border-[#3c4043] rounded-full text-xs font-normal bg-white dark:bg-[#202124] text-[#3c4043] dark:text-[#bdc1c6] focus:outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
-                                        >
-                                            <option value="">{L('allStatuses')}</option>
-                                            <option value="ACTIVE">{L('statusActive')}</option>
-                                            <option value="PASSIVE">{L('statusPassive')}</option>
-                                        </select>
-
-                                        {(favoriteSearchQuery || favoriteCountryFilter || favoriteCityFilter || favoriteStatusFilter) && (
+                        {/* Guest Table & Toolbar Card */}
+                        <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
+                            {/* Toolbar */}
+                            <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-xl">
+                                    <div className="relative flex-1">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#70757a]">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder={L('searchGuests') || 'Misafir adı, pasaport veya e-posta ile ara...'}
+                                            value={guestFilters.query}
+                                            onChange={(e) => handleGuestFilterChange({ ...guestFilters, query: e.target.value })}
+                                            className="w-full pl-9 pr-8 h-10 bg-[#f8f9fa] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
+                                        />
+                                        {guestFilters.query && (
                                             <button
                                                 type="button"
-                                                onClick={() => {
-                                                    setFavoriteSearchQuery('');
-                                                    setFavoriteCountryFilter('');
-                                                    setFavoriteCityFilter('');
-                                                    setFavoriteStatusFilter('');
-                                                }}
-                                                className="h-9 px-3 rounded-full text-xs text-[#5f6368] dark:text-slate-400 hover:text-[#d93025] hover:bg-[#fce8e6] dark:hover:bg-[#c5221f]/20 transition-all flex items-center gap-1 cursor-pointer"
-                                                title={L('clearFilters') || 'Filtreleri Temizle'}
+                                                onClick={() => handleGuestFilterChange({ ...guestFilters, query: '' })}
+                                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] cursor-pointer"
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">close</span>
-                                                <span className="hidden sm:inline">{L('clearFilters') || 'Temizle'}</span>
+                                                <span className="material-symbols-outlined text-[15px]">close</span>
                                             </button>
                                         )}
-
-                                        <button
-                                            onClick={handleExportFavoritesExcel}
-                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#137333] dark:text-[#81c995] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                            title="Export all matching records to Excel"
-                                        >
-                                            {isExportingFavExcel ? (
-                                                <div className="size-3.5 border-2 border-[#137333] border-t-transparent rounded-full animate-spin"></div>
-                                            ) : (
-                                                <span className="material-symbols-outlined text-[18px]">table_view</span>
-                                            )}
-                                            <span>{isExportingFavExcel ? L('exporting') : L('exportExcel')}</span>
-                                        </button>
-
-                                        <button
-                                            onClick={handleExportFavoritesPdf}
-                                            disabled={isExportingFavExcel || isExportingFavPdf || favoriteLoading}
-                                            className="h-10 px-3.5 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium text-[#c5221f] dark:text-[#f28b82] flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                            title="Export all matching records to PDF"
-                                        >
-                                            {isExportingFavPdf ? (
-                                                <div className="size-3.5 border-2 border-[#c5221f] border-t-transparent rounded-full animate-spin"></div>
-                                            ) : (
-                                                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                                            )}
-                                            <span>{isExportingFavPdf ? L('exporting') : L('exportPdf')}</span>
-                                        </button>
-
-                                        <button
-                                            onClick={() => fetchFavoriteHotels(favoritePage)}
-                                            disabled={favoriteLoading}
-                                            className="size-10 rounded-full border border-[#dadce0] dark:border-[#3c4043] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50"
-                                            title={L('refresh')}
-                                        >
-                                            <span className={`material-symbols-outlined text-[18px] ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
-                                        </button>
                                     </div>
+
+                                    <select
+                                        value={guestFilters.countryCodes?.[0] || ''}
+                                        onChange={(e) => handleGuestFilterChange({ ...guestFilters, countryCodes: e.target.value ? [e.target.value] : [] })}
+                                        className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer max-w-[150px] truncate"
+                                    >
+                                        <option value="">{L('allCountries') || 'Tüm Ülkeler'}</option>
+                                        {countries.map((c, idx) => {
+                                            const code = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
+                                            return (
+                                                <option key={c.locationId || c.id || code || idx} value={code}>
+                                                    {getCountryName(countries, code, currentLang)}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
+
+                                    <select
+                                        value={guestFilters.status}
+                                        onChange={(e) => handleGuestFilterChange({ ...guestFilters, status: e.target.value })}
+                                        className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer"
+                                    >
+                                        <option value="ACTIVE">{L('active') || 'Aktif'}</option>
+                                        <option value="PASSIVE">{L('passive') || 'Pasif'}</option>
+                                    </select>
                                 </div>
 
-                                {/* Status Sub-Header Bar */}
-                                <div className="px-4 py-2 bg-[#f8f9fa] dark:bg-[#202124] border-t border-b border-[#dadce0] dark:border-[#3c4043] flex justify-between items-center select-none shrink-0">
-                                    <div className="flex items-center gap-2 text-[#5f6368] dark:text-[#9aa0a6]">
-                                        <span className="material-symbols-outlined text-[18px]">analytics</span>
-                                        <span className="text-xs font-medium">
-                                            {favoriteTotalElements} {L('totalRecords')}
-                                        </span>
-                                    </div>
-                                    <span className="text-[11px] text-[#5f6368] dark:text-[#9aa0a6]">
-                                        Favorite Hotels Console
-                                    </span>
-                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleExportGuestsExcel}
+                                        disabled={isExportingGuestExcel || guestsLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Excel'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">table_view</span>
+                                        <span className="hidden sm:inline">Excel</span>
+                                    </button>
 
-                                {/* Favorite Hotels Table Body */}
-                                <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar relative z-10">
-                                    <table className="w-full border-collapse">
-                                        <thead className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] sticky top-0 z-10">
+                                    <button
+                                        type="button"
+                                        onClick={handleExportGuestsPdf}
+                                        disabled={isExportingGuestPdf || guestsLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="PDF'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                        <span className="hidden sm:inline">PDF</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchGuestsData(true)}
+                                        disabled={guestsLoading}
+                                        className="size-10 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Yenile"
+                                    >
+                                        <span className={`material-symbols-outlined text-[18px] ${guestsLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Table */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">
+                                            <th className="px-4 py-3">Misafir</th>
+                                            <th className="px-4 py-3">Doğum Tarihi</th>
+                                            <th className="px-4 py-3">Uyruk</th>
+                                            <th className="px-4 py-3">Pasaport Bilgisi</th>
+                                            <th className="px-4 py-3">İletişim</th>
+                                            <th className="px-4 py-3 text-center">Durum</th>
+                                            <th className="px-4 py-3 text-right">İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
+                                        {guestsLoading ? (
+                                            <TableSkeleton columns={7} rows={5} />
+                                        ) : guests.length === 0 ? (
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[70px] select-none">ID</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[220px] select-none">{L('colHotelInfo')}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[130px] select-none">{L('hotelCountry') || 'Otel Ülkesi'}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[140px] select-none">{L('hotelCity') || 'Otel Şehri'}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('colDateAdded')}</th>
-                                                <th className="px-4 py-3 text-left text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('status')}</th>
-                                                <th className="px-4 py-3 text-right text-[11px] font-medium text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider whitespace-nowrap min-w-[90px] select-none">{L('colActions')}</th>
+                                                <td colSpan={7} className="px-4 py-12 text-center text-[#70757a]">
+                                                    <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">recent_actors</span>
+                                                    <p className="text-sm font-medium">Misafir kaydı bulunamadı</p>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {favoriteLoading ? (
-                                                <TableSkeleton columns={7} rows={favoritePageSize || 10} />
-                                            ) : favoriteBackendItems.length > 0 ? (
-                                                favoriteBackendItems.map((fav, idx) => (
-                                                    <tr
-                                                        key={fav.id ? `fav-${fav.id}-${idx}` : `fav-${idx}`}
-                                                        className="hover:bg-[#f8f9fa] dark:hover:bg-[#202124]/50 transition-colors border-b border-[#f1f3f4] dark:border-[#3c4043] text-xs"
-                                                    >
-                                                        {/* ID */}
-                                                        <td className="px-4 py-3 text-[#5f6368] dark:text-[#9aa0a6] font-mono text-[11px]">#{fav.hotelId}</td>
-
-                                                        {/* Hotel Info */}
+                                        ) : (
+                                            guests.map((g) => {
+                                                const initials = `${g.firstName?.[0] || ''}${g.lastName?.[0] || ''}`.toUpperCase() || 'G';
+                                                return (
+                                                    <tr key={g.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="size-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center font-medium text-xs flex-shrink-0 overflow-hidden">
-                                                                    {fav.imageUrl || fav.image ? (
-                                                                        <img src={fav.imageUrl || fav.image} alt={fav.hotelName} className="w-full h-full object-cover" />
-                                                                    ) : (
-                                                                        <span className="material-symbols-outlined text-[18px]">hotel</span>
-                                                                    )}
+                                                                <div className="size-8 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0">
+                                                                    {initials}
                                                                 </div>
-                                                                <div className="min-w-0">
-                                                                    <span
-                                                                        className="font-medium text-[#202124] dark:text-[#e8eaed] hover:text-[#1a73e8] dark:hover:text-[#8ab4f8] transition-colors cursor-pointer text-xs truncate max-w-[260px] block"
-                                                                        onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                        title={fav.hotelName}
-                                                                    >
-                                                                        {fav.hotelName}
-                                                                    </span>
-                                                                    <div className="flex items-center gap-0.5 text-[#f9ab00] mt-0.5">
-                                                                        {[...Array(fav.stars || 4)].map((_, i) => (
-                                                                            <span key={`star-${fav.id || idx}-${i}`} className="material-symbols-outlined text-[12px] fill-1">star</span>
-                                                                        ))}
+                                                                <div>
+                                                                    <div className="font-semibold text-[#202124] dark:text-white flex items-center gap-1.5 leading-tight">
+                                                                        <span>{g.firstName} {g.lastName}</span>
+                                                                        <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded ${g.gender === 'FEMALE' ? 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                                                                            {g.gender === 'FEMALE' ? 'KADIN' : 'ERKEK'}
+                                                                        </span>
                                                                     </div>
+                                                                    <div className="text-[10px] text-[#70757a] font-mono mt-0.5">ID: #{g.id}</div>
                                                                 </div>
                                                             </div>
                                                         </td>
-
-                                                        {/* Hotel Country */}
-                                                        <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
-                                                            <div className="flex items-center gap-1.5 text-xs font-normal">
-                                                                <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-[#9aa0a6] shrink-0">public</span>
-                                                                <span className="truncate max-w-[140px]" title={fav.countryName || fav.countryCode || 'N/A'}>
-                                                                    {fav.countryName || fav.countryCode || 'N/A'}
-                                                                </span>
-                                                            </div>
+                                                        <td className="px-4 py-3 text-slate-600 dark:text-slate-300 tabular-nums">{g.birthDate || '-'}</td>
+                                                        <td className="px-4 py-3">
+                                                            <span className="font-medium text-[#202124] dark:text-white">
+                                                                {getCountryName(countries, g.country, currentLang) || g.country || '-'}
+                                                            </span>
                                                         </td>
-
-                                                        {/* Hotel City */}
-                                                        <td className="px-4 py-3 text-[#3c4043] dark:text-[#e8eaed]">
-                                                            <div className="flex items-center gap-1.5 text-xs font-normal">
-                                                                <span className="material-symbols-outlined text-[15px] text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">location_on</span>
-                                                                <span className="truncate max-w-[150px]" title={fav.cityName || 'N/A'}>
-                                                                    {fav.cityName || 'N/A'}
-                                                                </span>
-                                                            </div>
+                                                        <td className="px-4 py-3">
+                                                            <div className="font-mono text-[11px] text-[#202124] dark:text-white font-medium">{g.passportNo || '-'}</div>
+                                                            {g.passportExpiry && (
+                                                                <div className="text-[10px] text-[#70757a]">SKT: {g.passportExpiry}</div>
+                                                            )}
                                                         </td>
-
-                                                        {/* Audit Details Icon */}
-                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                                            <div
-                                                                className="inline-flex items-center cursor-pointer p-1"
-                                                                onMouseEnter={(e) => {
-                                                                    const rect = e.currentTarget.getBoundingClientRect();
-                                                                    setAuditTooltip({
-                                                                        item: fav,
-                                                                        x: rect.left + rect.width / 2,
-                                                                        y: rect.top - 8
-                                                                    });
-                                                                }}
-                                                                onMouseLeave={() => setAuditTooltip(null)}
-                                                            >
-                                                                <span className="material-symbols-outlined text-[#5f6368] hover:text-[#1a73e8] dark:text-[#9aa0a6] text-[18px] transition-colors leading-none">
-                                                                    info
-                                                                </span>
-                                                            </div>
+                                                        <td className="px-4 py-3">
+                                                            <div className="text-[11px] text-slate-700 dark:text-slate-300">{g.email || '-'}</div>
+                                                            <div className="text-[11px] text-slate-500 tabular-nums">{g.phoneNumber ? `+${g.phoneCountryCode || ''} ${g.phoneNumber}` : '-'}</div>
                                                         </td>
-
-                                                        {/* Status Toggle Button */}
-                                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleToggleFavoriteStatus(fav)}
-                                                                className="p-1 inline-flex items-center justify-center transition-transform duration-200 active:scale-90 cursor-pointer bg-transparent border-0 outline-none hover:scale-110"
-                                                                title={fav.status === 'ACTIVE' ? (L('statusActive') || 'Aktif') : (L('statusPassive') || 'Pasif')}
-                                                            >
-                                                                <span className={`material-symbols-outlined text-[20px] transition-colors duration-200 ${fav.status === 'ACTIVE'
-                                                                        ? 'text-[#1a73e8]'
-                                                                        : 'text-[#dadce0] dark:text-[#5f6368] hover:text-[#9aa0a6]'
-                                                                    }`}>
-                                                                    {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
-                                                                </span>
-                                                            </button>
+                                                        <td className="px-4 py-3 text-center">
+                                                            <AppleSwitch
+                                                                checked={g.status === 'ACTIVE'}
+                                                                onChange={() => handleToggleGuestStatus(g)}
+                                                                size="sm"
+                                                            />
                                                         </td>
-
-                                                        {/* Actions */}
-                                                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                                                        <td className="px-4 py-3 text-right">
                                                             <div className="flex items-center justify-end gap-1">
                                                                 <button
-                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#202124] dark:text-[#9aa0a6] transition-colors flex items-center justify-center cursor-pointer"
-                                                                    title={L('viewHotelDetail')}
+                                                                    type="button"
+                                                                    onClick={() => openEditGuest(g)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Düzenle"
                                                                 >
-                                                                    <span className="material-symbols-outlined text-[18px]">visibility</span>
+                                                                    <span className="material-symbols-outlined text-[17px]">edit</span>
                                                                 </button>
                                                                 <button
-                                                                    onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                    className="size-8 rounded-full text-[#5f6368] hover:bg-[#fce8e6] hover:text-[#d93025] dark:hover:bg-[#c5221f]/20 transition-colors flex items-center justify-center cursor-pointer"
-                                                                    title={L('removeFromFavorites')}
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteGuest(g.id)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Sil"
                                                                 >
-                                                                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                                                                    <span className="material-symbols-outlined text-[17px]">delete</span>
                                                                 </button>
                                                             </div>
                                                         </td>
                                                     </tr>
-                                                ))
-                                            ) : (
-                                                <tr>
-                                                    <td colSpan="7" className="px-4 py-12 text-center text-[#5f6368] dark:text-[#9aa0a6] text-xs font-medium italic">
-                                                        {L('noFavoritesFound')}
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
+                                                );
+                                            })
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ─── TAB 4: FAVORITES ─────────────────────────────────────── */}
+                {activeTab === 'favorites' && (
+                    <div className="space-y-5">
+                        {/* Add Hotel Search Bar */}
+                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-4 shadow-xs relative z-40">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                                <div ref={hotelAutocompleteRef} className="relative flex-1 max-w-lg">
+                                    <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[#70757a] text-[19px]">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Favorilere eklemek için otel adı veya ID ile arayın..."
+                                            value={hotelAutocompleteQuery}
+                                            onChange={(e) => setHotelAutocompleteQuery(e.target.value)}
+                                            onFocus={() => hotelAutocompleteResults.length > 0 && setShowHotelAutocompleteDropdown(true)}
+                                            className="w-full pl-10 pr-9 py-2.5 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
+                                        />
+                                        {hotelAutocompleteLoading && (
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 size-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
+                                        )}
+                                    </div>
+
+                                    {/* Autocomplete Dropdown */}
+                                    {showHotelAutocompleteDropdown && hotelAutocompleteResults.length > 0 && (
+                                        <div className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl max-h-64 overflow-y-auto z-[9999] p-2 space-y-1 animate-in fade-in-50 zoom-in-95">
+                                            {hotelAutocompleteResults.map((h, idx) => {
+                                                const isFav = isFavorite(h.hotelId);
+                                                return (
+                                                    <div
+                                                        key={h.hotelId ? `ac-${h.hotelId}-${idx}` : `ac-${idx}`}
+                                                        className="p-2.5 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] rounded-xl transition-colors flex items-center justify-between group cursor-pointer"
+                                                    >
+                                                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                            <div className={`size-8 rounded-lg ${isFav ? 'bg-orange-50 text-orange-600 dark:bg-orange-950/30 dark:text-orange-400' : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'} flex items-center justify-center shrink-0`}>
+                                                                <span className="material-symbols-outlined text-[18px]">{isFav ? 'bookmark' : 'hotel'}</span>
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] truncate">{h.hotelName}</p>
+                                                                <p className="text-[10px] text-[#70757a]">ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => handleAddHotelFromAutocomplete(h, e)}
+                                                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                                                                isFav 
+                                                                    ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' 
+                                                                    : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs'
+                                                            }`}
+                                                        >
+                                                            <span className="material-symbols-outlined text-[14px]">{isFav ? 'check' : 'add'}</span>
+                                                            <span>{isFav ? 'Eklendi' : 'Ekle'}</span>
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Standard Pagination Bar */}
-                                <Pagination
-                                    currentPage={favoritePage}
-                                    totalPages={favoriteTotalPages}
-                                    pageSize={favoritePageSize}
-                                    totalElements={favoriteTotalElements}
-                                    onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
-                                    onPageSizeChange={(s) => {
-                                        setFavoritePageSize(s);
-                                        fetchFavoriteHotels(0, s);
-                                    }}
-                                />
+                                <div className="text-xs text-[#70757a]">
+                                    Toplam <span className="font-bold text-[#202124] dark:text-white">{favoriteTotalElements}</span> kayıtlı favori otel
+                                </div>
                             </div>
-                        ) : null}
+                        </div>
+
+                        {/* Favorite Hotels Table Card */}
+                        <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
+                            {/* Toolbar */}
+                            <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-xl">
+                                    <div className="relative flex-1">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#70757a]">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Favorilerde otel adı veya şehir ara..."
+                                            value={favoriteSearchQuery}
+                                            onChange={(e) => setFavoriteSearchQuery(e.target.value)}
+                                            className="w-full pl-9 pr-8 h-10 bg-[#f8f9fa] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
+                                        />
+                                    </div>
+
+                                    {/* Country Filter */}
+                                    <div className="relative" ref={favCountryDropdownRef}>
+                                        <div
+                                            onClick={() => setShowFavCountryDropdown(!showFavCountryDropdown)}
+                                            className={`h-10 px-3 bg-white dark:bg-[#303134] border ${favoriteCountryFilter ? 'border-[#1a73e8] text-[#1a73e8] font-semibold' : 'border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200'} rounded-xl text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">public</span>
+                                            <span className="truncate max-w-[120px]">
+                                                {favoriteCountryFilter ? (getCountryName(countries, favoriteCountryFilter, currentLang) || favoriteCountryFilter) : 'Ülke Filtresi'}
+                                            </span>
+                                            {favoriteCountryFilter ? (
+                                                <span
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFavoriteCountryFilter('');
+                                                    }}
+                                                    className="material-symbols-outlined text-[15px] hover:text-red-500"
+                                                >
+                                                    close
+                                                </span>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                                            )}
+                                        </div>
+
+                                        {showFavCountryDropdown && (
+                                            <div className="absolute top-full left-0 mt-1 w-64 max-h-72 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl z-[1002] flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                                <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Ülke ara..."
+                                                        value={favCountrySearch}
+                                                        onChange={(e) => setFavCountrySearch(e.target.value)}
+                                                        autoFocus
+                                                        className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-lg px-2 text-xs text-[#202124] dark:text-white outline-none"
+                                                    />
+                                                </div>
+                                                <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
+                                                    <div
+                                                        onClick={() => {
+                                                            setFavoriteCountryFilter('');
+                                                            setShowFavCountryDropdown(false);
+                                                        }}
+                                                        className="px-3 py-1.5 rounded-lg text-xs cursor-pointer hover:bg-[#f1f3f4] dark:hover:bg-[#303134]"
+                                                    >
+                                                        Tüm Ülkeler
+                                                    </div>
+                                                    {countries
+                                                        .filter(c => {
+                                                            const name = getCountryName(countries, c.countryIso2 || c.code || c.id, currentLang).toLowerCase();
+                                                            return !favCountrySearch || name.includes(favCountrySearch.toLowerCase());
+                                                        })
+                                                        .map((c, i) => {
+                                                            const code = c.countryIso2 || c.code || c.id;
+                                                            const name = getCountryName(countries, code, currentLang);
+                                                            return (
+                                                                <div
+                                                                    key={code || i}
+                                                                    onClick={() => {
+                                                                        setFavoriteCountryFilter(code);
+                                                                        setShowFavCountryDropdown(false);
+                                                                    }}
+                                                                    className={`px-3 py-1.5 rounded-lg text-xs cursor-pointer flex items-center justify-between ${favoriteCountryFilter === code ? 'bg-[#e8f0fe] text-[#1a73e8] font-bold' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134]'}`}
+                                                                >
+                                                                    <span>{name}</span>
+                                                                    {favoriteCountryFilter === code && <span className="material-symbols-outlined text-[15px]">check</span>}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={handleExportFavoritesExcel}
+                                        disabled={isExportingFavExcel || favoriteLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Excel'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">table_view</span>
+                                        <span className="hidden sm:inline">Excel</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={handleExportFavoritesPdf}
+                                        disabled={isExportingFavPdf || favoriteLoading}
+                                        className="flex items-center gap-1.5 h-10 px-3.5 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-rose-600 dark:text-rose-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="PDF'e Aktar"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                        <span className="hidden sm:inline">PDF</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => fetchFavoriteHotels(favoritePage)}
+                                        disabled={favoriteLoading}
+                                        className="size-10 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                                        title="Yenile"
+                                    >
+                                        <span className={`material-symbols-outlined text-[18px] ${favoriteLoading ? 'animate-spin' : ''}`}>refresh</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Table */}
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">
+                                            <th className="px-4 py-3">Otel Bilgisi</th>
+                                            <th className="px-4 py-3">Yıldız</th>
+                                            <th className="px-4 py-3">Şehir / Ülke</th>
+                                            <th className="px-4 py-3 text-center">Durum</th>
+                                            <th className="px-4 py-3 text-right">İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
+                                        {favoriteLoading ? (
+                                            <TableSkeleton columns={5} rows={5} />
+                                        ) : favoriteBackendItems.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={5} className="px-4 py-12 text-center text-[#70757a]">
+                                                    <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">bookmark_border</span>
+                                                    <p className="text-sm font-medium">Favori otel kaydı bulunamadı</p>
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            favoriteBackendItems.map((fav) => (
+                                                <tr key={fav.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="size-9 rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400 flex items-center justify-center shrink-0">
+                                                                <span className="material-symbols-outlined text-[19px]">hotel</span>
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-semibold text-[#202124] dark:text-white leading-tight">
+                                                                    {fav.hotelName || 'Otel Adı'}
+                                                                </div>
+                                                                <div className="text-[10px] text-[#70757a] font-mono mt-0.5">ID: #{fav.hotelId}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center text-amber-500 font-bold">
+                                                            {[...Array(Number(fav.stars) || 0)].map((_, i) => (
+                                                                <span key={i} className="material-symbols-outlined text-[14px]">star</span>
+                                                            ))}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className="font-medium text-[#202124] dark:text-white">
+                                                            {fav.cityName || '-'}, {fav.countryName || fav.countryCode || '-'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleToggleFavoriteStatus(fav)}
+                                                            className={`size-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mx-auto ${
+                                                                fav.status === 'ACTIVE'
+                                                                    ? 'bg-blue-50 text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300'
+                                                                    : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                                                            }`}
+                                                            title={fav.status === 'ACTIVE' ? 'Aktif' : 'Pasif'}
+                                                        >
+                                                            <span className="material-symbols-outlined text-[18px]">
+                                                                {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
+                                                            </span>
+                                                        </button>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <div className="flex items-center justify-end gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                className="size-8 rounded-lg text-slate-500 hover:text-[#1a73e8] hover:bg-[#e8f0fe] dark:hover:bg-blue-900/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                title="Otel Detayını Gör"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[17px]">visibility</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleDeleteFavoriteItem(fav)}
+                                                                className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                title="Favorilerden Çıkar"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[17px]">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination */}
+                            {!favoriteLoading && favoriteTotalElements > 0 && (
+                                <div className="border-t border-[#dadce0] dark:border-[#3c4043]">
+                                    <Pagination
+                                        currentPage={favoritePage}
+                                        totalPages={favoriteTotalPages}
+                                        pageSize={favoritePageSize}
+                                        totalElements={favoriteTotalElements}
+                                        onPageChange={(p) => fetchFavoriteHotels(p, favoritePageSize)}
+                                        onPageSizeChange={(s) => {
+                                            setFavoritePageSize(s);
+                                            fetchFavoriteHotels(0, s);
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
             </main>
 
-            {/* Google Material 3 Confirmation Modal */}
+            {/* ─── MODALS ───────────────────────────────────────────────────── */}
+
+            {/* Confirm Modal */}
             {confirmModal.show && (
                 <div className="fixed inset-0 z-[30000] flex items-center justify-center p-4">
                     <div
-                        className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm transition-opacity animate-in fade-in-50"
+                        className="fixed inset-0 bg-[#202124]/40 backdrop-blur-xs transition-opacity animate-in fade-in"
                         onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                    ></div>
-                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-sm rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200 p-6 text-center">
-                        {/* Google Icon Badge */}
-                        <div className={`size-14 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmModal.type === 'danger'
-                                ? 'bg-[#fce8e6] text-[#d93025] dark:bg-red-950/40 dark:text-red-400'
+                    />
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200 p-6 text-center">
+                        <div className={`size-12 rounded-2xl flex items-center justify-center mx-auto mb-4 ${
+                            confirmModal.type === 'danger'
+                                ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400'
                                 : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'
-                            }`}>
-                            <span className="material-symbols-outlined text-2xl">
+                        }`}>
+                            <span className="material-symbols-outlined text-[24px]">
                                 {confirmModal.type === 'danger' ? 'delete' : 'help'}
                             </span>
                         </div>
-
-                        {/* Title & Message */}
-                        <h3 className="text-base font-semibold text-[#202124] dark:text-white mb-2">
-                            {confirmModal.title}
-                        </h3>
-                        <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] leading-relaxed mb-6">
-                            {confirmModal.message}
-                        </p>
-
-                        {/* Action Buttons */}
+                        <h3 className="text-base font-bold text-[#202124] dark:text-white mb-1.5">{confirmModal.title}</h3>
+                        <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mb-6 leading-relaxed">{confirmModal.message}</p>
                         <div className="flex items-center gap-3">
                             <button
                                 type="button"
                                 onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                                className="flex-1 h-10 rounded-full text-xs font-medium text-[#1a73e8] dark:text-[#8ab4f8] bg-transparent hover:bg-[#e8f0fe] dark:hover:bg-[#303134] transition-colors"
+                                className="flex-1 h-10 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors cursor-pointer"
                             >
-                                {L('cancel')}
+                                Vazgeç
                             </button>
                             <button
                                 type="button"
-                                onClick={() => { confirmModal.onConfirm(); setConfirmModal({ ...confirmModal, show: false }); }}
-                                className={`flex-1 h-10 rounded-full text-xs font-medium text-white shadow-sm transition-all active:scale-95 ${confirmModal.type === 'danger'
-                                        ? 'bg-[#d93025] hover:bg-[#c5221f]'
-                                        : 'bg-[#1a73e8] hover:bg-[#1765cc]'
-                                    }`}
+                                onClick={() => { confirmModal.onConfirm?.(); setConfirmModal({ ...confirmModal, show: false }); }}
+                                className={`flex-1 h-10 rounded-xl text-xs font-semibold text-white shadow-xs transition-all active:scale-95 cursor-pointer ${
+                                    confirmModal.type === 'danger'
+                                        ? 'bg-red-600 hover:bg-red-700'
+                                        : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+                                }`}
                             >
-                                {L('confirm')}
+                                Onayla
                             </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Google Material 3 User Modal */}
+            {/* User Modal */}
             {isUserModalOpen && (
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => setIsUserModalOpen(false)}></div>
-                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-xl rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                    <div className="fixed inset-0 bg-[#202124]/40 backdrop-blur-xs" onClick={() => setIsUserModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-lg rounded-2xl shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-xl">{editingUser ? 'manage_accounts' : 'person_add'}</span>
+                                <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[20px]">{editingUser ? 'manage_accounts' : 'person_add'}</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{editingUser ? L('editUser') : L('addUser')}</h3>
-                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('userInfo')}</p>
+                                    <h3 className="text-base font-bold text-[#202124] dark:text-white">{editingUser ? (L('editUser') || 'Kullanıcıyı Düzenle') : (L('addUser') || 'Yeni Kullanıcı')}</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('userInfo') || 'Acente personeli hesap detayları'}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsUserModalOpen(false)} className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors">
-                                <span className="material-symbols-outlined text-lg">close</span>
+                            <button onClick={() => setIsUserModalOpen(false)} className="size-8 rounded-lg flex items-center justify-center text-[#70757a] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]">
+                                <span className="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </div>
 
                         <form onSubmit={handleUserSubmit} className="p-6 space-y-4">
                             {userApiError && (
-                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
-                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
-                                        <span className="material-symbols-outlined text-sm">error</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
-                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{userApiError}</p>
-                                    </div>
+                                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[16px]">error</span>
+                                    <span>{userApiError}</span>
                                 </div>
                             )}
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Name</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Ad</label>
                                     <input
                                         type="text"
                                         required
                                         value={userFormData.name}
                                         onChange={(e) => setUserFormData(prev => ({ ...prev, name: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Surname</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Soyad</label>
                                     <input
                                         type="text"
                                         required
                                         value={userFormData.surname}
                                         onChange={(e) => setUserFormData(prev => ({ ...prev, surname: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
+                                <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">E-posta Adresi</label>
                                 <input
                                     type="email"
                                     required
                                     autoComplete="new-email"
                                     value={userFormData.email}
                                     onChange={(e) => setUserFormData(prev => ({ ...prev, email: e.target.value }))}
-                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                 />
                             </div>
 
                             {!editingUser && (
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Password</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Şifre</label>
                                     <div className="relative">
                                         <input
                                             type={showPassword ? "text" : "password"}
@@ -2769,33 +2831,31 @@ const MyOffice = () => {
                                             autoComplete="new-password"
                                             value={userFormData.password}
                                             onChange={(e) => setUserFormData(prev => ({ ...prev, password: e.target.value }))}
-                                            className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                            className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#1a73e8] transition-colors"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                         >
-                                            <span className="material-symbols-outlined text-base">
-                                                {showPassword ? 'visibility_off' : 'visibility'}
-                                            </span>
+                                            <span className="material-symbols-outlined text-[17px]">{showPassword ? 'visibility_off' : 'visibility'}</span>
                                         </button>
                                     </div>
-                                    <div className="mt-2.5 grid grid-cols-1 gap-1.5 p-3 bg-[#f8f9fa] dark:bg-[#303134]/50 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
+                                    <div className="grid grid-cols-2 gap-1.5 mt-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 text-[11px]">
                                         {[
-                                            { key: 'length', label: L('passwordRuleLength') || 'Minimum 12 karakter' },
-                                            { key: 'uppercase', label: L('passwordRuleUppercase') || 'En az 1 büyük harf (A-Z)' },
-                                            { key: 'lowercase', label: 'En az 1 küçük harf (a-z)' },
-                                            { key: 'number', label: 'En az 1 rakam (0-9)' },
-                                            { key: 'special', label: 'En az 1 özel karakter (!@#$%^&*)' },
+                                            { key: 'length', label: 'En az 12 karakter' },
+                                            { key: 'uppercase', label: 'Büyük harf (A-Z)' },
+                                            { key: 'lowercase', label: 'Küçük harf (a-z)' },
+                                            { key: 'number', label: 'Rakam (0-9)' },
+                                            { key: 'special', label: 'Özel karakter (!@#$)' }
                                         ].map(rule => {
                                             const isValid = validatePassword(userFormData.password)[rule.key];
                                             return (
-                                                <div key={rule.key} className="flex items-center gap-2">
-                                                    <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                        <span className="material-symbols-outlined text-[11px] font-bold">{isValid ? 'check' : 'close'}</span>
-                                                    </div>
-                                                    <span className={`text-[11px] font-medium transition-colors ${isValid ? 'text-[#137333] dark:text-emerald-400' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>{rule.label}</span>
+                                                <div key={rule.key} className="flex items-center gap-1.5">
+                                                    <span className={`material-symbols-outlined text-[14px] ${isValid ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                        {isValid ? 'check_circle' : 'radio_button_unchecked'}
+                                                    </span>
+                                                    <span className={isValid ? 'text-emerald-600 font-medium' : 'text-slate-500'}>{rule.label}</span>
                                                 </div>
                                             );
                                         })}
@@ -2804,7 +2864,7 @@ const MyOffice = () => {
                             )}
 
                             <PhoneInput
-                                label="Phone Number"
+                                label="Telefon Numarası"
                                 value={(userFormData.phoneCountryCode?.startsWith('+') ? userFormData.phoneCountryCode : `+${userFormData.phoneCountryCode}`) + ' ' + userFormData.phoneNumber}
                                 onChange={(val) => {
                                     const parts = val.split(' ');
@@ -2818,25 +2878,25 @@ const MyOffice = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Role</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Rol</label>
                                     <select
                                         multiple
                                         value={userFormData.roleIds}
                                         onChange={(e) => setUserFormData(prev => ({ ...prev, roleIds: Array.from(e.target.selectedOptions, option => parseInt(option.value)) }))}
-                                        className="w-full min-h-[80px] bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl p-2 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full min-h-[80px] bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl p-2 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     >
-                                        {roles.map(r => <option key={r.id} value={r.id} className="py-1 px-2 rounded">{r.roleName || r.name}</option>)}
+                                        {roles.map(r => <option key={r.id} value={r.id} className="py-1 px-2">{r.roleName || r.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Durum</label>
                                     <select
                                         value={userFormData.status}
                                         onChange={(e) => setUserFormData(prev => ({ ...prev, status: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     >
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="PASSIVE">Passive</option>
+                                        <option value="ACTIVE">Aktif</option>
+                                        <option value="PASSIVE">Pasif</option>
                                     </select>
                                 </div>
                             </div>
@@ -2845,16 +2905,16 @@ const MyOffice = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsUserModalOpen(false)}
-                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
+                                    className="h-10 px-4 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]"
                                 >
-                                    {L('cancel')}
+                                    Vazgeç
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
+                                    className="h-10 px-5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs"
                                 >
-                                    {saving ? L('processing') : L('saveUser')}
+                                    {saving ? 'Kaydediliyor...' : 'Kaydet'}
                                 </button>
                             </div>
                         </form>
@@ -2862,50 +2922,36 @@ const MyOffice = () => {
                 </div>
             )}
 
-            {/* Google Material 3 Update Password Modal */}
+            {/* Update Password Modal */}
             {isPasswordModalOpen && passwordTargetUser && (
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => !isPasswordSubmitting && setIsPasswordModalOpen(false)}></div>
-                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-md rounded-[28px] shadow-2xl overflow-hidden border border-[#dadce0] dark:border-[#3c4043] animate-in zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                    <div className="fixed inset-0 bg-[#202124]/40 backdrop-blur-xs" onClick={() => !isPasswordSubmitting && setIsPasswordModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-md rounded-2xl shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-xl">lock_reset</span>
+                                <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[20px]">lock_reset</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{L('updatePassword') || 'Şifre Güncelle'}</h3>
-                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] truncate max-w-[240px]">
-                                        {passwordTargetUser.name} {passwordTargetUser.surname} ({passwordTargetUser.email})
-                                    </p>
+                                    <h3 className="text-base font-bold text-[#202124] dark:text-white">Şifre Güncelle</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] truncate max-w-[200px]">{passwordTargetUser.name} {passwordTargetUser.surname}</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setIsPasswordModalOpen(false)}
-                                disabled={isPasswordSubmitting}
-                                className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors disabled:opacity-50"
-                            >
-                                <span className="material-symbols-outlined text-lg">close</span>
+                            <button onClick={() => setIsPasswordModalOpen(false)} className="size-8 rounded-lg flex items-center justify-center text-[#70757a] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]">
+                                <span className="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </div>
 
                         <form onSubmit={handleUpdatePasswordSubmit} className="p-6 space-y-4">
                             {passwordModalError && (
-                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
-                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
-                                        <span className="material-symbols-outlined text-sm">error</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
-                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{passwordModalError}</p>
-                                    </div>
+                                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[16px]">error</span>
+                                    <span>{passwordModalError}</span>
                                 </div>
                             )}
 
                             <div>
-                                <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">
-                                    {L('newPassword') || 'Yeni Şifre'}
-                                </label>
+                                <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Yeni Şifre</label>
                                 <div className="relative">
                                     <input
                                         type={showUpdatePasswordText ? "text" : "password"}
@@ -2913,63 +2959,53 @@ const MyOffice = () => {
                                         autoComplete="new-password"
                                         value={updatePasswordValue}
                                         onChange={(e) => setUpdatePasswordValue(e.target.value)}
-                                        placeholder={L('enterNewPassword') || "Yeni şifrenizi girin..."}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all"
+                                        placeholder="Güçlü yeni şifre giriniz"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl pl-3 pr-10 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowUpdatePasswordText(!showUpdatePasswordText)}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] hover:text-[#202124] dark:hover:text-white transition-colors"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                     >
-                                        <span className="material-symbols-outlined text-[18px]">
-                                            {showUpdatePasswordText ? 'visibility_off' : 'visibility'}
-                                        </span>
+                                        <span className="material-symbols-outlined text-[17px]">{showUpdatePasswordText ? 'visibility_off' : 'visibility'}</span>
                                     </button>
                                 </div>
 
-                                {/* Password Rules Checklist */}
-                                <div className="mt-3 grid grid-cols-1 gap-1.5 p-3.5 bg-[#f8f9fa] dark:bg-[#303134]/50 rounded-xl border border-[#dadce0] dark:border-[#3c4043]">
-                                    <p className="text-[11px] font-semibold text-[#3c4043] dark:text-[#e8eaed] mb-1">
-                                        {L('passwordRulesTitle') || 'Şifre belirleme kuralları:'}
-                                    </p>
+                                <div className="grid grid-cols-2 gap-1.5 mt-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 text-[11px]">
                                     {[
-                                        { key: 'length', label: L('passwordRuleLength') || 'Minimum 12 karakter' },
-                                        { key: 'uppercase', label: L('passwordRuleUppercase') || 'En az 1 büyük harf (A-Z)' },
-                                        { key: 'lowercase', label: L('passwordRuleLowercase') || 'En az 1 küçük harf (a-z)' },
-                                        { key: 'number', label: L('passwordRuleNumber') || 'En az 1 rakam (0-9)' },
-                                        { key: 'special', label: L('passwordRuleSpecial') || 'En az 1 özel karakter (!@#$%^&*)' },
+                                        { key: 'length', label: 'En az 12 karakter' },
+                                        { key: 'uppercase', label: 'Büyük harf (A-Z)' },
+                                        { key: 'lowercase', label: 'Küçük harf (a-z)' },
+                                        { key: 'number', label: 'Rakam (0-9)' },
+                                        { key: 'special', label: 'Özel karakter' }
                                     ].map(rule => {
                                         const isValid = validatePassword(updatePasswordValue)[rule.key];
                                         return (
-                                            <div key={rule.key} className="flex items-center gap-2">
-                                                <div className={`size-4 rounded-full flex items-center justify-center transition-colors ${isValid ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#f1f3f4] dark:bg-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                    <span className="material-symbols-outlined text-[11px] font-bold">{isValid ? 'check' : 'close'}</span>
-                                                </div>
-                                                <span className={`text-[11px] font-medium transition-colors ${isValid ? 'text-[#137333] dark:text-emerald-400 font-semibold' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                                    {rule.label}
+                                            <div key={rule.key} className="flex items-center gap-1.5">
+                                                <span className={`material-symbols-outlined text-[14px] ${isValid ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                    {isValid ? 'check_circle' : 'radio_button_unchecked'}
                                                 </span>
+                                                <span className={isValid ? 'text-emerald-600 font-medium' : 'text-slate-500'}>{rule.label}</span>
                                             </div>
                                         );
                                     })}
                                 </div>
                             </div>
 
-                            {/* Modal Footer */}
                             <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
                                 <button
                                     type="button"
                                     onClick={() => setIsPasswordModalOpen(false)}
-                                    disabled={isPasswordSubmitting}
-                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors disabled:opacity-50"
+                                    className="h-10 px-4 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]"
                                 >
-                                    {L('cancel') || 'İptal'}
+                                    Vazgeç
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isPasswordSubmitting || !Object.values(validatePassword(updatePasswordValue)).every(Boolean)}
-                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50 flex items-center gap-1.5"
+                                    className="h-10 px-5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs disabled:opacity-50"
                                 >
-                                    {isPasswordSubmitting ? (L('processing') || 'İşleniyor...') : (L('updatePasswordBtn') || 'Şifreyi Güncelle')}
+                                    {isPasswordSubmitting ? 'İşleniyor...' : 'Şifreyi Güncelle'}
                                 </button>
                             </div>
                         </form>
@@ -2977,183 +3013,124 @@ const MyOffice = () => {
                 </div>
             )}
 
-            {/* Google Material 3 Guest Modal */}
+            {/* Guest Modal */}
             {isGuestModalOpen && (
                 <div className="fixed inset-0 z-[20000] flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="modal-overlay fixed inset-0 bg-[#202124]/40 backdrop-blur-sm" onClick={() => setIsGuestModalOpen(false)}></div>
-                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-2xl rounded-[28px] shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 duration-200">
-                        {/* Header */}
-                        <div className="p-6 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
+                    <div className="fixed inset-0 bg-[#202124]/40 backdrop-blur-xs" onClick={() => setIsGuestModalOpen(false)} />
+                    <div className="relative bg-white dark:bg-[#202124] w-full max-w-2xl rounded-2xl shadow-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="px-6 py-4 border-b border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-xl">{editingGuest ? 'badge' : 'person_add'}</span>
+                                <div className="size-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[20px]">{editingGuest ? 'badge' : 'person_add'}</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-base font-semibold text-[#202124] dark:text-white">{editingGuest ? L('editGuest') : L('addGuest')}</h3>
-                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('guestInfo')}</p>
+                                    <h3 className="text-base font-bold text-[#202124] dark:text-white">{editingGuest ? (L('editGuest') || 'Misafiri Düzenle') : (L('addGuest') || 'Yeni Misafir Ekle')}</h3>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">{L('guestInfo') || 'Misafir kimlik ve seyahat detayları'}</p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsGuestModalOpen(false)} className="size-9 rounded-full flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors">
-                                <span className="material-symbols-outlined text-lg">close</span>
+                            <button onClick={() => setIsGuestModalOpen(false)} className="size-8 rounded-lg flex items-center justify-center text-[#70757a] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]">
+                                <span className="material-symbols-outlined text-[18px]">close</span>
                             </button>
                         </div>
 
                         <form onSubmit={handleGuestSubmit} className="p-6 space-y-4">
                             {guestApiError && (
-                                <div className="p-3.5 bg-[#fce8e6] dark:bg-red-950/30 border border-[#fad2cf] dark:border-red-900/40 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2">
-                                    <div className="size-8 bg-[#d93025] rounded-full flex items-center justify-center text-white shrink-0">
-                                        <span className="material-symbols-outlined text-sm">error</span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-semibold text-[#d93025] dark:text-red-400">Hata Oluştu</p>
-                                        <p className="text-xs text-[#5f6368] dark:text-[#dadce0] break-words">{guestApiError}</p>
-                                    </div>
+                                <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/40 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[16px]">error</span>
+                                    <span>{guestApiError}</span>
                                 </div>
                             )}
 
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Gender</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Cinsiyet</label>
                                     <select
                                         value={guestFormData.gender}
                                         onChange={(e) => setGuestFormData(prev => ({ ...prev, gender: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     >
-                                        <option value="MALE">Mr</option>
-                                        <option value="FEMALE">Mrs</option>
+                                        <option value="MALE">Erkek</option>
+                                        <option value="FEMALE">Kadın</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">First Name</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Ad</label>
                                     <input
                                         type="text"
                                         required
                                         value={guestFormData.firstName}
                                         onChange={(e) => setGuestFormData(prev => ({ ...prev, firstName: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Last Name</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Soyad</label>
                                     <input
                                         type="text"
                                         required
                                         value={guestFormData.lastName}
                                         onChange={(e) => setGuestFormData(prev => ({ ...prev, lastName: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Birth Date</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Doğum Tarihi</label>
                                     <DatePicker
                                         selected={guestFormData.birthDate ? new Date(formatToPickerDate(guestFormData.birthDate)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, birthDate: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
-                                        placeholderText="DD.MM.YYYY"
+                                        placeholderText="GG.AA.YYYY"
                                         showMonthDropdown
                                         showYearDropdown
                                         dropdownMode="select"
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                         wrapperClassName="w-full"
                                     />
                                 </div>
-                                <div className="relative">
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Country</label>
-                                    <div
-                                        onClick={() => setShowGuestCountries(!showGuestCountries)}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 flex items-center justify-between cursor-pointer group hover:border-[#1a73e8]"
+                                <div>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Ülke / Uyruk</label>
+                                    <select
+                                        value={guestFormData.country}
+                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, country: e.target.value }))}
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] cursor-pointer"
                                     >
-                                        <span className={`text-xs ${guestFormData.country ? 'font-medium text-[#202124] dark:text-white' : 'text-[#5f6368] dark:text-[#9aa0a6]'}`}>
-                                            {guestFormData.country ? (
-                                                <div className="flex items-center gap-2">
-                                                    <span className="opacity-50 text-[10px] font-bold">{guestFormData.country}</span>
-                                                    <span>{getCountryName(countries, guestFormData.country, currentLang)}</span>
-                                                </div>
-                                            ) : 'Select country...'}
-                                        </span>
-                                        <span className={`material-symbols-outlined text-[#5f6368] dark:text-[#9aa0a6] text-sm transition-transform ${showGuestCountries ? 'rotate-180' : ''}`}>expand_more</span>
-                                    </div>
-
-                                    {showGuestCountries && (
-                                        <>
-                                            <div className="fixed inset-0 z-[1001]" onClick={() => { setShowGuestCountries(false); setGuestCountrySearch(''); }} />
-                                            <div className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-hidden bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-2xl z-[1002] flex flex-col animate-in fade-in slide-in-from-top-2">
-                                                <div className="p-2 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                                    <div className="relative">
-                                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-[#9aa0a6] text-sm">search</span>
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Search country..."
-                                                            value={guestCountrySearch}
-                                                            onChange={(e) => setGuestCountrySearch(e.target.value)}
-                                                            autoFocus
-                                                            className="w-full h-8 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-full pl-8 pr-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 overflow-y-auto p-1.5 custom-scrollbar">
-                                                    {countries
-                                                        .filter(c => {
-                                                            const cCode = (c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '').toLowerCase();
-                                                            const nameTr = (c.name?.translations?.tr || '').toLowerCase();
-                                                            const nameEn = (c.name?.translations?.en || '').toLowerCase();
-                                                            const nameCurr = (c.name?.translations?.[currentLang] || '').toLowerCase();
-                                                            const defaultName = (c.name?.defaultName || (typeof c.name === 'string' ? c.name : '') || c.asciiName || '').toLowerCase();
-                                                            const search = (guestCountrySearch || '').trim().toLowerCase();
-                                                            return !search || nameTr.includes(search) || nameEn.includes(search) || nameCurr.includes(search) || defaultName.includes(search) || cCode.includes(search);
-                                                        })
-                                                        .map((c, i) => {
-                                                            const cCode = c.countryIso2 || c.alphaTwoCode || c.code || c.countryCode || '';
-                                                            const cName = getCountryName(countries, cCode, currentLang) || c.name?.translations?.[currentLang] || c.name?.translations?.tr || c.name?.translations?.en || c.name?.defaultName || c.asciiName || (typeof c.name === 'string' ? c.name : '') || cCode;
-                                                            return (
-                                                                <div
-                                                                    key={c.id || c.locationId || cCode || `guest-country-${i}`}
-                                                                    onClick={() => {
-                                                                        setGuestFormData(prev => ({ ...prev, country: cCode }));
-                                                                        setShowGuestCountries(false);
-                                                                        setGuestCountrySearch('');
-                                                                    }}
-                                                                    className={`px-3 py-2 rounded-xl text-xs cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${guestFormData.country === cCode ? 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-medium' : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-[#dadce0]'}`}
-                                                                >
-                                                                    <div className="flex items-center gap-2">
-                                                                        {cCode && <span className="opacity-60 text-[10px] w-6 uppercase font-mono">{cCode}</span>}
-                                                                        <span>{cName}</span>
-                                                                    </div>
-                                                                    {guestFormData.country === cCode && <span className="material-symbols-outlined text-sm">check</span>}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                                        <option value="">Ülke Seçiniz</option>
+                                        {countries.map((c, idx) => {
+                                            const code = c.countryIso2 || c.code || c.id;
+                                            return (
+                                                <option key={code || idx} value={code}>
+                                                    {getCountryName(countries, code, currentLang)}
+                                                </option>
+                                            );
+                                        })}
+                                    </select>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport No</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Pasaport No</label>
                                     <input
                                         type="text"
                                         value={guestFormData.passportNo}
                                         onChange={(e) => setGuestFormData(prev => ({ ...prev, passportNo: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Passport Expiry</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Pasaport Geçerlilik Tarihi</label>
                                     <DatePicker
                                         selected={guestFormData.passportExpiry ? new Date(formatToPickerDate(guestFormData.passportExpiry)) : null}
                                         onChange={(date) => setGuestFormData(prev => ({ ...prev, passportExpiry: date ? formatToBackendDate(date.toISOString().split('T')[0]) : '' }))}
                                         dateFormat="dd.MM.yyyy"
-                                        placeholderText="DD.MM.YYYY"
+                                        placeholderText="GG.AA.YYYY"
                                         showMonthDropdown
                                         showYearDropdown
                                         dropdownMode="select"
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                         wrapperClassName="w-full"
                                     />
                                 </div>
@@ -3161,102 +3138,64 @@ const MyOffice = () => {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Email Address</label>
+                                    <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">E-posta</label>
                                     <input
                                         type="email"
                                         required
                                         value={guestFormData.email}
                                         onChange={(e) => setGuestFormData(prev => ({ ...prev, email: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
-                                        placeholder="example@mail.com"
+                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] ml-1 mb-1 block">Status</label>
-                                    <select
-                                        value={guestFormData.status}
-                                        onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))}
-                                        className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8]"
-                                    >
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="PASSIVE">Passive</option>
-                                    </select>
+                                    <PhoneInput
+                                        label="Telefon Numarası"
+                                        value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
+                                        onChange={(val) => {
+                                            const parts = val.split(' ');
+                                            setGuestFormData(prev => ({
+                                                ...prev,
+                                                phoneCountryCode: parts[0]?.replace('+', '') || '90',
+                                                phoneNumber: parts[1] || ''
+                                            }));
+                                        }}
+                                    />
                                 </div>
                             </div>
 
-                            <PhoneInput
-                                label="Phone Number"
-                                value={(guestFormData.phoneCountryCode?.startsWith('+') ? guestFormData.phoneCountryCode : `+${guestFormData.phoneCountryCode}`) + ' ' + guestFormData.phoneNumber}
-                                onChange={(val) => {
-                                    const parts = val.split(' ');
-                                    setGuestFormData(prev => ({
-                                        ...prev,
-                                        phoneCountryCode: parts[0]?.replace('+', '') || '90',
-                                        phoneNumber: parts[1] || ''
-                                    }));
-                                }}
-                            />
+                            <div>
+                                <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide block mb-1">Durum</label>
+                                <select
+                                    value={guestFormData.status}
+                                    onChange={(e) => setGuestFormData(prev => ({ ...prev, status: e.target.value }))}
+                                    className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl px-3 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]"
+                                >
+                                    <option value="ACTIVE">Aktif</option>
+                                    <option value="PASSIVE">Pasif</option>
+                                </select>
+                            </div>
 
                             <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-center justify-end gap-2.5">
                                 <button
                                     type="button"
                                     onClick={() => setIsGuestModalOpen(false)}
-                                    className="h-10 px-5 rounded-full text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors"
+                                    className="h-10 px-4 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134]"
                                 >
-                                    {L('cancel')}
+                                    Vazgeç
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1765cc] text-white rounded-full text-xs font-medium shadow-sm active:scale-95 transition-all disabled:opacity-50"
+                                    className="h-10 px-5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs"
                                 >
-                                    {saving ? L('processing') : L('saveGuest')}
+                                    {saving ? 'Kaydediliyor...' : 'Kaydet'}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
-            {/* Fixed Audit Tooltip at Root Level (Never Clipped) */}
-            {auditTooltip && (
-                <div
-                    style={{ left: `${auditTooltip.x}px`, top: `${auditTooltip.y}px` }}
-                    className="fixed -translate-x-1/2 -translate-y-full z-[999999] w-80 sm:w-96 p-4 bg-[#202124]/95 dark:bg-[#171717]/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-[#3c4043] text-xs pointer-events-none animate-in fade-in-50 zoom-in-95"
-                >
-                    <div className="font-medium text-white border-b border-[#3c4043] pb-2.5 mb-2.5 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-sm text-[#8ab4f8]">history</span>
-                            <span>Audit & Record Details</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-[#9aa0a6]">ID: #{auditTooltip.item.id || auditTooltip.item.hotelId}</span>
-                    </div>
-                    <div className="space-y-2 text-[#dadce0]">
-                        <div className="flex justify-between items-center gap-3">
-                            <span className="text-[#9aa0a6] font-medium shrink-0">Created At:</span>
-                            <span className="font-medium text-white">{formatDateTime(auditTooltip.item.createDateTime)}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3">
-                            <span className="text-[#9aa0a6] font-medium shrink-0">Created By:</span>
-                            <span className="font-medium text-white break-all">{auditTooltip.item.createdBy || auditTooltip.item.userEmail || 'System'}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3 border-t border-[#3c4043]/50 pt-2">
-                            <span className="text-[#9aa0a6] font-medium shrink-0">Updated At:</span>
-                            <span className="font-medium text-white">{formatDateTime(auditTooltip.item.updateDateTime)}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3">
-                            <span className="text-[#9aa0a6] font-medium shrink-0">Updated By:</span>
-                            <span className="font-medium text-white break-all">{auditTooltip.item.updatedBy || auditTooltip.item.userEmail || 'System'}</span>
-                        </div>
-                        <div className="flex justify-between items-center gap-3 border-t border-[#3c4043]/50 pt-2">
-                            <span className="text-[#9aa0a6] font-medium shrink-0">Version:</span>
-                            <span className="font-medium px-2 py-0.5 bg-[#1a73e8]/20 text-[#8ab4f8] rounded-full text-[10px]">v{auditTooltip.item.version ?? 0}</span>
-                        </div>
-                    </div>
-                    {/* Down Arrow */}
-                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-2 bg-[#202124]/95 dark:bg-[#171717]/95 rotate-45 border-r border-b border-[#3c4043]"></div>
-                </div>
-            )}
-        </>
+        </div>
     );
 };
 

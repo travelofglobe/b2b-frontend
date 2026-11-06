@@ -99,11 +99,18 @@ const FinancePage = () => {
 
     const canViewLimits = agencyType === 'GSA' || agencyType === 'RSA';
 
+    // Handle seamless redirection if tab=limits is passed
+    useEffect(() => {
+        if (activeTab === 'limits' && canViewLimits) {
+            navigate('/finance/limits', { replace: true });
+        }
+    }, [activeTab, canViewLimits, navigate]);
+
     return (
         <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
             {/* Sticky Header Bar */}
-            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                         <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
                             <span className="material-symbols-outlined text-[24px]">account_balance_wallet</span>
@@ -120,24 +127,10 @@ const FinancePage = () => {
                             </p>
                         </div>
                     </div>
-
-                    {/* Header Actions */}
-                    <div className="flex items-center gap-2.5">
-                        {canViewLimits && (
-                            <button
-                                type="button"
-                                onClick={() => navigate('/finance/limits')}
-                                className="flex items-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all shadow-xs cursor-pointer"
-                            >
-                                <span className="material-symbols-outlined text-[17px] text-[#1a73e8]">tune</span>
-                                <span>Limit Yönetimi</span>
-                            </button>
-                        )}
-                    </div>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="max-w-7xl mx-auto mt-3.5 flex items-center gap-1.5">
+                {/* Tab Navigation - Unified with Limit Management */}
+                <div className="max-w-[1440px] mx-auto mt-3.5 flex items-center gap-1.5">
                     <button
                         type="button"
                         onClick={() => navigate('/finance?tab=transactions', { replace: true })}
@@ -160,7 +153,7 @@ const FinancePage = () => {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6">
                 {activeTab === 'transactions' && <TransactionsTab />}
             </main>
         </div>

@@ -164,9 +164,38 @@ const GSAAgencyManagement = () => {
         setAgencyFilters(prev => ({ ...prev, [field]: value, page: 0 }));
     };
 
+    const handleClearAgencyFilters = () => {
+        setAgencyFilters({
+            query: '',
+            status: '',
+            agencyType: '',
+            countryId: '',
+            cityId: '',
+            page: 0,
+            size: agencyFilters.size
+        });
+    };
+
     const handleGroupFilterChange = (field, value) => {
         setGroupFilters(prev => ({ ...prev, [field]: value, page: 0 }));
     };
+
+    const handleClearGroupFilters = () => {
+        setGroupFilters({
+            query: '',
+            status: '',
+            page: 0,
+            size: groupFilters.size
+        });
+    };
+
+    const hasActiveAgencyFilters = Boolean(
+        agencyFilters.query || agencyFilters.status || agencyFilters.agencyType || agencyFilters.countryId || agencyFilters.cityId
+    );
+
+    const hasActiveGroupFilters = Boolean(
+        groupFilters.query || groupFilters.status
+    );
 
     const fetchAgencyGroups = useCallback(async () => {
         setIsGroupsLoading(true);
@@ -319,179 +348,333 @@ const GSAAgencyManagement = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
-            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0 space-y-4">
-                {detailModal.isOpen ? (
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {detailModal.isOpen ? (
+                <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6">
                     <SubAgencyDetailView
                         agency={detailModal.agency}
                         onBack={() => setDetailModal({ isOpen: false, agency: null })}
                     />
+                </main>
             ) : (
                 <>
                     {/* Header - Google Standard */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                <span className="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+                    <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3.5">
+                                <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
+                                    <span className="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+                                </div>
+                                <div>
+                                    <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">{t.pageTitle}</h1>
+                                    <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">{t.pageSubtitle}</p>
+                                </div>
                             </div>
-                            <div>
-                                <h1 className="text-xl font-bold text-[#202124] dark:text-white tracking-tight">{t.pageTitle}</h1>
-                                <p className="text-xs text-[#5f6368] dark:text-slate-400">{t.pageSubtitle}</p>
+
+                            {/* Google Material Tabs */}
+                            <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#303134] rounded-xl border border-[#dadce0] dark:border-[#5f6368] shadow-2xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('agencies')}
+                                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
+                                        activeTab === 'agencies'
+                                            ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8] shadow-2xs'
+                                            : 'text-[#5f6368] dark:text-slate-300 font-medium hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">business_center</span>
+                                    <span>{t.tabAgencies}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('groups')}
+                                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
+                                        activeTab === 'groups'
+                                            ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8] shadow-2xs'
+                                            : 'text-[#5f6368] dark:text-slate-300 font-medium hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">groups</span>
+                                    <span>{t.tabGroups}</span>
+                                </button>
                             </div>
                         </div>
+                    </header>
 
-                        {/* Google Material Tabs */}
-                        <div className="flex items-center gap-1.5 p-1 bg-white dark:bg-[#303134] rounded-full border border-[#dadce0] dark:border-[#5f6368]">
-                            <button
-                                onClick={() => setActiveTab('agencies')}
-                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                                    activeTab === 'agencies'
-                                        ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
-                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[18px]">business_center</span>
-                                <span>{t.tabAgencies}</span>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('groups')}
-                                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                                    activeTab === 'groups'
-                                        ? 'bg-[#e8f0fe] text-[#1a73e8] font-semibold dark:bg-[#1a73e8]/25 dark:text-[#8ab4f8]'
-                                        : 'text-[#5f6368] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]'
-                                }`}
-                            >
-                                <span className="material-symbols-outlined text-[18px]">groups</span>
-                                <span>{t.tabGroups}</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+                    {/* Main Content Area */}
+                    <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-5">
                         {activeTab === 'agencies' ? (
-                            <div className="flex flex-col h-full overflow-hidden gap-3">
-                                {/* Compact Stats Bar */}
-                                <div className="flex items-center bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shrink-0">
+                            <div className="flex flex-col space-y-5">
+                                {/* Summary Metric Cards (Matching MyBookings Style) */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                                     {[
-                                        { label: t.statTotalAgencies, value: agencySummary.totalAgencyCount, icon: 'business_center', color: 'text-blue-600 dark:text-blue-400', dot: 'bg-blue-500' },
-                                        { label: t.statActive, value: agencySummary.activeAgencyCount, icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500' },
-                                        { label: t.statPassive, value: agencySummary.passiveAgencyCount, icon: 'pause_circle', color: 'text-rose-500 dark:text-rose-400', dot: 'bg-rose-500' },
-                                        { label: t.statDirectIntegration, value: agencySummary.directIntegrationAgencyCount, icon: 'electric_bolt', color: 'text-violet-600 dark:text-violet-400', dot: 'bg-violet-500' }
-                                    ].map((stat, idx, arr) => (
-                                        <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
-                                            <div className={`size-1.5 rounded-full ${stat.dot} shrink-0`}></div>
-                                            <div className="min-w-0">
-                                                <p className="text-[9px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap">{stat.label}</p>
-                                                <p className={`text-lg font-bold leading-none mt-0.5 ${stat.color}`}>{stat.value}</p>
+                                        {
+                                            label: t.statTotalAgencies,
+                                            value: agencySummary.totalAgencyCount ?? 0,
+                                            sub: 'Kayıtlı toplam acente',
+                                            icon: 'business_center',
+                                            iconColor: 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                        },
+                                        {
+                                            label: t.statActive,
+                                            value: agencySummary.activeAgencyCount ?? 0,
+                                            sub: 'Aktif çalışan acenteler',
+                                            icon: 'check_circle',
+                                            iconColor: 'bg-emerald-50 dark:bg-emerald-900/30 text-[#1e8e3e] dark:text-emerald-400'
+                                        },
+                                        {
+                                            label: t.statPassive,
+                                            value: agencySummary.passiveAgencyCount ?? 0,
+                                            sub: 'Askıya alınan / pasif',
+                                            icon: 'pause_circle',
+                                            iconColor: 'bg-rose-50 dark:bg-rose-900/30 text-[#d93025] dark:text-rose-400'
+                                        },
+                                        {
+                                            label: t.statDirectIntegration,
+                                            value: agencySummary.directIntegrationAgencyCount ?? 0,
+                                            sub: 'Doğrudan API entegrasyonu',
+                                            icon: 'electric_bolt',
+                                            iconColor: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                                        }
+                                    ].map((stat, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-[#1a73e8]/40 transition-all flex flex-col justify-between"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                                    {stat.label}
+                                                </span>
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stat.iconColor}`}>
+                                                    <span className="material-symbols-outlined text-[18px]">{stat.icon}</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="text-2xl font-bold text-[#202124] dark:text-white">
+                                                    {stat.value}
+                                                </div>
+                                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">
+                                                    {stat.sub}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Table Container */}
-                                <div className="flex-1 bg-white dark:bg-[#303134] rounded-lg border border-[#dadce0] dark:border-[#3c4043] shadow-xs flex flex-col overflow-hidden min-h-0">
-                                    {/* Toolbar */}
-                                    <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-[#dadce0] dark:border-[#3c4043] shrink-0">
-                                        <div className="relative flex-1 min-w-[160px]">
-                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] dark:text-slate-400 text-[18px]">search</span>
+                                {/* Table Container (Matching MyBookings Style) */}
+                                <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden flex flex-col">
+                                    {/* Card Header */}
+                                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#28292c]">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">business_center</span>
+                                            </div>
+                                            <h2 className="text-xs font-bold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">
+                                                {t.tabAgencies}
+                                            </h2>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddClick}
+                                            className="h-9 px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">add</span>
+                                            <span>{t.addAgency}</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Toolbar Filters */}
+                                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center gap-2.5 bg-white dark:bg-[#28292c]">
+                                        <div className="relative flex-1 min-w-[220px] max-w-sm">
+                                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px] pointer-events-none">
+                                                search
+                                            </span>
                                             <input
                                                 type="text"
                                                 placeholder={t.searchAgencies}
                                                 value={agencyFilters.query}
                                                 onChange={(e) => handleFilterChange('query', e.target.value)}
-                                                className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-colors"
+                                                className="w-full h-9 pl-9 pr-8 bg-[#f1f3f4] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-[13px] text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
                                             />
+                                            {agencyFilters.query && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleFilterChange('query', '')}
+                                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] dark:hover:text-white cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                                </button>
+                                            )}
                                         </div>
-                                        <select value={agencyFilters.status} onChange={(e) => handleFilterChange('status', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">{t.allStatus}</option>
-                                            <option value="ACTIVE">{t.active}</option>
-                                            <option value="PASSIVE">{t.passive}</option>
-                                        </select>
-                                        <select value={agencyFilters.agencyType} onChange={(e) => handleFilterChange('agencyType', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">{t.allTypes}</option>
-                                            <option value="AGENCY">{t.agency}</option>
-                                            <option value="RSA">{t.rsa}</option>
-                                        </select>
-                                        <select value={agencyFilters.countryId} onChange={(e) => handleFilterChange('countryId', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">{t.allCountries}</option>
-                                            {countries.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
-                                        </select>
-                                        <select value={agencyFilters.cityId} onChange={(e) => handleFilterChange('cityId', e.target.value)} disabled={!agencyFilters.countryId} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer disabled:opacity-50">
-                                            <option value="">{agencyFilters.countryId ? t.allCities : t.selectCountryFirst}</option>
-                                            {cities.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
-                                        </select>
-                                        {isLoading && (
-                                            <div className="flex items-center gap-1.5">
-                                                <div className="size-3 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                                <span className="text-[10px] font-medium text-primary">{t.loading}</span>
-                                            </div>
+
+                                        <div className="relative">
+                                            <select
+                                                value={agencyFilters.status}
+                                                onChange={(e) => handleFilterChange('status', e.target.value)}
+                                                className="appearance-none h-9 pl-3 pr-8 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-[13px] font-medium text-[#3c4043] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e]"
+                                            >
+                                                <option value="">{t.allStatus}</option>
+                                                <option value="ACTIVE">{t.active}</option>
+                                                <option value="PASSIVE">{t.passive}</option>
+                                            </select>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">
+                                                expand_more
+                                            </span>
+                                        </div>
+
+                                        <div className="relative">
+                                            <select
+                                                value={agencyFilters.agencyType}
+                                                onChange={(e) => handleFilterChange('agencyType', e.target.value)}
+                                                className="appearance-none h-9 pl-3 pr-8 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-[13px] font-medium text-[#3c4043] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e]"
+                                            >
+                                                <option value="">{t.allTypes}</option>
+                                                <option value="AGENCY">{t.agency}</option>
+                                                <option value="RSA">{t.rsa}</option>
+                                            </select>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">
+                                                expand_more
+                                            </span>
+                                        </div>
+
+                                        <div className="relative">
+                                            <select
+                                                value={agencyFilters.countryId}
+                                                onChange={(e) => handleFilterChange('countryId', e.target.value)}
+                                                className="appearance-none h-9 pl-3 pr-8 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-[13px] font-medium text-[#3c4043] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e] max-w-[180px] truncate"
+                                            >
+                                                <option value="">{t.allCountries}</option>
+                                                {countries.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
+                                            </select>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">
+                                                expand_more
+                                            </span>
+                                        </div>
+
+                                        <div className="relative">
+                                            <select
+                                                value={agencyFilters.cityId}
+                                                onChange={(e) => handleFilterChange('cityId', e.target.value)}
+                                                disabled={!agencyFilters.countryId}
+                                                className="appearance-none h-9 pl-3 pr-8 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-[13px] font-medium text-[#3c4043] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e] disabled:opacity-40 disabled:cursor-not-allowed max-w-[180px] truncate"
+                                            >
+                                                <option value="">{agencyFilters.countryId ? t.allCities : t.selectCountryFirst}</option>
+                                                {cities.map(c => <option key={c.locationId} value={c.locationId}>{getName(c.name)}</option>)}
+                                            </select>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">
+                                                expand_more
+                                            </span>
+                                        </div>
+
+                                        {hasActiveAgencyFilters && (
+                                            <button
+                                                type="button"
+                                                onClick={handleClearAgencyFilters}
+                                                className="h-9 px-3 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium text-[#d93025] dark:text-rose-400 flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+                                                title="Filtreleri Temizle"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                                                <span>Temizle</span>
+                                            </button>
                                         )}
-                                        <button onClick={handleAddClick} className="ml-auto h-8 px-4 bg-primary text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-xs shadow-primary/20 whitespace-nowrap">
-                                            <span className="material-icons-round text-sm">add</span>
-                                            {t.addAgency}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => { fetchAgencies(); fetchAgencySummary(); }}
+                                            className="size-9 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-center text-[#5f6368] dark:text-slate-300 transition-all cursor-pointer shadow-2xs ml-auto"
+                                            title="Yenile"
+                                        >
+                                            <span className={`material-symbols-outlined text-[18px] ${isLoading ? 'animate-spin' : ''}`}>refresh</span>
                                         </button>
                                     </div>
 
-                                    {/* Table */}
-                                    <div className="flex-1 overflow-y-auto">
-                                        <table className="w-full text-left text-xs">
-                                            <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
-                                                <tr>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">{t.colId}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colAgency}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20">{t.colType}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colLocation}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-20 text-center">{t.colCurrency}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-32 text-center">{t.colStatus}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{t.colActions}</th>
+                                    {/* Table matching MyBookings */}
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-16">{t.colId}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{t.colAgency}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-24">{t.colType}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{t.colLocation}</th>
+                                                    <th className="px-4 py-3 text-center text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-24">{t.colCurrency}</th>
+                                                    <th className="px-4 py-3 text-center text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{t.colStatus}</th>
+                                                    <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-32">{t.colActions}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {agencies.length > 0 ? (
-                                                    agencies.map((agency, rowIdx) => (
-                                                        <tr key={agency.id} className={`border-b border-slate-100 dark:border-white/[0.04] hover:bg-primary/5 transition-colors ${rowIdx % 2 === 1 ? 'bg-slate-50/60 dark:bg-white/[0.02]' : ''}`}>
-                                                            <td className="px-4 py-2.5">
-                                                                <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[10px] font-medium text-slate-500">{agency.id}</span>
+                                                    agencies.map((agency) => (
+                                                        <tr
+                                                            key={agency.id}
+                                                            className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors group"
+                                                        >
+                                                            <td className="px-4 py-3.5 text-[13px] font-semibold text-[#1a73e8] dark:text-[#8ab4f8] group-hover:underline whitespace-nowrap">
+                                                                #{agency.id}
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 text-[10px] font-semibold">
+                                                            <td className="px-4 py-3.5 text-[13px] font-normal text-[#3c4043] dark:text-slate-300">
+                                                                <div className="flex items-center gap-2.5">
+                                                                    <div className="size-7 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] flex items-center justify-center text-xs font-bold shrink-0">
                                                                         {agency.name?.[0]?.toUpperCase()}
                                                                     </div>
                                                                     <div className="min-w-0">
-                                                                        <p className="font-semibold text-slate-800 dark:text-white text-xs truncate max-w-[160px]">{agency.name}</p>
-                                                                        <p className="text-[10px] text-slate-400 truncate max-w-[160px]">{agency.email}</p>
+                                                                        <div className="text-[13px] font-medium text-[#3c4043] dark:text-slate-200 truncate max-w-[210px]" title={agency.name}>
+                                                                            {agency.name}
+                                                                        </div>
+                                                                        {agency.email && (
+                                                                            <div className="text-[11px] text-[#70757a] dark:text-slate-400 truncate max-w-[210px]" title={agency.email}>
+                                                                                {agency.email}
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${agency.agencyType === 'RSA' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap">
+                                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
+                                                                    agency.agencyType === 'RSA'
+                                                                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                                                        : 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]'
+                                                                }`}>
                                                                     {agency.agencyType}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <p className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[110px]">{agency.countryName}</p>
-                                                                <p className="text-[10px] text-slate-400 truncate max-w-[110px]">{agency.cityName}</p>
+                                                            <td className="px-4 py-3.5 text-[13px] font-normal text-[#3c4043] dark:text-slate-300 whitespace-nowrap">
+                                                                <div className="text-[13px] text-[#3c4043] dark:text-slate-200 truncate max-w-[150px]">{agency.countryName || '-'}</div>
+                                                                {agency.cityName && <div className="text-[11px] text-[#70757a] dark:text-slate-400 truncate max-w-[150px]">{agency.cityName}</div>}
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-center">
-                                                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{agency.currency}</span>
+                                                            <td className="px-4 py-3.5 text-[13px] font-medium text-[#3c4043] dark:text-slate-300 text-center whitespace-nowrap">
+                                                                {agency.currency || '-'}
                                                             </td>
-                                                            <td className="px-4 py-2.5">
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap">
                                                                 <div className="flex items-center justify-center">
                                                                     <AppleSwitch checked={agency.status === 'ACTIVE'} onChange={() => handleStatusToggle(agency)} size="sm" />
                                                                 </div>
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right">
-                                                                <div className="flex items-center justify-end gap-0.5">
-                                                                    <button onClick={() => setDetailModal({ isOpen: true, agency })} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-500 transition-all" title={t.agencyDetail}>
-                                                                        <span className="material-icons-round text-sm">visibility</span>
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap text-right">
+                                                                <div className="flex items-center justify-end gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setDetailModal({ isOpen: true, agency })}
+                                                                        className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] flex items-center justify-center transition-all cursor-pointer"
+                                                                        title={t.agencyDetail}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[18px]">visibility</span>
                                                                     </button>
-                                                                    <button onClick={() => handleEditClick(agency)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all">
-                                                                        <span className="material-icons-round text-sm">edit</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleEditClick(agency)}
+                                                                        className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] flex items-center justify-center transition-all cursor-pointer"
+                                                                        title="Düzenle"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
                                                                     </button>
-                                                                    <button onClick={() => handleDeleteClick(agency.id, agency.name)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all">
-                                                                        <span className="material-icons-round text-sm">delete_outline</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteClick(agency.id, agency.name)}
+                                                                        className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#5f6368] dark:text-slate-300 hover:text-[#d93025] hover:border-rose-200 flex items-center justify-center transition-all cursor-pointer"
+                                                                        title="Sil"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -499,10 +682,10 @@ const GSAAgencyManagement = () => {
                                                     ))
                                                 ) : !isLoading && (
                                                     <tr>
-                                                        <td colSpan="7" className="py-16 text-center">
-                                                            <div className="flex flex-col items-center gap-2 text-slate-300">
-                                                                <span className="material-icons-round text-4xl">search_off</span>
-                                                                <span className="text-xs font-semibold text-slate-400">{t.noAgenciesFound}</span>
+                                                        <td colSpan="7" className="px-4 py-16 text-center text-[#70757a] dark:text-slate-400">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <span className="material-symbols-outlined text-4xl opacity-50">search_off</span>
+                                                                <span className="text-xs font-semibold">{t.noAgenciesFound}</span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -511,114 +694,250 @@ const GSAAgencyManagement = () => {
                                         </table>
                                     </div>
 
-                                    {/* Footer */}
-                                    <div className="px-4 py-2.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/30">
-                                        <span className="text-[10px] font-medium text-slate-400">{totalAgencyCount} {t.tabAgencies}</span>
-                                        <div className="flex gap-1.5">
-                                            <button disabled={agencyFilters.page === 0} onClick={() => handleFilterChange('page', agencyFilters.page - 1)} className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="material-icons-round text-sm">chevron_left</span>
-                                            </button>
-                                            <span className="h-7 px-2.5 flex items-center text-[10px] font-semibold text-slate-500 border border-slate-200 dark:border-white/5 rounded-lg">{agencyFilters.page + 1}</span>
-                                            <button disabled={agencies.length < agencyFilters.size} onClick={() => handleFilterChange('page', agencyFilters.page + 1)} className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="material-icons-round text-sm">chevron_right</span>
-                                            </button>
+                                    {/* Pagination (Matching MyBookings Style) */}
+                                    <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex flex-wrap items-center justify-between bg-white dark:bg-[#28292c] gap-3">
+                                        <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-400">
+                                            <span>Göster:</span>
+                                            <div className="relative">
+                                                <select
+                                                    value={agencyFilters.size}
+                                                    onChange={(e) => handleFilterChange('size', Number(e.target.value))}
+                                                    className="appearance-none h-8 pl-2.5 pr-7 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs text-[#202124] dark:text-white outline-none cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e]"
+                                                >
+                                                    <option value="10">10</option>
+                                                    <option value="20">20</option>
+                                                    <option value="50">50</option>
+                                                </select>
+                                                <span className="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#70757a] text-[16px]">
+                                                    expand_more
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-3 text-[13px] font-normal">
+                                            <span className="text-[#70757a] dark:text-slate-400">
+                                                {totalAgencyCount} {t.tabAgencies}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    disabled={agencyFilters.page === 0}
+                                                    onClick={() => handleFilterChange('page', agencyFilters.page - 1)}
+                                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                                                </button>
+                                                <span className="min-w-[32px] h-8 px-2 flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white shadow-xs">
+                                                    {agencyFilters.page + 1}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    disabled={agencies.length < agencyFilters.size}
+                                                    onClick={() => handleFilterChange('page', agencyFilters.page + 1)}
+                                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex flex-col h-full overflow-hidden gap-3 animate-in fade-in duration-300">
-                                {/* Compact Stats Bar */}
-                                <div className="flex items-center bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden shrink-0">
+                            <div className="flex flex-col space-y-5">
+                                {/* 3 Executive Summary Metric Cards for Groups (Matching MyBookings Style) */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                                     {[
-                                        { label: t.statTotalGroups, value: groupSummary.totalGroupCount, dot: 'bg-blue-500', color: 'text-blue-600 dark:text-blue-400' },
-                                        { label: t.statActive, value: groupSummary.activeGroupCount, dot: 'bg-emerald-500', color: 'text-emerald-600 dark:text-emerald-400' },
-                                        { label: t.statPassive, value: groupSummary.passiveGroupCount, dot: 'bg-rose-500', color: 'text-rose-500 dark:text-rose-400' }
-                                    ].map((stat, idx, arr) => (
-                                        <div key={idx} className={`flex items-center gap-3 px-5 py-3 flex-1 ${idx < arr.length - 1 ? 'border-r border-slate-100 dark:border-white/5' : ''}`}>
-                                            <div className={`size-1.5 rounded-full ${stat.dot} shrink-0`}></div>
+                                        {
+                                            label: t.statTotalGroups,
+                                            value: groupSummary.totalGroupCount ?? 0,
+                                            sub: 'Tanımlı acente grupları',
+                                            icon: 'groups',
+                                            iconColor: 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8]'
+                                        },
+                                        {
+                                            label: t.statActive,
+                                            value: groupSummary.activeGroupCount ?? 0,
+                                            sub: 'Aktif grup kayıtları',
+                                            icon: 'check_circle',
+                                            iconColor: 'bg-emerald-50 dark:bg-emerald-900/30 text-[#1e8e3e] dark:text-emerald-400'
+                                        },
+                                        {
+                                            label: t.statPassive,
+                                            value: groupSummary.passiveGroupCount ?? 0,
+                                            sub: 'Pasife alınan gruplar',
+                                            icon: 'pause_circle',
+                                            iconColor: 'bg-rose-50 dark:bg-rose-900/30 text-[#d93025] dark:text-rose-400'
+                                        }
+                                    ].map((stat, idx) => (
+                                        <div
+                                            key={idx}
+                                            className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-4 shadow-xs hover:border-[#1a73e8]/40 transition-all flex flex-col justify-between"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                                    {stat.label}
+                                                </span>
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${stat.iconColor}`}>
+                                                    <span className="material-symbols-outlined text-[18px]">{stat.icon}</span>
+                                                </div>
+                                            </div>
                                             <div>
-                                                <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                                                <p className={`text-lg font-bold leading-none mt-0.5 ${stat.color}`}>{stat.value}</p>
+                                                <div className="text-2xl font-bold text-[#202124] dark:text-white">
+                                                    {stat.value}
+                                                </div>
+                                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">
+                                                    {stat.sub}
+                                                </span>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                {/* Groups Table Container */}
-                                <div className="flex-1 bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-white/5 shadow-xs flex flex-col overflow-hidden min-h-0">
+                                {/* Groups Table Container (Matching MyBookings Style) */}
+                                <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden flex flex-col">
+                                    {/* Card Header */}
+                                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#28292c]">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">groups</span>
+                                            </div>
+                                            <h2 className="text-xs font-bold uppercase tracking-wider text-[#202124] dark:text-[#e8eaed]">
+                                                {t.tabGroups}
+                                            </h2>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddClick}
+                                            className="h-9 px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all shadow-xs active:scale-95 cursor-pointer whitespace-nowrap"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">add</span>
+                                            <span>{t.addGroup}</span>
+                                        </button>
+                                    </div>
+
                                     {/* Toolbar */}
-                                    <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-white/5 shrink-0">
-                                        <div className="relative flex-1 min-w-[160px]">
-                                            <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                    <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center gap-2.5 bg-white dark:bg-[#28292c]">
+                                        <div className="relative flex-1 min-w-[220px] max-w-sm">
+                                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px] pointer-events-none">
+                                                search
+                                            </span>
                                             <input
                                                 type="text"
                                                 placeholder={t.searchGroups}
                                                 value={groupFilters.query}
                                                 onChange={(e) => handleGroupFilterChange('query', e.target.value)}
-                                                className="w-full h-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-3 text-xs font-medium outline-none focus:border-primary transition-colors"
+                                                className="w-full h-9 pl-9 pr-8 bg-[#f1f3f4] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-[13px] text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
                                             />
+                                            {groupFilters.query && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleGroupFilterChange('query', '')}
+                                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#70757a] hover:text-[#202124] dark:hover:text-white cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                                </button>
+                                            )}
                                         </div>
-                                        <select value={groupFilters.status} onChange={(e) => handleGroupFilterChange('status', e.target.value)} className="h-8 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-medium outline-none cursor-pointer">
-                                            <option value="">{t.allStatus}</option>
-                                            <option value="ACTIVE">{t.active}</option>
-                                            <option value="PASSIVE">{t.passive}</option>
-                                        </select>
-                                        <button onClick={handleAddClick} className="ml-auto h-8 px-4 bg-primary text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 hover:bg-primary/90 active:scale-95 transition-all shadow-xs shadow-primary/20 whitespace-nowrap">
-                                            <span className="material-icons-round text-sm">add</span>
-                                            {t.addGroup}
+
+                                        <div className="relative">
+                                            <select
+                                                value={groupFilters.status}
+                                                onChange={(e) => handleGroupFilterChange('status', e.target.value)}
+                                                className="appearance-none h-9 pl-3 pr-8 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-[13px] font-medium text-[#3c4043] dark:text-slate-200 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e]"
+                                            >
+                                                <option value="">{t.allStatus}</option>
+                                                <option value="ACTIVE">{t.active}</option>
+                                                <option value="PASSIVE">{t.passive}</option>
+                                            </select>
+                                            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">
+                                                expand_more
+                                            </span>
+                                        </div>
+
+                                        {hasActiveGroupFilters && (
+                                            <button
+                                                type="button"
+                                                onClick={handleClearGroupFilters}
+                                                className="h-9 px-3 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-medium text-[#d93025] dark:text-rose-400 flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+                                                title="Filtreleri Temizle"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                                                <span>Temizle</span>
+                                            </button>
+                                        )}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => { fetchAgencyGroups(); fetchGroupSummary(); }}
+                                            className="size-9 rounded-xl border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-center text-[#5f6368] dark:text-slate-300 transition-all cursor-pointer shadow-2xs ml-auto"
+                                            title="Yenile"
+                                        >
+                                            <span className={`material-symbols-outlined text-[18px] ${isGroupsLoading ? 'animate-spin' : ''}`}>refresh</span>
                                         </button>
                                     </div>
 
                                     {/* Groups Table */}
-                                    <div className="flex-1 overflow-auto">
-                                        <table className="w-full text-left text-xs">
-                                            <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800/80 z-10 border-b border-slate-200 dark:border-white/5">
-                                                <tr>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider w-16">{t.colId}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colGroupName}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colDescription}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colAgenciesCount}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{t.colStatus}</th>
-                                                    <th className="px-4 py-2.5 text-[10px] font-semibold text-slate-500 uppercase tracking-wider text-right">{t.colActions}</th>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full border-collapse">
+                                            <thead>
+                                                <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-16">{t.colId}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{t.colGroupName}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{t.colDescription}</th>
+                                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">{t.colAgenciesCount}</th>
+                                                    <th className="px-4 py-3 text-center text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{t.colStatus}</th>
+                                                    <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none w-28">{t.colActions}</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {isGroupsLoading ? (
                                                     [...Array(5)].map((_, i) => (
-                                                        <tr key={i} className="animate-pulse border-b border-slate-100 dark:border-white/[0.04]">
-                                                            <td colSpan="7" className="px-4 py-3"><div className="h-6 bg-slate-100 dark:bg-slate-800 rounded-lg w-full"></div></td>
+                                                        <tr key={i} className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30">
+                                                            <td colSpan="6" className="px-4 py-3.5"><div className="h-3.5 bg-slate-200/80 dark:bg-slate-700/60 rounded animate-pulse w-full"></div></td>
                                                         </tr>
                                                     ))
                                                 ) : agencyGroups.length > 0 ? (
-                                                    agencyGroups.map((group, rowIdx) => (
-                                                        <tr key={group.name} className={`border-b border-slate-100 dark:border-white/[0.04] hover:bg-primary/5 transition-colors ${rowIdx % 2 === 1 ? 'bg-slate-50/60 dark:bg-white/[0.02]' : ''}`}>
-                                                            <td className="px-4 py-2.5">
-                                                                <span className="text-[10px] font-medium text-slate-400">#{group.id || '-'}</span>
+                                                    agencyGroups.map((group) => (
+                                                        <tr
+                                                            key={group.name}
+                                                            className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors group"
+                                                        >
+                                                            <td className="px-4 py-3.5 text-[13px] font-semibold text-[#1a73e8] dark:text-[#8ab4f8] group-hover:underline whitespace-nowrap">
+                                                                #{group.id || '-'}
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <span className="text-xs font-semibold text-slate-800 dark:text-white">{group.name}</span>
+                                                            <td className="px-4 py-3.5 text-[13px] font-medium text-[#3c4043] dark:text-slate-200 whitespace-nowrap">
+                                                                {group.name}
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <p className="text-xs text-slate-500 line-clamp-1 max-w-xs">{group.description}</p>
+                                                            <td className="px-4 py-3.5 text-[13px] font-normal text-[#3c4043] dark:text-slate-300">
+                                                                <p className="text-[13px] text-[#70757a] dark:text-slate-400 line-clamp-1 max-w-sm">{group.description || '-'}</p>
                                                             </td>
-                                                            <td className="px-4 py-2.5">
-                                                                <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded text-[10px] font-semibold">
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap">
+                                                                <span className="inline-flex items-center px-2.5 py-0.5 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] rounded-full text-[11px] font-medium">
                                                                     {group.agencies?.length || 0} {t.tabAgencies}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-4 py-2.5">
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap">
                                                                 <div className="flex items-center justify-center">
                                                                     <AppleSwitch checked={group.status === 'ACTIVE'} onChange={() => handleGroupStatusToggle(group)} size="sm" />
                                                                 </div>
                                                             </td>
-                                                            <td className="px-4 py-2.5 text-right">
-                                                                <div className="flex items-center justify-end gap-0.5">
-                                                                    <button onClick={() => handleGroupEditClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all" title={t.editGroup}>
-                                                                        <span className="material-icons-round text-sm">edit</span>
+                                                            <td className="px-4 py-3.5 text-[13px] whitespace-nowrap text-right">
+                                                                <div className="flex items-center justify-end gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleGroupEditClick(group)}
+                                                                        className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-[#5f6368] dark:text-slate-300 hover:text-[#1a73e8] flex items-center justify-center transition-all cursor-pointer"
+                                                                        title={t.editGroup}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[18px]">edit</span>
                                                                     </button>
-                                                                    <button onClick={() => handleGroupDeleteClick(group)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all" title={t.deleteGroup}>
-                                                                        <span className="material-icons-round text-sm">delete_outline</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleGroupDeleteClick(group)}
+                                                                        className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[#5f6368] dark:text-slate-300 hover:text-[#d93025] hover:border-rose-200 flex items-center justify-center transition-all cursor-pointer"
+                                                                        title={t.deleteGroup}
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[18px]">delete</span>
                                                                     </button>
                                                                 </div>
                                                             </td>
@@ -626,10 +945,10 @@ const GSAAgencyManagement = () => {
                                                     ))
                                                 ) : !isGroupsLoading && (
                                                     <tr>
-                                                        <td colSpan="7" className="py-16 text-center">
-                                                            <div className="flex flex-col items-center gap-2 text-slate-300">
-                                                                <span className="material-icons-round text-4xl">group_off</span>
-                                                                <span className="text-xs font-semibold text-slate-400">{t.noGroupsFound}</span>
+                                                        <td colSpan="6" className="px-4 py-16 text-center text-[#70757a] dark:text-slate-400">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <span className="material-symbols-outlined text-4xl opacity-50">group_off</span>
+                                                                <span className="text-xs font-semibold">{t.noGroupsFound}</span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -638,23 +957,56 @@ const GSAAgencyManagement = () => {
                                         </table>
                                     </div>
 
-                                    {/* Footer */}
-                                    <div className="px-4 py-2.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/30">
-                                        <span className="text-[10px] font-medium text-slate-400">{totalGroupCount} groups found</span>
-                                        <div className="flex gap-1.5">
-                                            <button disabled={groupFilters.page === 0} onClick={() => handleGroupFilterChange('page', groupFilters.page - 1)} className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="material-icons-round text-sm">chevron_left</span>
-                                            </button>
-                                            <span className="h-7 px-2.5 flex items-center text-[10px] font-semibold text-slate-500 border border-slate-200 dark:border-white/5 rounded-lg">{groupFilters.page + 1}</span>
-                                            <button disabled={agencyGroups.length < groupFilters.size} onClick={() => handleGroupFilterChange('page', groupFilters.page + 1)} className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">
-                                                <span className="material-icons-round text-sm">chevron_right</span>
-                                            </button>
+                                    {/* Pagination (Matching MyBookings Style) */}
+                                    <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex flex-wrap items-center justify-between bg-white dark:bg-[#28292c] gap-3">
+                                        <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-400">
+                                            <span>Göster:</span>
+                                            <div className="relative">
+                                                <select
+                                                    value={groupFilters.size}
+                                                    onChange={(e) => handleGroupFilterChange('size', Number(e.target.value))}
+                                                    className="appearance-none h-8 pl-2.5 pr-7 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg text-xs text-[#202124] dark:text-white outline-none cursor-pointer hover:bg-[#f8f9fa] dark:hover:bg-[#383a3e]"
+                                                >
+                                                    <option value="10">10</option>
+                                                    <option value="20">20</option>
+                                                    <option value="50">50</option>
+                                                </select>
+                                                <span className="material-symbols-outlined pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-[#70757a] text-[16px]">
+                                                    expand_more
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-3 text-[13px] font-normal">
+                                            <span className="text-[#70757a] dark:text-slate-400">
+                                                {totalGroupCount} {t.tabGroups}
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    disabled={groupFilters.page === 0}
+                                                    onClick={() => handleGroupFilterChange('page', groupFilters.page - 1)}
+                                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                                                </button>
+                                                <span className="min-w-[32px] h-8 px-2 flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white shadow-xs">
+                                                    {groupFilters.page + 1}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    disabled={agencyGroups.length < groupFilters.size}
+                                                    onClick={() => handleGroupFilterChange('page', groupFilters.page + 1)}
+                                                    className="size-8 rounded-full border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] disabled:opacity-30 disabled:hover:bg-transparent transition-all flex items-center justify-center text-[#5f6368] dark:text-slate-300 cursor-pointer"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
-                    </div>
+                    </main>
 
                     <AddAgencyModal
                         isOpen={agencyModal.isOpen}
@@ -692,7 +1044,6 @@ const GSAAgencyManagement = () => {
                     />
                 </>
             )}
-            </div>
         </div>
     );
 };

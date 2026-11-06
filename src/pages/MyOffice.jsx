@@ -1335,8 +1335,8 @@ const MyOffice = () => {
             )}
 
             {/* Page Header Bar */}
-            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     {/* Left: Icon & Page Title */}
                     <div className="flex items-center gap-3.5">
                         <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
@@ -1412,7 +1412,7 @@ const MyOffice = () => {
                 </div>
 
                 {/* Tab Navigation Pill Bar */}
-                <div className="max-w-7xl mx-auto mt-3.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <div className="max-w-[1440px] mx-auto mt-3.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                     {[
                         { id: 'general', icon: 'info', label: L('tabGeneral') || 'Genel Bilgiler' },
                         { id: 'users', icon: 'groups', label: L('tabUsers') || 'Kullanıcılar', count: summary.totalCount },
@@ -1444,7 +1444,7 @@ const MyOffice = () => {
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full">
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6">
                 {/* ─── TAB 1: GENERAL INFO ──────────────────────────────────── */}
                 {activeTab === 'general' && (
                     <form onSubmit={handleSubmit} className="space-y-6">

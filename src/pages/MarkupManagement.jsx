@@ -643,8 +643,8 @@ const MarkupManagement = () => {
     return (
         <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
             {/* Sticky Header Bar */}
-            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                         <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
                             <span className="material-symbols-outlined text-[24px]">trending_up</span>
@@ -672,7 +672,7 @@ const MarkupManagement = () => {
             </header>
 
             {/* Main Content Container */}
-            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-5">
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-5">
                 {/* 3 Metric Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">

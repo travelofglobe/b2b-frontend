@@ -747,17 +747,17 @@ const LimitManagementTab = () => {
     return (
         <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
             {/* Sticky Header Bar */}
-            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-8 lg:px-10 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3.5">
                         <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0 shadow-2xs">
                             <span className="material-symbols-outlined text-[24px]">tune</span>
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Limit Yönetimi</h1>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Finans Yönetimi</h1>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                    {agencyType}
+                                    Limit Yönetimi ({agencyType})
                                 </span>
                             </div>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
@@ -769,14 +769,6 @@ const LimitManagementTab = () => {
                     </div>
 
                     <div className="flex items-center gap-2.5">
-                        <button
-                            type="button"
-                            onClick={() => navigate('/finance?tab=transactions')}
-                            className="flex items-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#303134] hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-[#3c4043] dark:text-slate-200 transition-all shadow-xs cursor-pointer"
-                        >
-                            <span className="material-symbols-outlined text-[17px] text-[#1a73e8]">receipt_long</span>
-                            <span>Hesap Hareketleri</span>
-                        </button>
                         {canCreate && (
                             <button
                                 type="button"
@@ -789,10 +781,29 @@ const LimitManagementTab = () => {
                         )}
                     </div>
                 </div>
+
+                {/* Tab Navigation - Unified with Finance Transactions */}
+                <div className="max-w-[1440px] mx-auto mt-3.5 flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => navigate('/finance?tab=transactions')}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all border bg-white dark:bg-[#202124] border-[#dadce0] dark:border-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                        <span>Hesap Hareketleri (İşlemler)</span>
+                    </button>
+                    <button
+                        type="button"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:border-[#8ab4f8] dark:text-[#8ab4f8] shadow-xs cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">tune</span>
+                        <span>Limit Yönetimi</span>
+                    </button>
+                </div>
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 px-6 sm:px-8 lg:px-10 py-6 max-w-7xl mx-auto w-full space-y-5">
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-5">
                 {/* 4 Summary Cards */}
                 <SummaryCards summary={summary} loading={summaryLoading} limits={limits} totalItems={totalItems} />
 

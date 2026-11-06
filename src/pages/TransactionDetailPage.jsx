@@ -203,11 +203,10 @@ const TransactionDetailPage = () => {
     };
 
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
-            <div className="max-w-7xl mx-auto w-full flex flex-col space-y-6">
-
-                {/* Top Navigation & Header Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {/* Header / Top Control Bar - Google Workspace Standard */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <button
                             type="button"
@@ -220,9 +219,9 @@ const TransactionDetailPage = () => {
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">
-                                    {accountName || `Hesap ${accountId || '-'}`}
+                                    {accountName && accountName !== 'null' ? accountName : (accountId && accountId !== 'null' ? `Hesap #${accountId}` : 'İşlem Detayları')}
                                 </h1>
-                                {txId && (
+                                {txId && txId !== 'null' && (
                                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
                                         İşlem #{txId}
                                     </span>
@@ -262,6 +261,10 @@ const TransactionDetailPage = () => {
                         </button>
                     </div>
                 </div>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-5">
 
                 {/* 4 Financial Metric Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -520,8 +523,7 @@ const TransactionDetailPage = () => {
                         />
                     )}
                 </div>
-
-            </div>
+            </main>
         </div>
     );
 };
@@ -560,12 +562,15 @@ const DetailRow = ({ row }) => {
             {/* Voucher (Ensured never wrapped or cut off) */}
             <td className="px-4 py-3.5 whitespace-nowrap min-w-[170px]">
                 {row.voucher ? (
-                    <span
-                        className="font-mono text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/15 px-2 py-0.5 rounded-md"
-                        title={row.voucher}
+                    <a
+                        href={`/travel/hotels/bookings/${encodeURIComponent(row.voucher)}/voucher`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/15 px-2 py-0.5 rounded-md hover:underline inline-block"
+                        title={`${row.voucher} - Kuponu Aç`}
                     >
                         {row.voucher}
-                    </span>
+                    </a>
                 ) : (
                     <span className="text-slate-400">-</span>
                 )}

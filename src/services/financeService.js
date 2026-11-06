@@ -73,10 +73,21 @@ export const financeService = {
     /**
      * Fetch the limit summary for the logged-in user's hierarchy.
      */
-    getLimitSummary: async (signal) => {
+    getLimitSummary: async (request = {}, signal) => {
         return apiClient.post(
             `${FINANCE_API_BASE}/agency-limit/get-limit-summary`,
-            {},
+            request,
+            { signal }
+        );
+    },
+
+    /**
+     * Alias for getLimitSummary.
+     */
+    getLimitsSummary: async (request = {}, signal) => {
+        return apiClient.post(
+            `${FINANCE_API_BASE}/agency-limit/get-limit-summary`,
+            request,
             { signal }
         );
     },

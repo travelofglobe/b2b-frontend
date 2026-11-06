@@ -1,6 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import { financeService } from '../services/financeService';
+import { downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
+import BookingStatusBadge from '../components/BookingStatusBadge';
 import Pagination from '../components/Pagination';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -36,25 +39,17 @@ const fmtDateTime = (str) => {
 
 const CURRENCY_FLAGS = { EUR: '🇪🇺', USD: '🇺🇸', TRY: '🇹🇷', GBP: '🇬🇧' };
 
-// Order status badge colours
-const ORDER_STATUS_COLORS = {
-    CONFIRMED:   'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    CANCELLED:   'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300',
-    PENDING:     'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-    COMPLETED:   'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-};
-
 const TRANSACTION_TYPE_LABELS = {
-    HOTEL_SALE:         'Otel Satış',
+    HOTEL_SALE: 'Otel Satış',
     HOTEL_CANCELLATION: 'Otel İptal',
     AMENDMENT_CREDIT_REFUND: 'Düzeltme / Kredi İadesi',
 };
 
 const ORDER_STATUS_LABELS = {
-    NEW:                 'Yeni',
-    CONFIRMED:          'Onaylandı',
-    ERROR:               'Hata',
-    CANCELLED:          'İptal',
+    NEW: 'Yeni',
+    CONFIRMED: 'Onaylandı',
+    ERROR: 'Hata',
+    CANCELLED: 'İptal',
     CANCELLED_WITH_PENALTY: 'Cezalı İptal',
 };
 
@@ -65,28 +60,28 @@ const TransactionDetailPage = () => {
     const [searchParams] = useSearchParams();
 
     // URL params passed from FinancePage
-    const txId       = searchParams.get('txId');
-    const accountId  = searchParams.get('accountId');
+    const txId = searchParams.get('txId');
+    const accountId = searchParams.get('accountId');
     const accountName = decodeURIComponent(searchParams.get('accountName') || '');
 
     // Filter state
-    const [startDate, setStartDate]   = useState(defaultStartDate());
-    const [endDate, setEndDate]       = useState(today());
+    const [startDate, setStartDate] = useState(defaultStartDate());
+    const [endDate, setEndDate] = useState(today());
     const [transactionType, setTransactionType] = useState('');
     const [orderStatus, setOrderStatus] = useState('');
 
     // Applied filters (trigger fetch)
     const [appliedFilters, setAppliedFilters] = useState({
         startDate: defaultStartDate(),
-        endDate:   today(),
+        endDate: today(),
     });
 
     // Table state
-    const [details, setDetails]       = useState([]);
-    const [loading, setLoading]       = useState(false);
-    const [error, setError]           = useState(null);
-    const [page, setPage]             = useState(0);
-    const [pageSize, setPageSize]     = useState(10);
+    const [details, setDetails] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
@@ -107,11 +102,11 @@ const TransactionDetailPage = () => {
         setError(null);
         try {
             const payload = {
-                accountId:            Number(accountId),
-                accountTransactionId: Number(txId),
-                startDate:            appliedFilters.startDate,
-                endDate:              appliedFilters.endDate,
-                supplierId:           null,
+                accountId: accountId && accountId !== 'null' ? Number(accountId) : null,
+                accountTransactionId: txId ? Number(txId) : null,
+                startDate: appliedFilters.startDate,
+                endDate: appliedFilters.endDate,
+                supplierId: null,
             };
             if (appliedFilters.transactionType) payload.transactionType = appliedFilters.transactionType;
             if (appliedFilters.orderStatus) payload.orderStatus = appliedFilters.orderStatus;
@@ -149,76 +144,232 @@ const TransactionDetailPage = () => {
         setAppliedFilters(cleared);
     };
 
+    // Derived summary calculations
+    const metrics = useMemo(() => {
+        let totalDebit = 0;
+        let totalCredit = 0;
+        let currency = 'EUR';
+
+        details.forEach(d => {
+            if (d.debit) totalDebit += Number(d.debit) || 0;
+            if (d.credit) totalCredit += Number(d.credit) || 0;
+            if (d.currency) currency = d.currency;
+        });
+
+        const netBalance = totalCredit - totalDebit;
+
+        return {
+            count: totalItems || details.length,
+            debit: totalDebit,
+            credit: totalCredit,
+            net: netBalance,
+            currency: currency
+        };
+    }, [details, totalItems]);
+
+    const handleExportExcel = () => {
+        if (details.length === 0) return;
+        try {
+            const exportData = details.map(row => ({
+                'İşlem ID': row.id ?? '',
+                'Sipariş ID': row.orderId ?? '',
+                'Voucher': row.voucher ?? '',
+                'Hesap Adı': row.accountName ?? '',
+                'Misafir Adı': row.guestName ?? '',
+                'Sipariş Durumu': row.orderStatus ?? '',
+                'İşlem Türü': TRANSACTION_TYPE_LABELS[row.transactionType] || row.transactionType || '',
+                'Borç': row.debit != null ? Number(row.debit).toFixed(2) : '0.00',
+                'Alacak': row.credit != null ? Number(row.credit).toFixed(2) : '0.00',
+                'Para Birimi': row.currency ?? '',
+                'İşlem Tarihi': fmtDateTime(row.transactionDate),
+                'Giriş Tarihi': fmtDate(row.checkInDate),
+                'Çıkış Tarihi': fmtDate(row.checkOutDate),
+                'Otel Adı': row.hotelName ?? '',
+                'Durum': row.status ?? ''
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            worksheet['!cols'] = [
+                { wch: 10 }, { wch: 12 }, { wch: 22 }, { wch: 20 }, { wch: 18 },
+                { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 12 },
+                { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 25 }, { wch: 12 }
+            ];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Transaction_Details');
+            downloadXlsxWorkbook(XLSX, workbook, `Transaction_Detail_${txId || 'All'}_${today()}.xlsx`);
+        } catch (err) {
+            console.error('Export error:', err);
+        }
+    };
+
     return (
-        <div className="flex-1 flex flex-col px-4 sm:px-8 py-6 min-h-0 bg-[#f8f9fa] dark:bg-[#202124] w-full">
-            <div className="max-w-7xl mx-auto w-full flex flex-col h-full min-h-0">
-
-                {/* Back link */}
-                <div className="mb-3">
-                    <button
-                        onClick={() => navigate('/finance?tab=transactions')}
-                        className="inline-flex items-center gap-1.5 text-sm text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
-                    >
-                        <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                        Hesap Listesine Dön
-                    </button>
-                </div>
-
-                {/* Page Header card */}
-                <div className="bg-white dark:bg-[#2c2c2e] rounded-t-xl border border-slate-200 dark:border-slate-700 border-b-0 px-6 pt-5 pb-4 shadow-sm">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex-1 flex flex-col min-h-0 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            {/* Header / Top Control Bar - Google Workspace Standard */}
+            <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 xl:px-14 py-3.5 flex-shrink-0 z-30 transition-all shadow-2xs">
+                <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => navigate('/finance?tab=transactions')}
+                            className="size-10 rounded-xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-all shadow-xs cursor-pointer shrink-0"
+                            title="Hesap Listesine Dön"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+                        </button>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {txId} – {accountName || `Hesap ${accountId}`}
-                            </h1>
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                                İşlem detaylarını görüntüleyin
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">
+                                    {accountName && accountName !== 'null' ? accountName : (accountId && accountId !== 'null' ? `Hesap #${accountId}` : 'İşlem Detayları')}
+                                </h1>
+                                {txId && txId !== 'null' && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
+                                        İşlem #{txId}
+                                    </span>
+                                )}
+                                {accountId && accountId !== 'null' && (
+                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                                        Hesap ID: {accountId}
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
+                                Hesaba ait detaylı finansal hareketler, rezervasyon ve voucher kayıtları
                             </p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={handleExportExcel}
+                            disabled={details.length === 0}
+                            className="flex items-center gap-1.5 h-10 px-4 bg-white dark:bg-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                            title="Excel'e Aktar"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">table_view</span>
+                            <span>Excel İndir</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => fetchDetails()}
+                            disabled={loading}
+                            className="size-10 rounded-xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
+                            title="Yenile"
+                        >
+                            <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content Area */}
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-5">
+
+                {/* 4 Financial Metric Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">Detay Kaydı</span>
+                            <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">receipt_long</span>
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <div className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
+                                {loading && details.length === 0 ? '...' : metrics.count}
+                            </div>
+                            <span className="text-xs font-medium text-[#70757a]">hareket</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Sayfa Toplam Borç</span>
+                            <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">arrow_downward</span>
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                            <div className="text-2xl sm:text-3xl font-bold text-rose-600 dark:text-rose-400 leading-none tabular-nums tracking-tight">
+                                {fmt(metrics.debit)}
+                            </div>
+                            <span className="text-xs font-bold text-rose-600">{metrics.currency}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Sayfa Toplam Alacak</span>
+                            <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">arrow_upward</span>
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                            <div className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 leading-none tabular-nums tracking-tight">
+                                {fmt(metrics.credit)}
+                            </div>
+                            <span className="text-xs font-bold text-emerald-600">{metrics.currency}</span>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] uppercase tracking-wider">Net Hareket</span>
+                            <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
+                                <span className="material-symbols-outlined text-[22px]">account_balance</span>
+                            </div>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                            <div className={`text-2xl sm:text-3xl font-bold leading-none tabular-nums tracking-tight ${metrics.net >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                {metrics.net > 0 ? `+${fmt(metrics.net)}` : fmt(metrics.net)}
+                            </div>
+                            <span className="text-xs font-bold text-[#70757a]">{metrics.currency}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Filter + table card */}
-                <div className="flex-1 min-h-0 flex flex-col bg-white dark:bg-[#2c2c2e] rounded-b-xl overflow-hidden shadow-sm border border-t-0 border-slate-200 dark:border-slate-700">
+                {/* Unified Card: Filter Toolbar + Table + Pagination */}
+                <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden flex flex-col">
 
                     {/* Filter Bar */}
-                    <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
-                        <div className="flex flex-wrap items-end gap-4">
+                    <div className="p-4 sm:p-5 border-b border-[#dadce0] dark:border-[#3c4043] bg-white dark:bg-[#202124]">
+                        <div className="flex flex-wrap items-end gap-3.5">
                             {/* Start Date */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            <div className="flex-1 min-w-[150px]">
+                                <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
                                     Başlangıç Tarihi
                                 </label>
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                    className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 />
                             </div>
 
                             {/* End Date */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            <div className="flex-1 min-w-[150px]">
+                                <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
                                     Bitiş Tarihi
                                 </label>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                    className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 />
                             </div>
 
                             {/* Transaction Type */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            <div className="flex-1 min-w-[160px]">
+                                <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
                                     İşlem Türü
                                 </label>
                                 <select
                                     value={transactionType}
                                     onChange={(e) => setTransactionType(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                    className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 >
                                     <option value="">Tümü</option>
                                     {Object.entries(TRANSACTION_TYPE_LABELS).map(([key, label]) => (
@@ -228,14 +379,14 @@ const TransactionDetailPage = () => {
                             </div>
 
                             {/* Order Status */}
-                            <div className="flex flex-col gap-1">
-                                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            <div className="flex-1 min-w-[160px]">
+                                <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
                                     Sipariş Durumu
                                 </label>
                                 <select
                                     value={orderStatus}
                                     onChange={(e) => setOrderStatus(e.target.value)}
-                                    className="h-9 px-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-[#1a73e8] transition-colors cursor-pointer"
+                                    className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 >
                                     <option value="">Tümü</option>
                                     {Object.entries(ORDER_STATUS_LABELS).map(([key, label]) => (
@@ -245,79 +396,119 @@ const TransactionDetailPage = () => {
                             </div>
 
                             {/* Buttons */}
-                            <div className="flex items-center gap-2 pb-0.5">
+                            <div className="flex items-center gap-2">
                                 <button
+                                    type="button"
                                     onClick={handleSearch}
-                                    className="flex items-center gap-2 h-9 px-5 rounded-full bg-[#1a73e8] hover:bg-[#1558b0] text-white text-sm font-medium transition-colors cursor-pointer"
+                                    className="h-10 px-5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">search</span>
-                                    Ara
+                                    <span>Ara</span>
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={handleClear}
-                                    className="flex items-center gap-2 h-9 px-4 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm font-medium transition-colors cursor-pointer"
+                                    className="h-10 px-4 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-medium text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-all cursor-pointer"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">restart_alt</span>
                                     Temizle
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="flex-1 overflow-auto">
-                        {error ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <span className="material-symbols-outlined text-4xl text-red-400">error</span>
-                                <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-                                <button onClick={handleSearch} className="text-sm text-[#1a73e8] hover:underline cursor-pointer">
-                                    Tekrar dene
-                                </button>
-                            </div>
-                        ) : loading ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-3">
-                                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 animate-spin">progress_activity</span>
-                                <p className="text-sm text-slate-400">Veriler yükleniyor...</p>
-                            </div>
-                        ) : (
-                            <table className="w-full text-sm border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 sticky top-0 z-10">
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">İşlem ID</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Sipariş ID</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Voucher</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Hesap Adı</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Misafir Adı</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Sipariş Durumu</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">İşlem Türü</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Borç</th>
-                                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Alacak</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Para Birimi</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">İşlem Tarihi</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Giriş Tarihi</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Çıkış Tarihi</th>
-                                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Otel Adı</th>
-                                        <th className="text-center px-4 py-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide whitespace-nowrap">Durum</th>
+                    {/* Table with Zebra Grid (MyBookings style) */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                            <thead>
+                                <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        İşlem ID
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Sipariş ID
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none min-w-[170px]">
+                                        Voucher
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Hesap Adı
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Misafir Adı
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Sipariş Durumu
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        İşlem Türü
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Borç
+                                    </th>
+                                    <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Alacak
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Para Birimi
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        İşlem Tarihi
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Giriş Tarihi
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Çıkış Tarihi
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Otel Adı
+                                    </th>
+                                    <th className="px-4 py-3 text-center text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
+                                        Kayıt Durumu
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {error ? (
+                                    <tr>
+                                        <td colSpan={15} className="px-4 py-14 text-center">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <span className="material-symbols-outlined text-[44px] text-red-400">error</span>
+                                                <p className="text-sm font-medium text-red-500">{error}</p>
+                                                <button onClick={handleSearch} className="text-xs text-[#1a73e8] hover:underline cursor-pointer">
+                                                    Tekrar Dene
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {details.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={15} className="text-center py-16 text-slate-400 dark:text-slate-500">
-                                                <div className="flex flex-col items-center gap-2">
-                                                    <span className="material-symbols-outlined text-4xl">receipt_long</span>
-                                                    <span className="text-sm">Detay kaydı bulunamadı</span>
-                                                </div>
-                                            </td>
+                                ) : loading ? (
+                                    Array.from({ length: pageSize || 10 }).map((_, index) => (
+                                        <tr key={`skel-${index}`} className="border-b border-[#dadce0]/50 dark:border-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 h-[53px]">
+                                            {Array.from({ length: 15 }).map((__, cIndex) => (
+                                                <td key={`skel-col-${cIndex}`} className="px-4 py-3.5">
+                                                    <div className={`h-3.5 bg-slate-200/80 dark:bg-slate-700/60 rounded animate-pulse ${
+                                                        cIndex % 3 === 0 ? 'w-2/3' : cIndex % 2 === 0 ? 'w-full' : 'w-4/5'
+                                                    }`} />
+                                                </td>
+                                            ))}
                                         </tr>
-                                    ) : (
-                                        details.map((row, idx) => (
-                                            <DetailRow key={`${row.id}-${idx}`} row={row} />
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        )}
+                                    ))
+                                ) : details.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={15} className="px-4 py-14 text-center text-[#70757a] dark:text-slate-400">
+                                            <div className="flex flex-col items-center justify-center gap-2">
+                                                <span className="material-symbols-outlined text-[44px] text-slate-300 dark:text-slate-600">receipt_long</span>
+                                                <p className="text-sm font-medium">İşlem detay kaydı bulunamadı</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    details.map((row, idx) => (
+                                        <DetailRow key={`${row.id}-${idx}`} row={row} />
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
 
                     {/* Pagination */}
@@ -332,8 +523,7 @@ const TransactionDetailPage = () => {
                         />
                     )}
                 </div>
-
-            </div>
+            </main>
         </div>
     );
 };
@@ -341,110 +531,135 @@ const TransactionDetailPage = () => {
 // ─── DetailRow ─────────────────────────────────────────────────────────────────
 
 const DetailRow = ({ row }) => {
-    const currencyFlag  = CURRENCY_FLAGS[row.currency] || '💱';
-    const statusColor   = ORDER_STATUS_COLORS[row.orderStatus] || 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
-    const isActive      = row.status === 'ACTIVE';
-    const txTypeLabel   = TRANSACTION_TYPE_LABELS[row.transactionType] || row.transactionType || '-';
+    const currencyFlag = CURRENCY_FLAGS[row.currency] || '💱';
+    const isActive = row.status === 'ACTIVE';
+    const txTypeLabel = TRANSACTION_TYPE_LABELS[row.transactionType] || row.transactionType || '-';
 
     return (
-        <tr className="border-b border-slate-100 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+        <tr className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors">
             {/* İşlem ID */}
-            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 font-mono text-xs font-semibold">
-                {row.id ?? '-'}
+            <td className="px-4 py-3.5 text-xs font-mono font-semibold text-[#5f6368] dark:text-slate-400 whitespace-nowrap">
+                #{row.id ?? '-'}
             </td>
 
             {/* Sipariş ID */}
-            <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium text-sm">
-                {row.orderId ?? '-'}
+            <td className="px-4 py-3.5 whitespace-nowrap">
+                {row.orderId ? (
+                    <a
+                        href={`/travel/hotels/bookings/${row.orderId}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-semibold text-[13px] text-[#1a73e8] dark:text-[#8ab4f8] hover:underline"
+                        title="Rezervasyon Detayını Aç"
+                    >
+                        #{row.orderId}
+                    </a>
+                ) : (
+                    <span className="text-slate-400">-</span>
+                )}
             </td>
 
-            {/* Voucher */}
-            <td className="px-4 py-3">
-                <span className="text-[#1a73e8] dark:text-blue-400 text-xs font-medium">
-                    {row.voucher || '-'}
-                </span>
+            {/* Voucher (Ensured never wrapped or cut off) */}
+            <td className="px-4 py-3.5 whitespace-nowrap min-w-[170px]">
+                {row.voucher ? (
+                    <a
+                        href={`/travel/hotels/bookings/${encodeURIComponent(row.voucher)}/voucher`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/15 px-2 py-0.5 rounded-md hover:underline inline-block"
+                        title={`${row.voucher} - Kuponu Aç`}
+                    >
+                        {row.voucher}
+                    </a>
+                ) : (
+                    <span className="text-slate-400">-</span>
+                )}
             </td>
 
             {/* Hesap Adı */}
-            <td className="px-4 py-3 text-slate-700 dark:text-slate-200 text-sm whitespace-nowrap">
+            <td className="px-4 py-3.5 text-[13px] font-medium text-[#202124] dark:text-white whitespace-nowrap max-w-[180px] truncate" title={row.accountName}>
                 {row.accountName || '-'}
             </td>
 
             {/* Misafir Adı */}
-            <td className="px-4 py-3 text-slate-700 dark:text-slate-200 text-sm whitespace-nowrap">
+            <td className="px-4 py-3.5 text-[13px] text-[#202124] dark:text-slate-200 whitespace-nowrap max-w-[180px] truncate" title={row.guestName}>
                 {row.guestName || '-'}
             </td>
 
             {/* Sipariş Durumu */}
-            <td className="px-4 py-3">
+            <td className="px-4 py-3.5 whitespace-nowrap">
                 {row.orderStatus ? (
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColor}`}>
-                        {row.orderStatus}
-                    </span>
+                    <BookingStatusBadge status={row.orderStatus} />
                 ) : (
                     <span className="text-slate-300 dark:text-slate-600">-</span>
                 )}
             </td>
 
             {/* İşlem Türü */}
-            <td className="px-4 py-3 text-slate-600 dark:text-slate-300 text-xs whitespace-nowrap">
+            <td className="px-4 py-3.5 text-xs text-[#5f6368] dark:text-slate-300 whitespace-nowrap">
                 {txTypeLabel}
             </td>
 
             {/* Borç */}
-            <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-200">
-                {row.debit > 0
-                    ? <span className="font-medium whitespace-nowrap">€ {fmt(row.debit)}</span>
-                    : <span className="text-slate-300 dark:text-slate-600">-</span>
-                }
+            <td className="px-4 py-3.5 text-right tabular-nums whitespace-nowrap">
+                {row.debit > 0 ? (
+                    <span className="font-semibold text-[13px] text-rose-600 dark:text-rose-400">
+                        {fmt(row.debit)}
+                    </span>
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">-</span>
+                )}
             </td>
 
             {/* Alacak */}
-            <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-200">
-                {row.credit > 0
-                    ? <span className="font-medium whitespace-nowrap">€ {fmt(row.credit)}</span>
-                    : <span className="text-slate-300 dark:text-slate-600">-</span>
-                }
+            <td className="px-4 py-3.5 text-right tabular-nums whitespace-nowrap">
+                {row.credit > 0 ? (
+                    <span className="font-semibold text-[13px] text-emerald-600 dark:text-emerald-400">
+                        {fmt(row.credit)}
+                    </span>
+                ) : (
+                    <span className="text-slate-300 dark:text-slate-600">-</span>
+                )}
             </td>
 
             {/* Para Birimi */}
-            <td className="px-4 py-3">
-                <div className="flex items-center gap-1.5">
+            <td className="px-4 py-3.5 whitespace-nowrap">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-[#202124] dark:text-white">
                     <span className="text-base leading-none">{currencyFlag}</span>
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{row.currency}</span>
+                    <span>{row.currency || '-'}</span>
                 </div>
             </td>
 
             {/* İşlem Tarihi */}
-            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            <td className="px-4 py-3.5 text-xs text-[#5f6368] dark:text-slate-400 tabular-nums whitespace-nowrap">
                 {fmtDateTime(row.transactionDate)}
             </td>
 
-            {/* Giriş Tarihi (checkInDate) */}
-            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            {/* Giriş Tarihi */}
+            <td className="px-4 py-3.5 text-xs text-[#5f6368] dark:text-slate-400 tabular-nums whitespace-nowrap">
                 {fmtDate(row.checkInDate)}
             </td>
 
-            {/* Çıkış Tarihi (checkOutDate) */}
-            <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+            {/* Çıkış Tarihi */}
+            <td className="px-4 py-3.5 text-xs text-[#5f6368] dark:text-slate-400 tabular-nums whitespace-nowrap">
                 {fmtDate(row.checkOutDate)}
             </td>
 
             {/* Otel Adı */}
-            <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-200 whitespace-nowrap">
+            <td className="px-4 py-3.5 text-[13px] font-medium text-[#202124] dark:text-white whitespace-nowrap max-w-[200px] truncate" title={row.hotelName}>
                 {row.hotelName || '-'}
             </td>
 
-            {/* Durum */}
-            <td className="px-4 py-3 text-center">
-                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium
+            {/* Kayıt Durumu */}
+            <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold
                     ${isActive
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50'
+                        : 'bg-slate-100 text-slate-600 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                     }`}
                 >
-                    <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                    {row.status}
+                    <span className={`size-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                    {row.status || 'ACTIVE'}
                 </span>
             </td>
         </tr>

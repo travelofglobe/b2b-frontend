@@ -296,7 +296,9 @@ const PortalLayout = () => {
                                             ? [{ path: '/finance/limits', matchPath: '/finance/limits', icon: 'tune', label: 'Limit Yönetimi' }]
                                             : []),
                                     ].map(({ path, matchPath, icon, label }) => {
-                                        const isActive = location.pathname === (matchPath || path);
+                                        const isActive = matchPath === '/finance'
+                                            ? (location.pathname === '/finance' || location.pathname.startsWith('/finance/transactions'))
+                                            : location.pathname === (matchPath || path);
                                         return (
                                             <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
                                                 className={`w-full flex items-center gap-4 -ml-2 pl-14 pr-4 py-2 rounded-r-full transition-colors group cursor-pointer ${isActive

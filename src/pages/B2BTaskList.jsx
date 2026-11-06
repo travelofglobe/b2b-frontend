@@ -104,8 +104,8 @@ const B2BTaskList = () => {
     };
 
     return (
-        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto p-6 sm:p-10 lg:px-16 xl:px-20 py-8 space-y-6">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex-1 bg-[#f8f9fa] dark:bg-[#18191c] overflow-y-auto font-roboto">
+            <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 xl:px-14 py-6 space-y-6">
                 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -462,7 +462,7 @@ const B2BTaskList = () => {
                         )}
                     </div>
                 </div>
-            </div>
+            </main>
 
             {/* Slide-over Task Detail Drawer */}
             <TaskDetailDrawer

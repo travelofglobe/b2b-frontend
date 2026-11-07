@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { financeService } from '../services/financeService';
 import { agencyService } from '../services/agencyService';
 import { useAuth } from '../context/AuthContext';
@@ -8,36 +9,39 @@ import { useToast } from '../context/ToastContext';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const fmt = (num) => {
-    if (num === null || num === undefined) return '0,00';
-    return Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// Map i18n language code to a BCP-47 locale string for Intl APIs
+const langToLocale = (lng) => {
+    const map = {
+        tr: 'tr-TR', en: 'en-GB', ar: 'ar-SA', es: 'es-ES',
+        ru: 'ru-RU', zh: 'zh-CN', ja: 'ja-JP', fa: 'fa-IR',
+        fr: 'fr-FR', it: 'it-IT', el: 'el-GR', pt: 'pt-PT',
+    };
+    return map[lng] || 'en-GB';
 };
 
-// Format a raw digit string with tr-TR thousand separators (no decimals).
+// Locale-aware number formatter
+const makeFmt = (locale) => (num) => {
+    if (num === null || num === undefined) return '0';
+    return Number(num).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+// Format a raw digit string with locale-aware thousand separators (no decimals).
+// We keep this as a display-only helper for the number input — the separator
+// character is cosmetic and independent of i18n; we use en-GB so the input
+// stays predictable regardless of the active language.
 const formatInteger = (digits) => {
     if (!digits || digits === '') return '';
     const num = parseInt(digits, 10);
     if (isNaN(num)) return '';
-    return num.toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+    return num.toLocaleString('en-GB', { maximumFractionDigits: 0 });
 };
 
-const fmtDate = (str) => {
+// Locale-aware date formatter
+const makeFmtDate = (locale) => (str) => {
     if (!str) return '-';
     const d = new Date(str);
-    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
-
-const LIMIT_STATUS_OPTIONS = [
-    { value: '', label: 'Tümü' },
-    { value: 'ACTIVE', label: 'Aktif' },
-    { value: 'PASSIVE', label: 'Pasif' },
-];
-
-const AGENCY_TYPE_OPTIONS = [
-    { value: '', label: 'Tümü' },
-    { value: 'RSA', label: 'RSA' },
-    { value: 'AGENCY', label: 'Agency' },
-];
 
 // ─── Usage Bar ─────────────────────────────────────────────────────────────────
 
@@ -70,11 +74,13 @@ const UsageBar = ({ rate }) => {
 // ─── Status Badge ──────────────────────────────────────────────────────────────
 
 const StatusBadge = ({ status }) => {
+    const { t } = useTranslation();
+
     if (status === 'ACTIVE') {
         return (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <span className="size-1.5 rounded-full bg-emerald-500" />
-                Aktif
+                {t('finance.limits.statusActive')}
             </span>
         );
     }
@@ -82,7 +88,7 @@ const StatusBadge = ({ status }) => {
         return (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                 <span className="size-1.5 rounded-full bg-slate-400" />
-                Pasif
+                {t('finance.limits.statusPassive')}
             </span>
         );
     }
@@ -95,16 +101,22 @@ const StatusBadge = ({ status }) => {
 
 // ─── Warning Badge ─────────────────────────────────────────────────────────────
 
-const WarningBadge = () => (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-        <span className="material-symbols-outlined text-[13px]">warning</span>
-        Limit Uyarı
-    </span>
-);
+const WarningBadge = () => {
+    const { t } = useTranslation();
+    return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+            <span className="material-symbols-outlined text-[13px]">warning</span>
+            {t('finance.limits.warningBadge')}
+        </span>
+    );
+};
 
 // ─── Summary Cards ─────────────────────────────────────────────────────────────
 
 const SummaryCards = ({ summary, loading, limits = [], totalItems = 0 }) => {
+    const { t, i18n } = useTranslation();
+    const fmt = useMemo(() => makeFmt(langToLocale(i18n.language)), [i18n.language]);
+
     const computed = useMemo(() => {
         if (summary) {
             const credit = Number(summary.totalCreditLimit) || 0;
@@ -144,49 +156,41 @@ const SummaryCards = ({ summary, loading, limits = [], totalItems = 0 }) => {
             };
         }
 
-        return {
-            credit: 0,
-            addition: 0,
-            total: 0,
-            used: 0,
-            available: 0,
-            count: totalItems || 0,
-            rate: 0,
-        };
+        return { credit: 0, addition: 0, total: 0, used: 0, available: 0, count: totalItems || 0, rate: 0 };
     }, [summary, limits, totalItems]);
 
     const cards = [
         {
-            label: 'Toplam Kredi Limiti',
+            label: t('finance.limits.cardTotalCredit'),
             value: fmt(computed.credit),
-            sub: `${computed.count} adet limit tanımı`,
+            sub: t('finance.limits.cardTotalCreditSub', { count: computed.count }),
             color: 'text-[#202124] dark:text-white',
             icon: 'credit_card',
             iconBg: 'bg-[#e8f0fe] dark:bg-[#1a73e8]/20',
             iconColor: 'text-[#1a73e8] dark:text-[#8ab4f8]',
         },
         {
-            label: 'Toplam Ek Limit',
+            label: t('finance.limits.cardAddition'),
             value: fmt(computed.addition),
-            sub: `Toplam: ${fmt(computed.total)}`,
+            sub: t('finance.limits.cardAdditionSub', { total: fmt(computed.total) }),
             color: 'text-violet-600 dark:text-violet-400',
             icon: 'add_circle',
             iconBg: 'bg-violet-50 dark:bg-violet-900/20',
             iconColor: 'text-violet-600 dark:text-violet-400',
         },
         {
-            label: 'Kullanılan Limit',
+            label: t('finance.limits.cardUsed'),
             value: fmt(computed.used),
-            sub: `Kullanım: %${computed.rate.toFixed(0)}`,
+            sub: t('finance.limits.cardUsedSub', { rate: computed.rate.toFixed(0) }),
             color: 'text-rose-600 dark:text-rose-400',
             icon: 'trending_up',
             iconBg: 'bg-rose-50 dark:bg-rose-900/20',
             iconColor: 'text-rose-600 dark:text-rose-400',
         },
         {
-            label: 'Kullanılabilir Limit',
+            label: t('finance.limits.cardAvailable'),
             value: fmt(computed.available),
-            sub: 'Kalan serbest limit',
+            sub: t('finance.limits.cardAvailableSub'),
             color: 'text-emerald-600 dark:text-emerald-400',
             icon: 'savings',
             iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
@@ -305,6 +309,9 @@ const FormattedNumberInput = ({ value, onChange, placeholder, maxDigits, classNa
 // ─── Create / Edit Modal ───────────────────────────────────────────────────────
 
 const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType }) => {
+    const { t, i18n } = useTranslation();
+    const fmt = useMemo(() => makeFmt(langToLocale(i18n.language)), [i18n.language]);
+
     const [agencies, setAgencies] = useState([]);
     const [agenciesLoading, setAgenciesLoading] = useState(false);
     const [selectedAgencyId, setSelectedAgencyId] = useState('');
@@ -357,15 +364,15 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 
     const handleSubmit = async () => {
         setError(null);
-        if (!isEdit && !selectedAgencyId) { setError('Lütfen bir acente seçin.'); return; }
+        if (!isEdit && !selectedAgencyId) { setError(t('finance.limits.validationSelectAgency')); return; }
         if (!creditLimit || isNaN(Number(creditLimit)) || Number(creditLimit) <= 0) {
-            setError('Geçerli bir credit limit girin.'); return;
+            setError(t('finance.limits.validationCreditLimit')); return;
         }
         if (!additionLimit || isNaN(Number(additionLimit)) || Number(additionLimit) < 0) {
-            setError('Geçerli bir addition limit girin.'); return;
+            setError(t('finance.limits.validationAdditionLimit')); return;
         }
         if (Number(additionLimit) > 999999) {
-            setError('Addition limit en fazla 6 hane olabilir (maks. 999999).'); return;
+            setError(t('finance.limits.validationAdditionMax')); return;
         }
         setSaving(true);
         try {
@@ -375,7 +382,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     additionLimit: Number(additionLimit),
                     status,
                 });
-                toast.success('Limit başarıyla güncellendi.');
+                toast.success(t('finance.limits.successUpdate'));
             } else {
                 await financeService.createLimit({
                     agencyId: Number(selectedAgencyId),
@@ -384,12 +391,12 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     usedCreditLimit: 0,
                     usedAdditionLimit: 0,
                 });
-                toast.success('Limit başarıyla oluşturuldu.');
+                toast.success(t('finance.limits.successCreate'));
             }
             onSuccess?.();
             onClose();
         } catch (err) {
-            const msg = err?.message || 'İşlem sırasında hata oluştu.';
+            const msg = err?.message || t('finance.limits.errorSave');
             setError(msg);
             toast.error(msg);
         } finally {
@@ -410,7 +417,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         </div>
                         <div>
                             <h2 className="text-base font-bold text-[#202124] dark:text-white">
-                                {isEdit ? 'Limit Düzenle' : `${agencyType === 'GSA' ? 'GSA' : 'RSA'} → Agency Limit Tanımla`}
+                                {isEdit ? t('finance.limits.modalEditTitle') : t('finance.limits.modalCreateTitle')}
                             </h2>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6]">
                                 {agencyType === 'GSA' ? 'GSA → RSA / Agency' : 'RSA → Agency'}
@@ -428,7 +435,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                 {/* Info banner */}
                 <div className="mx-6 mt-4 px-3.5 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/40 text-xs text-blue-700 dark:text-blue-300 leading-relaxed flex items-center gap-2">
                     <span className="material-symbols-outlined text-[17px] text-[#1a73e8] shrink-0">info</span>
-                    <span>Her kademe kendi verdiği limitten sorumludur. Üst kademe limiti alt kademe için matematiksel bir üst sınır değildir.</span>
+                    <span>{t('finance.limits.modalInfoBanner')}</span>
                 </div>
 
                 {/* Body */}
@@ -437,13 +444,13 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     {!isEdit && (
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
-                                Agency Adı
+                                {t('finance.limits.modalAgencyLabel')}
                             </label>
 
                             {agenciesLoading ? (
                                 <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse flex items-center px-3 gap-2">
                                     <span className="material-symbols-outlined text-[16px] text-slate-400 animate-spin">progress_activity</span>
-                                    <span className="text-xs text-slate-400">Acenteler yükleniyor...</span>
+                                    <span className="text-xs text-slate-400">{t('finance.limits.modalLoadingAgencies')}</span>
                                 </div>
                             ) : (
                                 <>
@@ -453,7 +460,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                                             onChange={(e) => setSelectedAgencyId(e.target.value)}
                                             className="w-full h-10 pl-3.5 pr-9 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors cursor-pointer appearance-none shadow-2xs"
                                         >
-                                            <option value="">Seçiniz...</option>
+                                            <option value="">{t('finance.limits.modalSelectAgency')}</option>
                                             {agencies.map((ag) => (
                                                 <option key={ag.id} value={String(ag.id)}>
                                                     {ag.name}{'  '}[{ag.agencyType}]
@@ -509,18 +516,22 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 
                     {/* Credit Limit */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Credit Limit</label>
+                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
+                            {t('finance.limits.modalCreditLimitLabel')}
+                        </label>
                         <FormattedNumberInput
                             value={creditLimit}
                             onChange={setCreditLimit}
-                            placeholder="10.000"
+                            placeholder="10,000"
                             className="h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors shadow-2xs font-mono font-medium"
                         />
                     </div>
 
                     {/* Addition Limit */}
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Addition Limit</label>
+                        <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
+                            {t('finance.limits.modalAdditionLimitLabel')}
+                        </label>
                         <FormattedNumberInput
                             value={additionLimit}
                             onChange={setAdditionLimit}
@@ -534,7 +545,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     {!isEdit && (
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
-                                Kullanılan Limit <span className="normal-case font-normal text-[#70757a]">(Salt Okunur)</span>
+                                {t('finance.limits.modalUsedLimitLabel')}
                             </label>
                             <input
                                 type="number"
@@ -547,7 +558,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 
                     {/* Available limit preview */}
                     <div className="px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-between">
-                        <span className="text-xs text-[#5f6368] dark:text-[#9aa0a6] font-medium">Toplam Limit (Credit + Addition):</span>
+                        <span className="text-xs text-[#5f6368] dark:text-[#9aa0a6] font-medium">{t('finance.limits.modalTotalLabel')}</span>
                         <span className="text-sm font-bold tabular-nums text-[#1a73e8] dark:text-blue-400">
                             {(creditLimit || additionLimit) ? fmt(totalLimit) : '—'}
                         </span>
@@ -556,14 +567,16 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                     {/* Status — edit only */}
                     {isEdit && (
                         <div className="flex flex-col gap-1.5">
-                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">Durum</label>
+                            <label className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wide">
+                                {t('finance.limits.modalStatusLabel')}
+                            </label>
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="h-10 px-3.5 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] transition-colors cursor-pointer shadow-2xs"
                             >
-                                <option value="ACTIVE">Aktif</option>
-                                <option value="PASSIVE">Pasif</option>
+                                <option value="ACTIVE">{t('finance.limits.statusActive')}</option>
+                                <option value="PASSIVE">{t('finance.limits.statusPassive')}</option>
                             </select>
                         </div>
                     )}
@@ -584,7 +597,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         disabled={saving}
                         className="h-10 px-5 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-colors cursor-pointer disabled:opacity-50"
                     >
-                        Vazgeç
+                        {t('finance.limits.modalCancel')}
                     </button>
                     <button
                         onClick={handleSubmit}
@@ -596,7 +609,13 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
                         ) : (
                             <span className="material-symbols-outlined text-[17px]">check</span>
                         )}
-                        <span>{saving ? 'Kaydediliyor...' : (isEdit ? 'Güncelle' : 'Kaydet')}</span>
+                        <span>
+                            {saving
+                                ? t('finance.limits.modalSaving')
+                                : isEdit
+                                    ? t('finance.limits.modalUpdate')
+                                    : t('finance.limits.modalSave')}
+                        </span>
                     </button>
                 </div>
             </div>
@@ -609,6 +628,11 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 const LimitManagementPage = () => {
     const navigate = useNavigate();
     const { agencyType } = useAuth();
+    const { t, i18n } = useTranslation();
+
+    // Locale-aware formatters
+    const fmt = useMemo(() => makeFmt(langToLocale(i18n.language)), [i18n.language]);
+    const fmtDate = useMemo(() => makeFmtDate(langToLocale(i18n.language)), [i18n.language]);
 
     // Summary state
     const [summary, setSummary] = useState(null);
@@ -686,7 +710,7 @@ const LimitManagementPage = () => {
             }
         } catch (err) {
             if (err?.name !== 'AbortError') {
-                setError(err?.message || 'Veriler yüklenirken bir hata oluştu.');
+                setError(err?.message || t('finance.limits.errorLoading'));
             }
         } finally {
             if (!signal?.aborted) setLoading(false);
@@ -755,15 +779,15 @@ const LimitManagementPage = () => {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Finans Yönetimi</h1>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">{t('finance.limits.title')}</h1>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                    Limit Yönetimi ({agencyType})
+                                    {t('finance.limits.badge')} ({agencyType})
                                 </span>
                             </div>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
                                 {agencyType === 'GSA'
-                                    ? 'RSA ve acentelere tanımlı kredi limitlerini ve risk dağılımını yönetin'
-                                    : 'Acentelere tanımlı kredi limitlerini yönetin'}
+                                    ? t('finance.limits.subtitleGsa')
+                                    : t('finance.limits.subtitleRsa')}
                             </p>
                         </div>
                     </div>
@@ -776,7 +800,7 @@ const LimitManagementPage = () => {
                                 className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-xl text-xs font-medium transition-all shadow-xs active:scale-95 cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[18px]">add</span>
-                                <span>Limit Tanımla</span>
+                                <span>{t('finance.limits.defineLimit')}</span>
                             </button>
                         )}
                     </div>
@@ -790,14 +814,14 @@ const LimitManagementPage = () => {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all border bg-white dark:bg-[#202124] border-[#dadce0] dark:border-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                        <span>Hesap Hareketleri (İşlemler)</span>
+                        <span>{t('finance.tabTransactions')}</span>
                     </button>
                     <button
                         type="button"
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:border-[#8ab4f8] dark:text-[#8ab4f8] shadow-xs cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">tune</span>
-                        <span>Limit Yönetimi</span>
+                        <span>{t('finance.tabLimits')}</span>
                     </button>
                 </div>
             </header>
@@ -817,7 +841,7 @@ const LimitManagementPage = () => {
                                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">search</span>
                                 <input
                                     type="text"
-                                    placeholder={agencyType === 'GSA' ? 'GSA / RSA / Acente ara...' : 'Acente ara...'}
+                                    placeholder={agencyType === 'GSA' ? t('finance.limits.searchGsa') : t('finance.limits.searchRsa')}
                                     value={queryInput}
                                     onChange={(e) => handleQueryChange(e.target.value)}
                                     className="w-full pl-9 pr-7 h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
@@ -840,11 +864,9 @@ const LimitManagementPage = () => {
                                     onChange={(e) => setAgencyTypeFilter(e.target.value)}
                                     className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
                                 >
-                                    {AGENCY_TYPE_OPTIONS.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label === 'Tümü' ? 'Tüm Türler' : opt.label}
-                                        </option>
-                                    ))}
+                                    <option value="">{t('finance.limits.allTypes')}</option>
+                                    <option value="RSA">RSA</option>
+                                    <option value="AGENCY">Agency</option>
                                 </select>
                             )}
 
@@ -854,11 +876,9 @@ const LimitManagementPage = () => {
                                 onChange={(e) => setStatusFilter(e.target.value)}
                                 className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
                             >
-                                {LIMIT_STATUS_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label === 'Tümü' ? 'Tüm Durumlar' : opt.label}
-                                    </option>
-                                ))}
+                                <option value="">{t('finance.limits.allStatuses')}</option>
+                                <option value="ACTIVE">{t('finance.limits.statusActive')}</option>
+                                <option value="PASSIVE">{t('finance.limits.statusPassive')}</option>
                             </select>
 
                             {/* Currency Filter */}
@@ -867,7 +887,7 @@ const LimitManagementPage = () => {
                                 onChange={(e) => setCurrencyFilter(e.target.value)}
                                 className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
                             >
-                                <option value="">Tüm Para Birimleri</option>
+                                <option value="">{t('finance.limits.allCurrencies')}</option>
                                 <option value="EUR">EUR</option>
                                 <option value="USD">USD</option>
                                 <option value="TRY">TRY</option>
@@ -883,7 +903,7 @@ const LimitManagementPage = () => {
                                 className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[17px]">search</span>
-                                <span>Filtrele</span>
+                                <span>{t('finance.limits.filter')}</span>
                             </button>
                             <button
                                 type="button"
@@ -891,7 +911,7 @@ const LimitManagementPage = () => {
                                 className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-slate-700 dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium transition-all shadow-2xs cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[17px]">restart_alt</span>
-                                <span>Sıfırla</span>
+                                <span>{t('finance.limits.reset')}</span>
                             </button>
                         </div>
                     </div>
@@ -909,27 +929,27 @@ const LimitManagementPage = () => {
                                     onClick={handleSearch}
                                     className="text-xs text-[#1a73e8] hover:underline cursor-pointer font-semibold"
                                 >
-                                    Yeniden Dene
+                                    {t('finance.limits.retry')}
                                 </button>
                             </div>
                         ) : loading ? (
                             <div className="flex flex-col items-center justify-center py-16 gap-3">
                                 <div className="size-9 border-3 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                <span className="text-xs text-[#70757a]">Limitler yükleniyor...</span>
+                                <span className="text-xs text-[#70757a]">{t('finance.limits.loading')}</span>
                             </div>
                         ) : limits.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-16 gap-3">
                                 <div className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
                                     <span className="material-symbols-outlined text-[26px]">tune</span>
                                 </div>
-                                <p className="text-xs font-medium text-[#70757a]">Tanımlı limit kaydı bulunamadı</p>
+                                <p className="text-xs font-medium text-[#70757a]">{t('finance.limits.noLimits')}</p>
                                 {canCreate && (
                                     <button
                                         type="button"
                                         onClick={handleOpenCreate}
                                         className="text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
                                     >
-                                        İlk limiti şimdi tanımlayın
+                                        {t('finance.limits.createFirst')}
                                     </button>
                                 )}
                             </div>
@@ -938,39 +958,39 @@ const LimitManagementPage = () => {
                                 <thead>
                                     <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
                                         <th className="px-4 py-3" rowSpan={2}>
-                                            {agencyType === 'GSA' ? 'RSA / Acente Bilgisi' : 'Acente Bilgisi'}
+                                            {agencyType === 'GSA' ? t('finance.limits.colAgencyGsa') : t('finance.limits.colAgencyRsa')}
                                         </th>
-                                        <th className="px-4 py-3" rowSpan={2}>Birim</th>
+                                        <th className="px-4 py-3" rowSpan={2}>{t('finance.limits.colCurrency')}</th>
                                         {/* Credit Group */}
                                         <th colSpan={2} className="px-4 py-1.5 text-center text-sky-700 dark:text-sky-300 bg-sky-50/50 dark:bg-sky-900/20 border-x border-[#dadce0]/70 dark:border-[#3c4043]">
-                                            Kredi Limiti
+                                            {t('finance.limits.colCreditLimit')}
                                         </th>
                                         {/* Addition Group */}
                                         <th colSpan={2} className="px-4 py-1.5 text-center text-violet-700 dark:text-violet-300 bg-violet-50/50 dark:bg-violet-900/20 border-r border-[#dadce0]/70 dark:border-[#3c4043]">
-                                            Ek Limit (Addition)
+                                            {t('finance.limits.colAdditionLimit')}
                                         </th>
                                         {/* Total / Cumulative */}
                                         <th colSpan={3} className="px-4 py-1.5 text-center text-slate-700 dark:text-slate-300 bg-slate-100/60 dark:bg-slate-800/60 border-r border-[#dadce0]/70 dark:border-[#3c4043]">
-                                            Kümülatif Toplam
+                                            {t('finance.limits.colCumulative')}
                                         </th>
-                                        <th className="px-4 py-3 text-center min-w-[130px]" rowSpan={2}>Kullanım Oranı</th>
-                                        <th className="px-4 py-3 text-center" rowSpan={2}>Durum</th>
-                                        <th className="px-4 py-3" rowSpan={2}>Tarih</th>
+                                        <th className="px-4 py-3 text-center min-w-[130px]" rowSpan={2}>{t('finance.limits.colUsageRate')}</th>
+                                        <th className="px-4 py-3 text-center" rowSpan={2}>{t('finance.limits.colStatus')}</th>
+                                        <th className="px-4 py-3" rowSpan={2}>{t('finance.limits.colDate')}</th>
                                         {canCreate && (
-                                            <th className="px-4 py-3 text-right" rowSpan={2}>İşlemler</th>
+                                            <th className="px-4 py-3 text-right" rowSpan={2}>{t('finance.limits.colActions')}</th>
                                         )}
                                     </tr>
                                     <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[10px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
                                         {/* Credit sub-headers */}
-                                        <th className="text-right px-4 py-1.5 border-l border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">Limit</th>
-                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">Kullanılan</th>
+                                        <th className="text-right px-4 py-1.5 border-l border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">{t('finance.limits.subLimit')}</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-sky-700 dark:text-sky-300">{t('finance.limits.subUsed')}</th>
                                         {/* Addition sub-headers */}
-                                        <th className="text-right px-4 py-1.5 text-violet-700 dark:text-violet-300">Limit</th>
-                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-violet-700 dark:text-violet-300">Kullanılan</th>
+                                        <th className="text-right px-4 py-1.5 text-violet-700 dark:text-violet-300">{t('finance.limits.subLimit')}</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-violet-700 dark:text-violet-300">{t('finance.limits.subUsed')}</th>
                                         {/* Cumulative sub-headers */}
-                                        <th className="text-right px-4 py-1.5 text-[#1a73e8] dark:text-blue-400">Total</th>
-                                        <th className="text-right px-4 py-1.5 text-rose-600 dark:text-rose-400">Kullanılan</th>
-                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-emerald-600 dark:text-emerald-400">Kalan</th>
+                                        <th className="text-right px-4 py-1.5 text-[#1a73e8] dark:text-blue-400">{t('finance.limits.subTotal')}</th>
+                                        <th className="text-right px-4 py-1.5 text-rose-600 dark:text-rose-400">{t('finance.limits.subUsed')}</th>
+                                        <th className="text-right px-4 py-1.5 border-r border-[#dadce0]/70 dark:border-[#3c4043] text-emerald-600 dark:text-emerald-400">{t('finance.limits.subRemaining')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
@@ -1060,7 +1080,7 @@ const LimitManagementPage = () => {
                                                                 onClick={() => handleOpenEdit(item)}
                                                                 className="text-xs text-[#1a73e8] dark:text-blue-400 font-semibold hover:underline cursor-pointer"
                                                             >
-                                                                Düzenle
+                                                                {t('finance.limits.edit')}
                                                             </button>
                                                             <button
                                                                 type="button"
@@ -1075,7 +1095,7 @@ const LimitManagementPage = () => {
                                                                         : 'text-emerald-600 dark:text-emerald-400'
                                                                 }`}
                                                             >
-                                                                {item.status === 'ACTIVE' ? 'Pasifleştir' : 'Aktifleştir'}
+                                                                {item.status === 'ACTIVE' ? t('finance.limits.deactivate') : t('finance.limits.activate')}
                                                             </button>
                                                         </div>
                                                     </td>

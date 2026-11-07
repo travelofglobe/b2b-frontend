@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const Pagination = ({
     currentPage = 0,
@@ -9,6 +10,7 @@ const Pagination = ({
     onPageSizeChange
 }) => {
     const [pageInput, setPageInput] = useState('');
+    const { t } = useTranslation();
 
     const handleChangePage = (newPage) => {
         if (newPage >= 0 && newPage < totalPages) {
@@ -82,7 +84,7 @@ const Pagination = ({
         <div className="shrink-0 px-4 py-2.5 border-t border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 select-none">
             {/* Left: Rows per page & Range */}
             <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Göster:</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('pagination.show')}</span>
                 <select
                     value={pageSize}
                     onChange={handleChangeRowsPerPage}
@@ -175,7 +177,7 @@ const Pagination = ({
 
             {/* Right: Jump to page input */}
             <form onSubmit={handlePageInputSubmit} className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sayfa:</span>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('pagination.page')}</span>
                 <input
                     type="number"
                     min={1}
@@ -189,7 +191,7 @@ const Pagination = ({
                     type="submit"
                     className="h-8 px-2.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors"
                 >
-                    Git
+                    {t('pagination.go')}
                 </button>
             </form>
         </div>

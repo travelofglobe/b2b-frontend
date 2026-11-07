@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { financeService } from '../services/financeService';
 import Pagination from '../components/Pagination';
 import * as XLSX from 'xlsx';
@@ -7,19 +8,6 @@ import { downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
 import { useAuth } from '../context/AuthContext';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const ACCOUNT_TYPE_LABELS = {
-    OFFICE:        { tr: 'Ofis',         en: 'Office' },
-    SUPPLIER:      { tr: 'Tedarikçi',    en: 'Supplier' },
-    CASH:          { tr: 'Nakit',        en: 'Cash' },
-    SAFE:          { tr: 'Kasa',         en: 'Safe' },
-    CHEQUE:        { tr: 'Çek',          en: 'Cheque' },
-    BANK:          { tr: 'Banka',        en: 'Bank' },
-    INCOME:        { tr: 'Gelir',        en: 'Income' },
-    OTHERS:        { tr: 'Diğer',        en: 'Others' },
-    SALES_CHANNEL: { tr: 'Satış Kanalı', en: 'Sales Channel' },
-    CREDIT:        { tr: 'Kredi',        en: 'Credit' },
-};
 
 const ACCOUNT_TYPE_COLORS = {
     OFFICE:        'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800/40',
@@ -54,16 +42,28 @@ const defaultStartDate = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
-const fmt = (num) => {
+// Locale-aware number formatter — updates when i18n language changes
+const makeFmt = (locale) => (num) => {
     if (num === null || num === undefined) return '-';
-    return Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return Number(num).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-const fmtDateTime = (str) => {
+// Locale-aware date+time formatter
+const makeFmtDateTime = (locale) => (str) => {
     if (!str) return '-';
     const d = new Date(str);
-    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString(locale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+};
+
+// Map i18n language code to a BCP-47 locale string for Intl APIs
+const langToLocale = (lng) => {
+    const map = {
+        tr: 'tr-TR', en: 'en-GB', ar: 'ar-SA', es: 'es-ES',
+        ru: 'ru-RU', zh: 'zh-CN', ja: 'ja-JP', fa: 'fa-IR',
+        fr: 'fr-FR', it: 'it-IT', el: 'el-GR', pt: 'pt-PT',
+    };
+    return map[lng] || 'en-GB';
 };
 
 // Skeleton Table Row
@@ -92,6 +92,7 @@ const FinancePage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { agencyType } = useAuth();
+    const { t } = useTranslation();
 
     // Determine active tab from URL query
     const searchParams = new URLSearchParams(location.search);
@@ -117,13 +118,13 @@ const FinancePage = () => {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Finans Yönetimi</h1>
+                                <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">{t('finance.title')}</h1>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                    Hesap Hareketleri
+                                    {t('finance.transactionsBadge')}
                                 </span>
                             </div>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
-                                Hesap işlemlerini, borç/alacak bakiyelerini ve finansal kayıtları görüntüleyin
+                                {t('finance.transactionsSubtitle')}
                             </p>
                         </div>
                     </div>
@@ -137,7 +138,7 @@ const FinancePage = () => {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:border-[#8ab4f8] dark:text-[#8ab4f8] shadow-xs cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">receipt_long</span>
-                        <span>Hesap Hareketleri (İşlemler)</span>
+                        <span>{t('finance.tabTransactions')}</span>
                     </button>
                     {canViewLimits && (
                         <button
@@ -146,7 +147,7 @@ const FinancePage = () => {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all border bg-white dark:bg-[#202124] border-[#dadce0] dark:border-[#3c4043] text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[18px]">tune</span>
-                            <span>Limit Yönetimi</span>
+                            <span>{t('finance.tabLimits')}</span>
                         </button>
                     )}
                 </div>
@@ -163,6 +164,12 @@ const FinancePage = () => {
 // ─── TransactionsTab ───────────────────────────────────────────────────────────
 
 const TransactionsTab = () => {
+    const { t, i18n } = useTranslation();
+
+    // Locale-aware formatters — recomputed when language changes
+    const fmt = useMemo(() => makeFmt(langToLocale(i18n.language)), [i18n.language]);
+    const fmtDateTime = useMemo(() => makeFmtDateTime(langToLocale(i18n.language)), [i18n.language]);
+
     // Filter state
     const [startDate, setStartDate] = useState(defaultStartDate());
     const [endDate, setEndDate] = useState(today());
@@ -226,7 +233,7 @@ const TransactionsTab = () => {
         } catch (err) {
             if (err.name !== 'AbortError') {
                 console.error('Transaction fetch error:', err);
-                setError(err.message || 'Veriler yüklenirken bir hata oluştu.');
+                setError(err.message || t('finance.errorLoading'));
             }
         } finally {
             if (!signal?.aborted) setLoading(false);
@@ -252,7 +259,7 @@ const TransactionsTab = () => {
     const filteredTransactions = useMemo(() => {
         if (!searchQuery.trim()) return transactions;
         const q = searchQuery.toLowerCase().trim();
-        return transactions.filter(tx => 
+        return transactions.filter(tx =>
             String(tx.id).includes(q) ||
             String(tx.accountId).includes(q) ||
             (tx.accountName && tx.accountName.toLowerCase().includes(q)) ||
@@ -289,17 +296,17 @@ const TransactionsTab = () => {
         setIsExporting(true);
         try {
             const exportData = filteredTransactions.map(tx => ({
-                'İşlem No': tx.id ?? '',
-                'Hesap ID': tx.accountId ?? '',
-                'Hesap Türü': ACCOUNT_TYPE_LABELS[tx.accountType]?.tr || tx.accountType || '',
-                'Hesap Adı': tx.accountName || '-',
-                'Para Birimi': tx.currency || '',
-                'Borç': tx.debit != null ? Number(tx.debit).toFixed(2) : '0.00',
-                'Alacak': tx.credit != null ? Number(tx.credit).toFixed(2) : '0.00',
-                'Bakiye': tx.balance != null ? Number(tx.balance).toFixed(2) : '0.00',
-                'Durum': tx.status || '',
-                'İşlem Tarihi': fmtDateTime(tx.createDateTime),
-                'Oluşturan': tx.createdBy || '-'
+                [t('finance.excelTransactionNo')]: tx.id ?? '',
+                [t('finance.excelAccountId')]: tx.accountId ?? '',
+                [t('finance.excelAccountType')]: t(`finance.accountTypes.${tx.accountType}`, { defaultValue: tx.accountType || '' }),
+                [t('finance.excelAccountName')]: tx.accountName || '-',
+                [t('finance.excelCurrency')]: tx.currency || '',
+                [t('finance.excelDebit')]: tx.debit != null ? Number(tx.debit).toFixed(2) : '0.00',
+                [t('finance.excelCredit')]: tx.credit != null ? Number(tx.credit).toFixed(2) : '0.00',
+                [t('finance.excelBalance')]: tx.balance != null ? Number(tx.balance).toFixed(2) : '0.00',
+                [t('finance.excelStatus')]: tx.status || '',
+                [t('finance.excelDate')]: fmtDateTime(tx.createDateTime),
+                [t('finance.excelCreatedBy')]: tx.createdBy || '-'
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -323,7 +330,7 @@ const TransactionsTab = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">Toplam İşlem</span>
+                        <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">{t('finance.totalTransactions')}</span>
                         <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
                             <span className="material-symbols-outlined text-[22px]">receipt_long</span>
                         </div>
@@ -332,13 +339,13 @@ const TransactionsTab = () => {
                         <div className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
                             {loading && transactions.length === 0 ? '...' : metrics.count}
                         </div>
-                        <span className="text-xs font-medium text-[#70757a]">hareket</span>
+                        <span className="text-xs font-medium text-[#70757a]">{t('finance.movements')}</span>
                     </div>
                 </div>
 
                 <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Sayfa Toplam Borç</span>
+                        <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">{t('finance.pageTotalDebit')}</span>
                         <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
                             <span className="material-symbols-outlined text-[22px]">arrow_downward</span>
                         </div>
@@ -353,7 +360,7 @@ const TransactionsTab = () => {
 
                 <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Sayfa Toplam Alacak</span>
+                        <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">{t('finance.pageTotalCredit')}</span>
                         <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                             <span className="material-symbols-outlined text-[22px]">arrow_upward</span>
                         </div>
@@ -368,7 +375,7 @@ const TransactionsTab = () => {
 
                 <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                     <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] uppercase tracking-wider">Net Hareket</span>
+                        <span className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] uppercase tracking-wider">{t('finance.netMovement')}</span>
                         <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
                             <span className="material-symbols-outlined text-[22px]">account_balance</span>
                         </div>
@@ -392,7 +399,7 @@ const TransactionsTab = () => {
                             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#70757a] text-[18px]">search</span>
                             <input
                                 type="text"
-                                placeholder="Hesap adı, no veya oluşturan..."
+                                placeholder={t('finance.searchPlaceholder')}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-9 pr-7 h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] focus:border-[#1a73e8] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
@@ -410,7 +417,7 @@ const TransactionsTab = () => {
 
                         {/* Start Date */}
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase">Başlangıç:</span>
+                            <span className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase">{t('finance.startDate')}</span>
                             <input
                                 type="date"
                                 value={startDate}
@@ -421,7 +428,7 @@ const TransactionsTab = () => {
 
                         {/* End Date */}
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase">Bitiş:</span>
+                            <span className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase">{t('finance.endDate')}</span>
                             <input
                                 type="date"
                                 value={endDate}
@@ -437,7 +444,7 @@ const TransactionsTab = () => {
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="h-10 px-3 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#3c4043] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer shadow-2xs"
                             >
-                                <option value="">Tüm Durumlar</option>
+                                <option value="">{t('finance.allStatuses')}</option>
                                 {STATUS_OPTIONS.map((s) => (
                                     <option key={s} value={s}>{s}</option>
                                 ))}
@@ -453,7 +460,7 @@ const TransactionsTab = () => {
                             className="flex items-center gap-1.5 h-10 px-4 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[17px]">search</span>
-                            <span>Filtrele</span>
+                            <span>{t('finance.filter')}</span>
                         </button>
                         <button
                             type="button"
@@ -461,14 +468,14 @@ const TransactionsTab = () => {
                             className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-slate-700 dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium transition-all shadow-2xs cursor-pointer"
                         >
                             <span className="material-symbols-outlined text-[17px]">restart_alt</span>
-                            <span>Sıfırla</span>
+                            <span>{t('finance.reset')}</span>
                         </button>
                         <button
                             type="button"
                             onClick={handleExportExcel}
                             disabled={isExporting || transactions.length === 0}
                             className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-emerald-600 dark:text-emerald-400 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] text-xs font-medium transition-all shadow-2xs cursor-pointer disabled:opacity-50"
-                            title="Excel'e Aktar"
+                            title={t('finance.exportExcel')}
                         >
                             <span className="material-symbols-outlined text-[17px]">table_view</span>
                             <span className="hidden sm:inline">Excel</span>
@@ -489,25 +496,25 @@ const TransactionsTab = () => {
                                 onClick={handleSearch}
                                 className="text-xs text-[#1a73e8] hover:underline cursor-pointer font-semibold"
                             >
-                                Yeniden Dene
+                                {t('finance.retry')}
                             </button>
                         </div>
                     ) : (
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider select-none">
-                                    <th className="px-4 py-3">İşlem No</th>
-                                    <th className="px-4 py-3">Hesap ID</th>
-                                    <th className="px-4 py-3">Hesap Türü</th>
-                                    <th className="px-4 py-3">Hesap Adı</th>
-                                    <th className="px-4 py-3">Birim</th>
-                                    <th className="px-4 py-3 text-right">Borç (Debit)</th>
-                                    <th className="px-4 py-3 text-right">Alacak (Credit)</th>
-                                    <th className="px-4 py-3 text-right">Bakiye</th>
-                                    <th className="px-4 py-3 text-center">Durum</th>
-                                    <th className="px-4 py-3">Tarih</th>
-                                    <th className="px-4 py-3">Oluşturan</th>
-                                    <th className="px-4 py-3 text-right">Detay</th>
+                                    <th className="px-4 py-3">{t('finance.colTransactionNo')}</th>
+                                    <th className="px-4 py-3">{t('finance.colAccountId')}</th>
+                                    <th className="px-4 py-3">{t('finance.colAccountType')}</th>
+                                    <th className="px-4 py-3">{t('finance.colAccountName')}</th>
+                                    <th className="px-4 py-3">{t('finance.colCurrency')}</th>
+                                    <th className="px-4 py-3 text-right">{t('finance.colDebit')}</th>
+                                    <th className="px-4 py-3 text-right">{t('finance.colCredit')}</th>
+                                    <th className="px-4 py-3 text-right">{t('finance.colBalance')}</th>
+                                    <th className="px-4 py-3 text-center">{t('finance.colStatus')}</th>
+                                    <th className="px-4 py-3">{t('finance.colDate')}</th>
+                                    <th className="px-4 py-3">{t('finance.colCreatedBy')}</th>
+                                    <th className="px-4 py-3 text-right">{t('finance.colDetail')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
@@ -520,13 +527,13 @@ const TransactionsTab = () => {
                                                 <div className="size-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
                                                     <span className="material-symbols-outlined text-[26px]">receipt_long</span>
                                                 </div>
-                                                <p className="text-xs font-medium">Bu kriterlere uygun işlem hareketi bulunamadı</p>
+                                                <p className="text-xs font-medium">{t('finance.noTransactions')}</p>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredTransactions.map((tx) => (
-                                        <TransactionRow key={tx.id} tx={tx} />
+                                        <TransactionRow key={tx.id} tx={tx} fmt={fmt} fmtDateTime={fmtDateTime} />
                                     ))
                                 )}
                             </tbody>
@@ -554,9 +561,12 @@ const TransactionsTab = () => {
 
 // ─── TransactionRow ────────────────────────────────────────────────────────────
 
-const TransactionRow = ({ tx }) => {
+const TransactionRow = ({ tx, fmt, fmtDateTime }) => {
     const navigate = useNavigate();
-    const typeLabel = ACCOUNT_TYPE_LABELS[tx.accountType]?.tr || tx.accountType;
+    const { t } = useTranslation();
+
+    // Use i18n translation for account type label; fall back to the raw value
+    const typeLabel = t(`finance.accountTypes.${tx.accountType}`, { defaultValue: tx.accountType || '-' });
     const typeClass = ACCOUNT_TYPE_COLORS[tx.accountType] || ACCOUNT_TYPE_COLORS.OTHERS;
     const currencyFlag = CURRENCY_FLAGS[tx.currency] || '💱';
 
@@ -631,10 +641,10 @@ const TransactionRow = ({ tx }) => {
             {/* Balance */}
             <td className="px-4 py-3 text-right tabular-nums">
                 <span className={`font-bold text-xs ${
-                    isNegativeBalance 
-                        ? 'text-rose-600 dark:text-rose-400' 
-                        : isPositiveBalance 
-                            ? 'text-emerald-600 dark:text-emerald-400' 
+                    isNegativeBalance
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : isPositiveBalance
+                            ? 'text-emerald-600 dark:text-emerald-400'
                             : 'text-slate-500'
                 }`}>
                     {fmt(tx.balance)}

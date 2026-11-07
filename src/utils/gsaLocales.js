@@ -66,7 +66,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Assign User Role",
     "editUser": "Edit User",
     "deleteUser": "Delete User",
-    "deleteUserConfirm": "Are you sure you want to delete this user?"
+    "deleteUserConfirm": "Are you sure you want to delete this user?",
+    "show": "Show:"
   },
   "tr": {
     "pageTitle": "Acente Yönetimi",
@@ -135,10 +136,10 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Kullanıcıya Rol Ata",
     "editUser": "Kullanıcıyı Düzenle",
     "deleteUser": "Kullanıcıyı Sil",
-    "deleteUserConfirm": "Bu kullanıcıyı silmek istediğinize emin misiniz?"
+    "deleteUserConfirm": "Bu kullanıcıyı silmek istediğinize emin misiniz?",
+    "show": "Göster:"
   },
   "ar": {
-    "pageTitle": "إدارة الوكالات",
     "pageSubtitle": "إدارة وكالات GSA والوكالات الفرعية والمستخدمين",
     "tabAgencies": "الوكالات",
     "tabGroups": "مجموعات الوكالات",
@@ -204,7 +205,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "تعيين دور المستخدم",
     "editUser": "تعديل المستخدم",
     "deleteUser": "حذف المستخدم",
-    "deleteUserConfirm": "هل أنت متأكد من حذف هذا المستخدم؟"
+    "deleteUserConfirm": "هل أنت متأكد من حذف هذا المستخدم؟",
+    "show": "عرض:"
   },
   "es": {
     "pageTitle": "Gestión de Agencias",
@@ -273,7 +275,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Asignar Rol de Usuario",
     "editUser": "Editar Usuario",
     "deleteUser": "Eliminar Usuario",
-    "deleteUserConfirm": "¿Seguro que deseas eliminar a este usuario?"
+    "deleteUserConfirm": "¿Seguro que deseas eliminar a este usuario?",
+    "show": "Mostrar:"
   },
   "ru": {
     "pageTitle": "Управление агентствами",
@@ -342,7 +345,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Назначение роли",
     "editUser": "Редактировать",
     "deleteUser": "Удалить",
-    "deleteUserConfirm": "Удалить этого пользователя?"
+    "deleteUserConfirm": "Удалить этого пользователя?",
+    "show": "Показать:"
   },
   "zh": {
     "pageTitle": "代理商管理",
@@ -411,7 +415,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "分配用户角色",
     "editUser": "编辑用户",
     "deleteUser": "删除用户",
-    "deleteUserConfirm": "确定要删除此用户吗？"
+    "deleteUserConfirm": "确定要删除此用户吗？",
+    "show": "显示:"
   },
   "ja": {
     "pageTitle": "旅行会社管理",
@@ -480,7 +485,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "ユーザー役割の割り当て",
     "editUser": "ユーザーを編集",
     "deleteUser": "ユーザーを削除",
-    "deleteUserConfirm": "このユーザーを削除してもよろしいですか？"
+    "deleteUserConfirm": "このユーザーを削除してもよろしいですか？",
+    "show": "表示:"
   },
   "fa": {
     "pageTitle": "مدیریت آژانس‌ها",
@@ -549,7 +555,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "تخصیص نقش کاربر",
     "editUser": "ویرایش کاربر",
     "deleteUser": "حذف کاربر",
-    "deleteUserConfirm": "آیا از حذف این کاربر مطمئن هستید؟"
+    "deleteUserConfirm": "آیا از حذف این کاربر مطمئن هستید؟",
+    "show": "نمایش:"
   },
   "fr": {
     "pageTitle": "Gestion des Agences",
@@ -618,7 +625,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Assigner un Rôle",
     "editUser": "Modifier Utilisateur",
     "deleteUser": "Supprimer Utilisateur",
-    "deleteUserConfirm": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?"
+    "deleteUserConfirm": "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+    "show": "Afficher :"
   },
   "it": {
     "pageTitle": "Gestione Agenzie",
@@ -687,7 +695,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Assegna Ruolo Utente",
     "editUser": "Modifica Utente",
     "deleteUser": "Elimina Utente",
-    "deleteUserConfirm": "Sei sicuro di voler eliminare questo utente?"
+    "deleteUserConfirm": "Sei sicuro di voler eliminare questo utente?",
+    "show": "Mostra:"
   },
   "el": {
     "pageTitle": "Διαχείριση Πρακτορείων",
@@ -756,7 +765,8 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Ανάθεση Ρόλου Χρήστη",
     "editUser": "Επεξεργασία Χρήστη",
     "deleteUser": "Διαγραφή Χρήστη",
-    "deleteUserConfirm": "Είστε βέβαιοι για τη διαγραφή του χρήστη;"
+    "deleteUserConfirm": "Είστε βέβαιοι για τη διαγραφή του χρήστη;",
+    "show": "Εμφάνιση:"
   },
   "pt": {
     "pageTitle": "Gestão de Agências",
@@ -825,6 +835,7 @@ export const GSA_LOCALES = {
     "roleModalTitle": "Atribuir Papel ao Usuário",
     "editUser": "Editar Usuário",
     "deleteUser": "Excluir Usuário",
-    "deleteUserConfirm": "Tem certeza de que deseja excluir este usuário?"
+    "deleteUserConfirm": "Tem certeza de que deseja excluir este usuário?",
+    "show": "Mostrar:"
   }
 };

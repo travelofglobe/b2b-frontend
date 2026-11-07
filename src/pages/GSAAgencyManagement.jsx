@@ -697,7 +697,7 @@ const GSAAgencyManagement = () => {
                                     {/* Pagination (Matching MyBookings Style) */}
                                     <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex flex-wrap items-center justify-between bg-white dark:bg-[#28292c] gap-3">
                                         <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-400">
-                                            <span>Göster:</span>
+                                            <span>{t.show}</span>
                                             <div className="relative">
                                                 <select
                                                     value={agencyFilters.size}
@@ -960,7 +960,7 @@ const GSAAgencyManagement = () => {
                                     {/* Pagination (Matching MyBookings Style) */}
                                     <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex flex-wrap items-center justify-between bg-white dark:bg-[#28292c] gap-3">
                                         <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-400">
-                                            <span>Göster:</span>
+                                            <span>{t.show}</span>
                                             <div className="relative">
                                                 <select
                                                     value={groupFilters.size}

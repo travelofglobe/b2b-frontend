@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { agencyService } from '../services/agencyService';
 import { roleService } from '../services/userService';
 import { useToast } from '../context/ToastContext';
@@ -8,6 +9,7 @@ import AssignRoleModal from './AssignRoleModal';
 import AppleSwitch from './AppleSwitch';
 
 const SubAgencyDetailView = ({ onBack, agency }) => {
+    const { t } = useTranslation();
     const toast = useToast();
     const [activeTab, setActiveTab] = useState('users');
     const [users, setUsers] = useState([]);
@@ -415,7 +417,7 @@ const SubAgencyDetailView = ({ onBack, agency }) => {
                         {/* Pagination */}
                         <div className="border-t border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex flex-wrap items-center justify-between bg-white dark:bg-[#28292c] gap-3">
                             <div className="flex items-center gap-2 text-[13px] text-[#5f6368] dark:text-slate-400">
-                                <span>Göster:</span>
+                                <span>{t('pagination.show')}</span>
                                 <div className="relative">
                                     <select
                                         value={filters.size}

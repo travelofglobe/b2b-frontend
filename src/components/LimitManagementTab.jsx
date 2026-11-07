@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { financeService } from '../services/financeService';
+import { useTranslation } from 'react-i18next';
 import { agencyService } from '../services/agencyService';
 import { useAuth } from '../context/AuthContext';
 import Pagination from './Pagination';
@@ -607,6 +608,7 @@ const CreateEditLimitModal = ({ isOpen, onClose, onSuccess, editData, agencyType
 // ─── LimitManagementPage ───────────────────────────────────────────────────────
 
 const LimitManagementTab = () => {
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const { agencyType } = useAuth();
 
@@ -757,7 +759,7 @@ const LimitManagementTab = () => {
                             <div className="flex items-center gap-2">
                                 <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">Finans Yönetimi</h1>
                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                    Limit Yönetimi ({agencyType})
+                                    {t('finance.tabLimits')} ({agencyType})
                                 </span>
                             </div>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
@@ -797,7 +799,7 @@ const LimitManagementTab = () => {
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all border bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:border-[#8ab4f8] dark:text-[#8ab4f8] shadow-xs cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">tune</span>
-                        <span>Limit Yönetimi</span>
+                        <span>{t('finance.tabLimits')}</span>
                     </button>
                 </div>
             </header>

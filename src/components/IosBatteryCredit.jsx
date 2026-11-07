@@ -395,7 +395,7 @@ const IosBatteryCredit = ({
                                             <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
                                                 tune
                                             </span>
-                                            <span>Limit Yönetimi</span>
+                                            <span>{t('finance.tabLimits')}</span>
                                         </div>
                                         <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right

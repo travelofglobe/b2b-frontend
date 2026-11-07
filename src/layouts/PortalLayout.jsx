@@ -293,7 +293,7 @@ const PortalLayout = () => {
                                     {[
                                         { path: '/finance?tab=transactions', matchPath: '/finance', icon: 'receipt_long', label: t('sidebar.transactions') },
                                         ...(['GSA', 'RSA'].includes(agencyType)
-                                            ? [{ path: '/finance/limits', matchPath: '/finance/limits', icon: 'tune', label: 'Limit Yönetimi' }]
+                                            ? [{ path: '/finance/limits', matchPath: '/finance/limits', icon: 'tune', label: t('finance.tabLimits') }]
                                             : []),
                                     ].map(({ path, matchPath, icon, label }) => {
                                         const isActive = matchPath === '/finance'

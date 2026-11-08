@@ -1520,6 +1520,50 @@ const BookingDetail = () => {
                                 </div>
                             </div>
 
+                            {/* Bulk Price Breakdown */}
+                            {booking.bulkPrice && (
+                                <div className="rounded-xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden">
+                                    <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#f1f3f4] dark:bg-[#303134] border-b border-[#dadce0] dark:border-[#3c4043]">
+                                        <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-slate-400">monitoring</span>
+                                        <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
+                                            {L('bulkPriceSection')}
+                                        </span>
+                                        <span className="ml-auto text-[10px] text-[#70757a] dark:text-slate-500">
+                                            {L('bulkPriceSectionSub')}
+                                        </span>
+                                    </div>
+                                    <div className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60">
+                                        {booking.bulkPrice.supplierPrice != null && (
+                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs">
+                                                <span className="text-[#5f6368] dark:text-slate-400">{L('supplierPrice')}</span>
+                                                <span className="font-semibold text-[#202124] dark:text-white tabular-nums">
+                                                    {Number(booking.bulkPrice.supplierPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {' '}{booking.bulkPrice.supplierPrice.currency}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {booking.bulkPrice.markupPrice != null && (
+                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs">
+                                                <span className="text-[#5f6368] dark:text-slate-400">{L('markupPrice')}</span>
+                                                <span className={`font-semibold tabular-nums ${Number(booking.bulkPrice.markupPrice.amount) > 0 ? 'text-[#137333] dark:text-emerald-400' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                                    {Number(booking.bulkPrice.markupPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {' '}{booking.bulkPrice.markupPrice.currency}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {booking.bulkPrice.sellingPrice != null && (
+                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs bg-[#e8f0fe]/40 dark:bg-[#1a73e8]/10">
+                                                <span className="font-semibold text-[#202124] dark:text-white">{L('sellingPrice')}</span>
+                                                <span className="font-bold text-[#1a73e8] dark:text-[#8ab4f8] tabular-nums">
+                                                    {Number(booking.bulkPrice.sellingPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                    {' '}{booking.bulkPrice.sellingPrice.currency}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Payment Method & Status Card */}
                             <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] space-y-2">
                                 <div className="flex items-center justify-between">

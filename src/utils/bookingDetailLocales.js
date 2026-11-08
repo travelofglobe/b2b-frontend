@@ -123,7 +123,12 @@ export const BOOKING_DETAIL_LOCALES = {
         partialCancellation: 'Partial Cancellation',
         noPartialCancelSupplier: 'The supplier ({0}) does not support partial room cancellation. All rooms will be cancelled together.',
         atLeastOneRoomRequired: 'Please select at least one room to cancel.',
-        roomsSelected: '{0} of {1} rooms selected'
+        roomsSelected: '{0} of {1} rooms selected',
+        bulkPriceSection: 'Cost Breakdown',
+        bulkPriceSectionSub: 'Supplier & markup detail',
+        supplierPrice: 'Supplier Price',
+        markupPrice: 'Markup',
+        sellingPrice: 'Selling Price'
     },
     tr: {
         bookings: "Rezervasyonlar",
@@ -249,7 +254,12 @@ export const BOOKING_DETAIL_LOCALES = {
         partialCancellation: 'Kısmi İptal',
         noPartialCancelSupplier: 'Tedarikçi ({0}) parçalı oda iptalini desteklemediği için tüm odalar birlikte iptal edilecektir.',
         atLeastOneRoomRequired: 'Lütfen iptal edilecek en az bir oda seçin.',
-        roomsSelected: '{0} / {1} oda seçili'
+        roomsSelected: '{0} / {1} oda seçili',
+        bulkPriceSection: 'Maliyet Dökümü',
+        bulkPriceSectionSub: 'Tedarikçi & markup detayı',
+        supplierPrice: 'Tedarikçi Fiyatı',
+        markupPrice: 'Markup',
+        sellingPrice: 'Satış Fiyatı'
     },
     ar: {
         bookings: "الحجوزات",
@@ -367,7 +377,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'الدخول / المغادرة',
         roomInfo: 'الغرفة',
         stars: 'نجوم',
-        freeCancel: 'إلغاء مجاني'
+        freeCancel: 'إلغاء مجاني',
+        bulkPriceSection: 'تفاصيل التكلفة',
+        bulkPriceSectionSub: 'تفاصيل المورد والهامش',
+        supplierPrice: 'سعر المورد',
+        markupPrice: 'هامش الربح',
+        sellingPrice: 'سعر البيع'
     },
     es: {
         bookings: "Reservas",
@@ -485,7 +500,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Entrada / Salida',
         roomInfo: 'Habitación',
         stars: 'Estrellas',
-        freeCancel: 'Cancelación Gratuita'
+        freeCancel: 'Cancelación Gratuita',
+        bulkPriceSection: 'Desglose de Costes',
+        bulkPriceSectionSub: 'Detalle de proveedor y margen',
+        supplierPrice: 'Precio Proveedor',
+        markupPrice: 'Margen',
+        sellingPrice: 'Precio de Venta'
     },
     ru: {
         bookings: "Бронирования",
@@ -603,7 +623,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Заезд / Выезд',
         roomInfo: 'Номер',
         stars: 'Звёзд',
-        freeCancel: 'Бесплатная Отмена'
+        freeCancel: 'Бесплатная Отмена',
+        bulkPriceSection: 'Разбивка затрат',
+        bulkPriceSectionSub: 'Детали поставщика и наценки',
+        supplierPrice: 'Цена поставщика',
+        markupPrice: 'Наценка',
+        sellingPrice: 'Цена продажи'
     },
     zh: {
         bookings: "预订列表",
@@ -721,7 +746,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: '入住 / 退房',
         roomInfo: '客房',
         stars: '星级',
-        freeCancel: '免费取消'
+        freeCancel: '免费取消',
+        bulkPriceSection: '费用明细',
+        bulkPriceSectionSub: '供应商及加价详情',
+        supplierPrice: '供应商价格',
+        markupPrice: '加价',
+        sellingPrice: '销售价格'
     },
     ja: {
         bookings: "予約一覧",
@@ -839,7 +869,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'チェックイン / チェックアウト',
         roomInfo: '客室',
         stars: '星',
-        freeCancel: '無料キャンセル'
+        freeCancel: '無料キャンセル',
+        bulkPriceSection: 'コスト内訳',
+        bulkPriceSectionSub: 'サプライヤー・マークアップ詳細',
+        supplierPrice: 'サプライヤー価格',
+        markupPrice: 'マークアップ',
+        sellingPrice: '販売価格'
     },
     fa: {
         bookings: "رزروها",
@@ -957,7 +992,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'ورود / خروج',
         roomInfo: 'اتاق',
         stars: 'ستاره',
-        freeCancel: 'لغو رایگان'
+        freeCancel: 'لغو رایگان',
+        bulkPriceSection: 'جزئیات هزینه',
+        bulkPriceSectionSub: 'جزئیات تامین‌کننده و مارک‌آپ',
+        supplierPrice: 'قیمت تامین‌کننده',
+        markupPrice: 'مارک‌آپ',
+        sellingPrice: 'قیمت فروش'
     },
     fr: {
         bookings: "Réservations",
@@ -1075,7 +1115,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Arrivée / Départ',
         roomInfo: 'Chambre',
         stars: 'Étoiles',
-        freeCancel: 'Annulation Gratuite'
+        freeCancel: 'Annulation Gratuite',
+        bulkPriceSection: 'Détail des coûts',
+        bulkPriceSectionSub: 'Détail fournisseur et marge',
+        supplierPrice: 'Prix fournisseur',
+        markupPrice: 'Marge',
+        sellingPrice: 'Prix de vente'
     },
     it: {
         bookings: "Prenotazioni",
@@ -1193,7 +1238,12 @@ export const BOOKING_DETAIL_LOCALES = {
         checkInOut: 'Check-in / Check-out',
         roomInfo: 'Camera',
         stars: 'Stelle',
-        freeCancel: 'Cancellazione Gratuita'
+        freeCancel: 'Cancellazione Gratuita',
+        bulkPriceSection: 'Dettaglio costi',
+        bulkPriceSectionSub: 'Dettaglio fornitore e markup',
+        supplierPrice: 'Prezzo fornitore',
+        markupPrice: 'Markup',
+        sellingPrice: 'Prezzo di vendita'
     },
     el: {
         bookings: "Κρατήσεις",
@@ -1310,7 +1360,12 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Ξενοδοχείο',
         checkInOut: 'Άφιξη / Αναχώρηση',
         roomInfo: 'Δωμάτιο',
-        stars: 'Αστέρια'
+        stars: 'Αστέρια',
+        bulkPriceSection: 'Ανάλυση κόστους',
+        bulkPriceSectionSub: 'Λεπτομέρειες προμηθευτή & περιθωρίου',
+        supplierPrice: 'Τιμή προμηθευτή',
+        markupPrice: 'Περιθώριο κέρδους',
+        sellingPrice: 'Τιμή πώλησης'
     },
     pt: {
         bookings: "Reservas",
@@ -1427,7 +1482,12 @@ export const BOOKING_DETAIL_LOCALES = {
         hotelName: 'Hotel',
         checkInOut: 'Check-in / Check-out',
         roomInfo: 'Quarto',
-        stars: 'Estrelas'
+        stars: 'Estrelas',
+        bulkPriceSection: 'Detalhamento de custos',
+        bulkPriceSectionSub: 'Detalhes de fornecedor e markup',
+        supplierPrice: 'Preço do fornecedor',
+        markupPrice: 'Markup',
+        sellingPrice: 'Preço de venda'
     }
 };
 

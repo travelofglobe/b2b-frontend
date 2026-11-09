@@ -187,13 +187,14 @@ const MyOffice = () => {
     const [favoriteStatusFilter] = useState('');
     const [favoriteSearchQuery, setFavoriteSearchQuery] = useState('');
     const [favoriteCountryFilter, setFavoriteCountryFilter] = useState('');
-    const [favoriteCityFilter] = useState('');
+    const [favoriteCityFilter, setFavoriteCityFilter] = useState('');
+    const [favoriteRegionFilter, setFavoriteRegionFilter] = useState('');
+    const [favoriteStarFilter, setFavoriteStarFilter] = useState([]);
     const [showFavCountryDropdown, setShowFavCountryDropdown] = useState(false);
+    const [showFavStarDropdown, setShowFavStarDropdown] = useState(false);
     const [favCountrySearch, setFavCountrySearch] = useState('');
     const favCountryDropdownRef = useRef(null);
-
-    // ref removed
-    // tooltip removed
+    const favStarDropdownRef = useRef(null);
 
     const [hotelAutocompleteQuery, setHotelAutocompleteQuery] = useState('');
     const [hotelAutocompleteResults, setHotelAutocompleteResults] = useState([]);
@@ -210,20 +211,29 @@ const MyOffice = () => {
                 favoriteSearchQuery, 
                 favoriteStatusFilter, 
                 favoriteCountryFilter, 
-                favoriteCityFilter
+                favoriteCityFilter,
+                favoriteRegionFilter,
+                favoriteStarFilter
             );
-            if (res && res.content) {
+            if (res && Array.isArray(res.content)) {
                 setFavoriteBackendItems(res.content);
                 setFavoritePage(res.pageNumber || 0);
                 setFavoriteTotalPages(res.totalPages || 1);
                 setFavoriteTotalElements(res.totalElements || 0);
+            } else {
+                setFavoriteBackendItems([]);
+                setFavoritePage(0);
+                setFavoriteTotalPages(1);
+                setFavoriteTotalElements(0);
             }
         } catch (err) {
             console.error('Failed to fetch favorite hotels from backend:', err);
+            setFavoriteBackendItems([]);
+            setFavoriteTotalElements(0);
         } finally {
             setFavoriteLoading(false);
         }
-    }, [favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter, favoritePageSize]);
+    }, [favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter, favoriteRegionFilter, favoriteStarFilter, favoritePageSize]);
 
     useEffect(() => {
         if (activeTab === 'favorites') {
@@ -231,7 +241,29 @@ const MyOffice = () => {
         }
     }, [activeTab, fetchFavoriteHotels]);
 
-// favorite city effect cleaned
+    const toggleFavoriteStarOption = (starValue) => {
+        setFavoriteStarFilter(prev =>
+            prev.includes(starValue)
+                ? prev.filter(s => s !== starValue)
+                : [...prev, starValue]
+        );
+    };
+
+    const handleClearFavoriteFilters = () => {
+        setFavoriteSearchQuery('');
+        setFavoriteCountryFilter('');
+        setFavoriteCityFilter('');
+        setFavoriteRegionFilter('');
+        setFavoriteStarFilter([]);
+    };
+
+    const hasActiveFavoriteFilters = Boolean(
+        favoriteSearchQuery.trim() ||
+        favoriteCountryFilter ||
+        favoriteCityFilter.trim() ||
+        favoriteRegionFilter.trim() ||
+        favoriteStarFilter.length > 0
+    );
 
     useEffect(() => {
         if (!hotelAutocompleteQuery || hotelAutocompleteQuery.trim().length < 2) {
@@ -262,7 +294,9 @@ const MyOffice = () => {
             if (favCountryDropdownRef.current && !favCountryDropdownRef.current.contains(event.target)) {
                 setShowFavCountryDropdown(false);
             }
-            // dropdown click outside removed
+            if (favStarDropdownRef.current && !favStarDropdownRef.current.contains(event.target)) {
+                setShowFavStarDropdown(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -1194,7 +1228,16 @@ const MyOffice = () => {
 
     const fetchAllFilteredFavorites = async () => {
         try {
-            const res = await favoriteService.getFavorites(0, 10000, favoriteSearchQuery, favoriteStatusFilter, favoriteCountryFilter, favoriteCityFilter);
+            const res = await favoriteService.getFavorites(
+                0,
+                10000,
+                favoriteSearchQuery,
+                favoriteStatusFilter,
+                favoriteCountryFilter,
+                favoriteCityFilter,
+                favoriteRegionFilter,
+                favoriteStarFilter
+            );
             return res?.content || [];
         } catch (err) {
             console.error("Failed to fetch all favorites for export", err);
@@ -1212,21 +1255,26 @@ const MyOffice = () => {
                 return;
             }
 
-            const exportData = allFavs.map(f => ({
-                'Hotel ID': f.hotelId ?? '',
-                [L('hotelName') || 'Hotel Name']: f.hotelName || '-',
-                [L('hotelCountry') || 'Hotel Country']: f.countryName || f.countryCode || '-',
-                [L('hotelCity') || 'Hotel City']: f.cityName || '-',
-                [L('starsLabel') || 'Stars']: f.stars ?? '-',
-                [L('colStatus') || 'Status']: f.status === 'ACTIVE' ? L('active') : L('passive'),
-                [L('created') || 'Created By']: f.createdBy || '-',
-                [L('addedOn') || 'Created Date']: f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : '-')
-            }));
+            const exportData = allFavs.map(f => {
+                const starVal = f.hotelStar ?? f.stars;
+                return {
+                    'Hotel ID': f.hotelId ?? '',
+                    [L('hotelName') || 'Hotel Name']: f.hotelName || 'N/A',
+                    [L('hotelCountry') || 'Otel Ülkesi']: f.hotelCountry || f.countryName || f.countryCode || 'N/A',
+                    [L('hotelCity') || 'Otel Şehri']: f.hotelCity || f.cityName || 'N/A',
+                    [L('hotelRegion') || 'Otel Bölgesi']: f.hotelRegion || f.regionName || 'N/A',
+                    [L('starsLabel') || 'Yıldız']: (starVal !== null && starVal !== undefined && Number(starVal) > 0) ? `${starVal} ★` : 'N/A',
+                    [L('colStatus') || 'Status']: f.status === 'ACTIVE' ? L('active') : L('passive'),
+                    [L('created') || 'Created By']: f.createdBy || 'N/A',
+                    [L('addedOn') || 'Created Date']: f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : 'N/A')
+                };
+            });
 
             const worksheet = XLSX.utils.json_to_sheet(exportData);
             worksheet['!cols'] = [
                 { wch: 12 },
                 { wch: 32 },
+                { wch: 20 },
                 { wch: 20 },
                 { wch: 20 },
                 { wch: 10 },
@@ -1273,17 +1321,21 @@ const MyOffice = () => {
             doc.setTextColor(100);
             doc.text(`Generated: ${new Date().toLocaleString()}  |  Total Favorite Hotels: ${allFavs.length}`, 10, 17);
 
-            const headers = ['Hotel ID', L('hotelName') || 'Hotel Name', L('hotelCountry') || 'Hotel Country', L('hotelCity') || 'Hotel City', L('starsLabel') || 'Stars', L('colStatus') || 'Status', L('created') || 'Created By', L('addedOn') || 'Created Date'];
-            const rows = allFavs.map(f => [
-                f.hotelId ?? '',
-                f.hotelName || '-',
-                f.countryName || f.countryCode || '-',
-                f.cityName || '-',
-                f.stars ? `${f.stars} ★` : '-',
-                f.status === 'ACTIVE' ? L('active') : L('passive'),
-                f.createdBy || '-',
-                f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : '-')
-            ]);
+            const headers = ['Hotel ID', L('hotelName') || 'Hotel Name', L('hotelCountry') || 'Otel Ülkesi', L('hotelCity') || 'Otel Şehri', L('hotelRegion') || 'Otel Bölgesi', L('starsLabel') || 'Yıldız', L('colStatus') || 'Status', L('created') || 'Created By', L('addedOn') || 'Created Date'];
+            const rows = allFavs.map(f => {
+                const starVal = f.hotelStar ?? f.stars;
+                return [
+                    f.hotelId ?? '',
+                    f.hotelName || 'N/A',
+                    f.hotelCountry || f.countryName || f.countryCode || 'N/A',
+                    f.hotelCity || f.cityName || 'N/A',
+                    f.hotelRegion || f.regionName || 'N/A',
+                    (starVal !== null && starVal !== undefined && Number(starVal) > 0) ? `${starVal} ★` : 'N/A',
+                    f.status === 'ACTIVE' ? L('active') : L('passive'),
+                    f.createdBy || 'N/A',
+                    f.createDateTime ? new Date(f.createDateTime).toLocaleString() : (f.createdDate ? new Date(f.createdDate).toLocaleString() : 'N/A')
+                ];
+            });
 
             autoTable(doc, {
                 startY: 21,
@@ -2445,7 +2497,11 @@ const MyOffice = () => {
                                                             </div>
                                                             <div className="min-w-0">
                                                                 <p className="text-xs font-semibold text-[#202124] dark:text-[#e8eaed] truncate">{h.hotelName}</p>
-                                                                <p className="text-[10px] text-[#70757a]">ID: #{h.hotelId} {h.cityName ? `• ${h.cityName}` : ''}</p>
+                                                                <p className="text-[10px] text-[#70757a]">
+                                                                    ID: #{h.hotelId}
+                                                                    {(h.hotelCity || h.cityName) ? ` • ${h.hotelCity || h.cityName}` : ''}
+                                                                    {(h.hotelCountry || h.countryName) ? `, ${h.hotelCountry || h.countryName}` : ''}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                         <button
@@ -2477,16 +2533,24 @@ const MyOffice = () => {
                         <div className="bg-white dark:bg-[#202124] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden shadow-xs flex flex-col">
                             {/* Toolbar */}
                             <div className="p-4 border-b border-[#dadce0] dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
-                                <div className="flex items-center gap-2.5 flex-1 min-w-[280px] max-w-xl">
-                                    <div className="relative flex-1">
+                                <div className="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]">
+                                    <div className="relative flex-1 min-w-[200px] max-w-xs">
                                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#70757a]">search</span>
                                         <input
                                             type="text"
-                                            placeholder="Favorilerde otel adı veya şehir ara..."
+                                            placeholder="Favorilerde otel adı veya ID ara..."
                                             value={favoriteSearchQuery}
                                             onChange={(e) => setFavoriteSearchQuery(e.target.value)}
                                             className="w-full pl-9 pr-8 h-10 bg-[#f8f9fa] dark:bg-[#303134] border border-transparent focus:border-[#1a73e8] focus:bg-white dark:focus:bg-[#202124] rounded-xl text-xs text-[#202124] dark:text-white placeholder-[#70757a] outline-none transition-all shadow-2xs"
                                         />
+                                        {favoriteSearchQuery && (
+                                            <span
+                                                onClick={() => setFavoriteSearchQuery('')}
+                                                className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px] text-[#70757a] hover:text-red-500 cursor-pointer"
+                                            >
+                                                close
+                                            </span>
+                                        )}
                                     </div>
 
                                     {/* Country Filter */}
@@ -2562,6 +2626,139 @@ const MyOffice = () => {
                                             </div>
                                         )}
                                     </div>
+
+                                    {/* City Filter */}
+                                    <div className="relative w-36 sm:w-40">
+                                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-[#70757a]">location_city</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Şehir Filtresi"
+                                            value={favoriteCityFilter}
+                                            onChange={(e) => setFavoriteCityFilter(e.target.value)}
+                                            className={`w-full pl-8 pr-7 h-10 bg-white dark:bg-[#303134] border ${favoriteCityFilter ? 'border-[#1a73e8] text-[#1a73e8] font-semibold' : 'border-[#dadce0] dark:border-[#5f6368] text-[#202124] dark:text-white'} focus:border-[#1a73e8] rounded-xl text-xs placeholder-[#70757a] outline-none transition-all`}
+                                        />
+                                        {favoriteCityFilter && (
+                                            <span
+                                                onClick={() => setFavoriteCityFilter('')}
+                                                className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[15px] text-[#70757a] hover:text-red-500 cursor-pointer"
+                                            >
+                                                close
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Region Filter */}
+                                    <div className="relative w-36 sm:w-40">
+                                        <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-[#70757a]">pin_drop</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Bölge Filtresi"
+                                            value={favoriteRegionFilter}
+                                            onChange={(e) => setFavoriteRegionFilter(e.target.value)}
+                                            className={`w-full pl-8 pr-7 h-10 bg-white dark:bg-[#303134] border ${favoriteRegionFilter ? 'border-[#1a73e8] text-[#1a73e8] font-semibold' : 'border-[#dadce0] dark:border-[#5f6368] text-[#202124] dark:text-white'} focus:border-[#1a73e8] rounded-xl text-xs placeholder-[#70757a] outline-none transition-all`}
+                                        />
+                                        {favoriteRegionFilter && (
+                                            <span
+                                                onClick={() => setFavoriteRegionFilter('')}
+                                                className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[15px] text-[#70757a] hover:text-red-500 cursor-pointer"
+                                            >
+                                                close
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Multi-select Star Filter (OR logic inside, AND with other filters) */}
+                                    <div className="relative" ref={favStarDropdownRef}>
+                                        <div
+                                            onClick={() => setShowFavStarDropdown(!showFavStarDropdown)}
+                                            className={`h-10 px-3 bg-white dark:bg-[#303134] border ${favoriteStarFilter.length > 0 ? 'border-[#1a73e8] text-[#1a73e8] font-semibold' : 'border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200'} rounded-xl text-xs flex items-center gap-1.5 cursor-pointer hover:border-[#1a73e8] transition-colors select-none`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px] text-amber-500">star</span>
+                                            <span className="truncate max-w-[140px]">
+                                                {favoriteStarFilter.length > 0
+                                                    ? favoriteStarFilter.map(s => s === 'N/A' ? 'N/A' : `${s}★`).join(' + ')
+                                                    : 'Otel Yıldızı'}
+                                            </span>
+                                            {favoriteStarFilter.length > 0 ? (
+                                                <span
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFavoriteStarFilter([]);
+                                                    }}
+                                                    className="material-symbols-outlined text-[15px] hover:text-red-500"
+                                                >
+                                                    close
+                                                </span>
+                                            ) : (
+                                                <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                                            )}
+                                        </div>
+
+                                        {showFavStarDropdown && (
+                                            <div className="absolute top-full left-0 mt-1 w-52 bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl shadow-xl z-[1002] p-2 space-y-1 animate-in fade-in slide-in-from-top-2">
+                                                <div className="flex items-center justify-between px-2 py-1 border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 mb-1">
+                                                    <span className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6]">Otel Yıldızı (Çoklu Seçim)</span>
+                                                    {favoriteStarFilter.length > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFavoriteStarFilter([])}
+                                                            className="text-[10px] font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                                                        >
+                                                            Temizle
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {['1', '2', '3', '4', '5', 'N/A'].map((starOpt) => {
+                                                    const isSelected = favoriteStarFilter.includes(starOpt);
+                                                    return (
+                                                        <div
+                                                            key={starOpt}
+                                                            onClick={() => toggleFavoriteStarOption(starOpt)}
+                                                            className={`px-2.5 py-1.5 rounded-lg text-xs cursor-pointer flex items-center justify-between transition-colors ${
+                                                                isSelected
+                                                                    ? 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8] font-semibold'
+                                                                    : 'hover:bg-[#f1f3f4] dark:hover:bg-[#303134] text-[#202124] dark:text-slate-200'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-center gap-1.5">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={() => {}}
+                                                                    className="rounded border-slate-300 text-[#1a73e8] focus:ring-[#1a73e8] pointer-events-none"
+                                                                />
+                                                                {starOpt === 'N/A' ? (
+                                                                    <span className="text-slate-600 dark:text-slate-300 font-medium">N/A (Yıldızsız)</span>
+                                                                ) : (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="font-semibold">{starOpt}★</span>
+                                                                        <span className="flex items-center text-amber-500">
+                                                                            {[...Array(Number(starOpt))].map((_, idx) => (
+                                                                                <span key={idx} className="material-symbols-outlined text-[13px]">star</span>
+                                                                            ))}
+                                                                        </span>
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {isSelected && <span className="material-symbols-outlined text-[15px]">check</span>}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {hasActiveFavoriteFilters && (
+                                        <button
+                                            type="button"
+                                            onClick={handleClearFavoriteFilters}
+                                            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-[#5f6368] hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-950/30 text-xs font-medium text-[#5f6368] dark:text-[#9aa0a6] flex items-center gap-1 transition-colors cursor-pointer"
+                                            title="Filtreleri Temizle"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                                            <span>Filtreleri Temizle</span>
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="flex items-center gap-2">
@@ -2606,87 +2803,122 @@ const MyOffice = () => {
                                         <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043] text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">
                                             <th className="px-4 py-3">Otel Bilgisi</th>
                                             <th className="px-4 py-3">Yıldız</th>
-                                            <th className="px-4 py-3">Şehir / Ülke</th>
+                                            <th className="px-4 py-3">Otel Ülkesi</th>
+                                            <th className="px-4 py-3">Otel Şehri</th>
+                                            <th className="px-4 py-3">Otel Bölgesi</th>
                                             <th className="px-4 py-3 text-center">Durum</th>
                                             <th className="px-4 py-3 text-right">İşlemler</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60 text-xs text-[#202124] dark:text-slate-100">
                                         {favoriteLoading ? (
-                                            <TableSkeleton columns={5} rows={5} />
+                                            <TableSkeleton columns={7} rows={5} />
                                         ) : favoriteBackendItems.length === 0 ? (
                                             <tr>
-                                                <td colSpan={5} className="px-4 py-12 text-center text-[#70757a]">
+                                                <td colSpan={7} className="px-4 py-12 text-center text-[#70757a]">
                                                     <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">bookmark_border</span>
-                                                    <p className="text-sm font-medium">Favori otel kaydı bulunamadı</p>
+                                                    <p className="text-sm font-medium">
+                                                        {hasActiveFavoriteFilters
+                                                            ? 'Seçilen filtrelere uygun favori otel bulunamadı'
+                                                            : 'Favori otel kaydı bulunamadı'}
+                                                    </p>
+                                                    {hasActiveFavoriteFilters && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleClearFavoriteFilters}
+                                                            className="mt-3 px-3.5 py-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] text-xs font-semibold transition-colors cursor-pointer"
+                                                        >
+                                                            Filtreleri Temizle
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ) : (
-                                            favoriteBackendItems.map((fav) => (
-                                                <tr key={fav.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="size-9 rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400 flex items-center justify-center shrink-0">
-                                                                <span className="material-symbols-outlined text-[19px]">hotel</span>
-                                                            </div>
-                                                            <div>
-                                                                <div className="font-semibold text-[#202124] dark:text-white leading-tight">
-                                                                    {fav.hotelName || 'Otel Adı'}
+                                            favoriteBackendItems.map((fav) => {
+                                                const starCount = Number(fav.hotelStar ?? fav.stars) || 0;
+                                                const countryDisplay = fav.hotelCountry || fav.countryName || fav.countryCode || 'N/A';
+                                                const cityDisplay = fav.hotelCity || fav.cityName || 'N/A';
+                                                const regionDisplay = fav.hotelRegion || fav.regionName || 'N/A';
+                                                return (
+                                                    <tr key={fav.id} className="hover:bg-[#f8f9fa] dark:hover:bg-[#2a2b2e]/60 transition-colors">
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="size-9 rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400 flex items-center justify-center shrink-0">
+                                                                    <span className="material-symbols-outlined text-[19px]">hotel</span>
                                                                 </div>
-                                                                <div className="text-[10px] text-[#70757a] font-mono mt-0.5">ID: #{fav.hotelId}</div>
+                                                                <div>
+                                                                    <div className="font-semibold text-[#202124] dark:text-white leading-tight">
+                                                                        {fav.hotelName || 'Otel Adı'}
+                                                                    </div>
+                                                                    <div className="text-[10px] text-[#70757a] font-mono mt-0.5">ID: #{fav.hotelId}</div>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center text-amber-500 font-bold">
-                                                            {[...Array(Number(fav.stars) || 0)].map((_, i) => (
-                                                                <span key={i} className="material-symbols-outlined text-[14px]">star</span>
-                                                            ))}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <span className="font-medium text-[#202124] dark:text-white">
-                                                            {fav.cityName || '-'}, {fav.countryName || fav.countryCode || '-'}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleToggleFavoriteStatus(fav)}
-                                                            className={`size-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mx-auto ${
-                                                                fav.status === 'ACTIVE'
-                                                                    ? 'bg-blue-50 text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300'
-                                                                    : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
-                                                            }`}
-                                                            title={fav.status === 'ACTIVE' ? 'Aktif' : 'Pasif'}
-                                                        >
-                                                            <span className="material-symbols-outlined text-[18px]">
-                                                                {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            {starCount >= 1 && starCount <= 5 ? (
+                                                                <div className="flex items-center text-amber-500 font-bold" title={`${starCount}★`}>
+                                                                    {[...Array(starCount)].map((_, i) => (
+                                                                        <span key={i} className="material-symbols-outlined text-[14px]">star</span>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-xs font-medium text-[#70757a]">N/A</span>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`font-medium ${countryDisplay === 'N/A' ? 'text-[#70757a]' : 'text-[#202124] dark:text-white'}`}>
+                                                                {countryDisplay}
                                                             </span>
-                                                        </button>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex items-center justify-end gap-1">
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`font-medium ${cityDisplay === 'N/A' ? 'text-[#70757a]' : 'text-[#202124] dark:text-white'}`}>
+                                                                {cityDisplay}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`font-medium ${regionDisplay === 'N/A' ? 'text-[#70757a]' : 'text-[#202124] dark:text-white'}`}>
+                                                                {regionDisplay}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-center">
                                                             <button
                                                                 type="button"
-                                                                onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
-                                                                className="size-8 rounded-lg text-slate-500 hover:text-[#1a73e8] hover:bg-[#e8f0fe] dark:hover:bg-blue-900/30 flex items-center justify-center transition-colors cursor-pointer"
-                                                                title="Otel Detayını Gör"
+                                                                onClick={() => handleToggleFavoriteStatus(fav)}
+                                                                className={`size-8 rounded-full flex items-center justify-center transition-colors cursor-pointer mx-auto ${
+                                                                    fav.status === 'ACTIVE'
+                                                                        ? 'bg-blue-50 text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300'
+                                                                        : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
+                                                                }`}
+                                                                title={fav.status === 'ACTIVE' ? 'Aktif' : 'Pasif'}
                                                             >
-                                                                <span className="material-symbols-outlined text-[17px]">visibility</span>
+                                                                <span className="material-symbols-outlined text-[18px]">
+                                                                    {fav.status === 'ACTIVE' ? 'thumb_up' : 'thumb_up_off_alt'}
+                                                                </span>
                                                             </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleDeleteFavoriteItem(fav)}
-                                                                className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors cursor-pointer"
-                                                                title="Favorilerden Çıkar"
-                                                            >
-                                                                <span className="material-symbols-outlined text-[17px]">delete</span>
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))
+                                                        </td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <div className="flex items-center justify-end gap-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => navigate(`/travel/hotels/detail/${fav.hotelId}`)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-[#1a73e8] hover:bg-[#e8f0fe] dark:hover:bg-blue-900/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Otel Detayını Gör"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[17px]">visibility</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteFavoriteItem(fav)}
+                                                                    className="size-8 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 flex items-center justify-center transition-colors cursor-pointer"
+                                                                    title="Favorilerden Çıkar"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-[17px]">delete</span>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
                                         )}
                                     </tbody>
                                 </table>

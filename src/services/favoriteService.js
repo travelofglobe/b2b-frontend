@@ -13,12 +13,18 @@ const clearActiveHotelIdsCache = () => {
 };
 
 export const favoriteService = {
-    getFavorites: async (page = 0, size = 10, query = '', status = '', country = '', city = '', signal) => {
+    getFavorites: async (page = 0, size = 10, query = '', status = '', country = '', city = '', region = '', stars = [], signal) => {
         const params = new URLSearchParams({ page, size });
         if (query) params.append('query', query);
         if (status) params.append('status', status);
         if (country) params.append('country', country);
         if (city) params.append('city', city);
+        if (region) params.append('region', region);
+        if (Array.isArray(stars) && stars.length > 0) {
+            params.append('star', stars.join(','));
+        } else if (typeof stars === 'string' && stars.trim()) {
+            params.append('star', stars.trim());
+        }
         return apiClient.get(`${API_BASE_URL}/favorite-hotel?${params.toString()}`, { signal });
     },
     addFavorite: async (hotelData) => {

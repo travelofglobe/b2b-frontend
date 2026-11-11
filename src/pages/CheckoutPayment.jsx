@@ -881,9 +881,11 @@ const CheckoutPayment = () => {
     }, [checkInDate, checkOutDate, currentLang]);
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isReserving, setIsReserving] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('deposit'); // 'deposit' or 'credit_card'
     const [cardDetails, setCardDetails] = useState({ number: '', holder: '', expiry: '', cvv: '' });
     const [bookingError, setBookingError] = useState(null);
+    const [isAllowedReserve, setIsAllowedReserve] = useState(false);
 
     // Auto-scroll to top on mount
     useLayoutEffect(() => {
@@ -913,55 +915,55 @@ const CheckoutPayment = () => {
         setCardDetails(prev => ({ ...prev, [name]: value }));
     };
 
+    // Helper: build the shared book request body (used by handlePayment, handleReserve, and is-allowed-reserve check)
+    const buildBookRequestBody = (overrides = {}) => {
+        const firstGuest = roomsData?.[0]?.guests?.[0];
+        const phoneValue = firstGuest?.phone || '';
+        const hasPlus = phoneValue.startsWith('+');
+        const countryCode = hasPlus ? phoneValue.split(' ')[0] : '+90';
+        const phoneNumber = hasPlus ? phoneValue.split(' ').slice(1).join('') : phoneValue.replace(/\D/g, '');
+
+        let finalRateSearchUuid = rateSearchUuid;
+        if (!finalRateSearchUuid && roomsData && roomsData[0]?.hubRateModel?.rateCode) {
+            try {
+                const decoded = JSON.parse(atob(roomsData[0].hubRateModel.rateCode));
+                finalRateSearchUuid = decoded.hotelSearchUuid;
+            } catch (e) {
+                console.error('Failed to decode rateCode for fallback UUID:', e);
+            }
+        }
+
+        return {
+            contact: {
+                name: firstGuest?.firstName || 'Guest',
+                surname: firstGuest?.lastName || 'User',
+                phoneCountryCode: countryCode,
+                phoneNumber: phoneNumber,
+                email: firstGuest?.email || ''
+            },
+            rateSearchUuid: finalRateSearchUuid || '',
+            rooms: (roomsData || []).map((room, roomIdx) => ({
+                rateCode: room.hubRateModel?.rateCode,
+                occupancies: room.guests.map((guest) => ({
+                    roomId: roomIdx + 1,
+                    type: guest.type === 'Adult' ? 'ADULT' : 'CHILD',
+                    gender: guest.gender === 'male' ? 'MALE' : (guest.gender === 'female' ? 'FEMALE' : 'UNDEFINED'),
+                    name: guest.firstName,
+                    surname: guest.lastName,
+                    birthday: guest.birthDate
+                }))
+            })),
+            clientReferenceId: clientReferenceId || '',
+            remark: remark || '',
+            paymentType: paymentMethod === 'credit_card' ? 'CREDIT_CARD' : 'CARI',
+            ...overrides
+        };
+    };
+
     const handlePayment = async () => {
         setIsProcessing(true);
         try {
-            // Map frontend state to HubBookRequestModel as per exact required structure
-            const firstGuest = roomsData[0]?.guests[0];
-            const phoneValue = firstGuest?.phone || '';
-            const hasPlus = phoneValue.startsWith('+');
-            const countryCode = hasPlus ? phoneValue.split(' ')[0] : '+90';
-            const phoneNumber = hasPlus ? phoneValue.split(' ').slice(1).join('') : phoneValue.replace(/\D/g, '');
-
-            // Use rateSearchUuid obtained from checkRates call in HotelDetail
-            // Fallback: try to extract from rateCode if empty
-            let finalRateSearchUuid = rateSearchUuid;
-            if (!finalRateSearchUuid && roomsData && roomsData[0]?.hubRateModel?.rateCode) {
-                try {
-                    const decoded = JSON.parse(atob(roomsData[0].hubRateModel.rateCode));
-                    finalRateSearchUuid = decoded.hotelSearchUuid;
-                    console.log('Extracted rateSearchUuid from rateCode fallback:', finalRateSearchUuid);
-                } catch (e) {
-                    console.error('Failed to decode rateCode for fallback UUID:', e);
-                }
-            }
-
-            const requestBody = {
-                contact: {
-                    name: firstGuest?.firstName || 'Guest',
-                    surname: firstGuest?.lastName || 'User',
-                    phoneCountryCode: countryCode,
-                    phoneNumber: phoneNumber,
-                    email: firstGuest?.email || ''
-                },
-                rateSearchUuid: finalRateSearchUuid || '',
-                rooms: roomsData.map((room, roomIdx) => ({
-                    rateCode: room.hubRateModel?.rateCode,
-                    occupancies: room.guests.map((guest) => ({
-                        roomId: roomIdx + 1, // Sequential room identifier
-                        type: guest.type === 'Adult' ? 'ADULT' : 'CHILD',
-                        gender: guest.gender === 'male' ? 'MALE' : (guest.gender === 'female' ? 'FEMALE' : 'UNDEFINED'),
-                        name: guest.firstName,
-                        surname: guest.lastName,
-                        birthday: guest.birthDate // "YYYY-MM-DD"
-                    }))
-                })),
-                clientReferenceId: clientReferenceId || '',
-                remark: remark || '',
-                paymentType: paymentMethod === 'credit_card' ? 'CREDIT_CARD' : 'CARI'
-            };
-
-            const response = await hotelService.book(requestBody);
+            const requestBody = buildBookRequestBody();
 
             // Delete session from Redis on successful booking
             if (response && (response.status === 'CONFIRMED' || response.status === 'NEW')) {
@@ -995,6 +997,65 @@ const CheckoutPayment = () => {
             setBookingError(error.response || { message: error.message || 'An error occurred while booking. Please try again.' });
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    // Check is-allowed-reserve when page data is ready
+    useEffect(() => {
+        if (!roomsData || roomsData.length === 0) return;
+
+        const checkIsAllowedReserve = async () => {
+            try {
+                const body = buildBookRequestBody();
+                const result = await hotelService.isAllowedReserve(body);
+                setIsAllowedReserve(result === true);
+            } catch (e) {
+                console.error('is-allowed-reserve check failed:', e);
+                setIsAllowedReserve(false);
+            }
+        };
+
+        checkIsAllowedReserve();
+    }, [roomsData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reserve (hold without payment) — calls book with reserveSelected: true
+    const handleReserve = async () => {
+        setIsReserving(true);
+        try {
+            const requestBody = buildBookRequestBody({ reserveSelected: true });
+            const response = await hotelService.book(requestBody);
+
+            // Delete session on successful reserve
+            if (response && (response.status === 'CONFIRMED' || response.status === 'NEW' || response.status === 'ON_REQUEST')) {
+                try {
+                    const params = new URLSearchParams(window.location.search);
+                    const sid = params.get('sessionId');
+                    if (sid) {
+                        await hotelService.deleteCheckoutSession(sid);
+                    }
+                } catch (e) {
+                    console.error('Failed to delete session after reserve:', e);
+                }
+            }
+
+            refreshMyLimit();
+
+            navigate('/travel/hotels/checkout/result', {
+                state: {
+                    ...location.state,
+                    totalPrice: grandTotal,
+                    displayCurrency: displayCurrency,
+                    paymentMethod,
+                    cardDetails,
+                    bookingResponse: response,
+                    isReserve: true
+                }
+            });
+        } catch (error) {
+            console.error('Reserve failed:', error);
+            setBookingError(error.response || { message: error.message || 'An error occurred while reserving. Please try again.' });
+        } finally {
+            setIsReserving(false);
         }
     };
 
@@ -1428,28 +1489,52 @@ const CheckoutPayment = () => {
                             showSecurityBadge={true}
                             lang={currentLang}
                             actionButton={
-                                <button
-                                    onClick={handlePayment}
-                                    disabled={isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
-                                    className={`w-full h-11 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer mb-2 active:scale-[0.98] ${
-                                        isProcessing || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv)) 
-                                            ? 'opacity-50 cursor-not-allowed' 
-                                            : ''
-                                    }`}
-                                    lang={currentLang}
-                                >
-                                    {isProcessing ? (
-                                        <>
-                                            <div className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
-                                            <span>{tSummary('processing', currentLang)}</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span>{tSummary('authorizePayment', currentLang)}</span>
-                                            <span className="material-symbols-outlined text-sm">lock</span>
-                                        </>
+                                <>
+                                    <button
+                                        onClick={handlePayment}
+                                        disabled={isProcessing || isReserving || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))}
+                                        className={`w-full h-11 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer mb-2 active:scale-[0.98] ${
+                                            isProcessing || isReserving || (paymentMethod === 'credit_card' && (!cardDetails.number || !cardDetails.holder || !cardDetails.expiry || !cardDetails.cvv))
+                                                ? 'opacity-50 cursor-not-allowed'
+                                                : ''
+                                        }`}
+                                        lang={currentLang}
+                                    >
+                                        {isProcessing ? (
+                                            <>
+                                                <div className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                                                <span>{tSummary('processing', currentLang)}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>{tSummary('authorizePayment', currentLang)}</span>
+                                                <span className="material-symbols-outlined text-sm">lock</span>
+                                            </>
+                                        )}
+                                    </button>
+                                    {isAllowedReserve && (
+                                        <button
+                                            onClick={handleReserve}
+                                            disabled={isReserving || isProcessing}
+                                            className={`w-full h-11 bg-[#4a90d9] hover:bg-[#3a7ec4] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center justify-center gap-2 cursor-pointer mb-2 active:scale-[0.98] ${
+                                                isReserving || isProcessing ? 'opacity-50 cursor-not-allowed' : ''
+                                            }`}
+                                            lang={currentLang}
+                                        >
+                                            {isReserving ? (
+                                                <>
+                                                    <div className="size-4 rounded-full border-2 border-white/30 border-t-white animate-spin"></div>
+                                                    <span>{tSummary('processing', currentLang)}</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="material-symbols-outlined text-sm">bookmark_add</span>
+                                                    <span>Reserve Et</span>
+                                                </>
+                                            )}
+                                        </button>
                                     )}
-                                </button>
+                                </>
                             }
                         />
                     </div>

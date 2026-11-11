@@ -31,7 +31,7 @@ const parseInitialFilters = (params) => {
     }
 
     const rawStatus = params.get('bookingStatuses') || params.get('bookingStatus') || params.get('status');
-    const bookingStatuses = rawStatus ? rawStatus.split(',').map(s => s.trim()).filter(Boolean) : ['CONFIRMED'];
+    const bookingStatuses = rawStatus ? rawStatus.split(',').map(s => s.trim()).filter(Boolean) : ['CONFIRMED', 'RESERVED'];
 
     return {
         id: params.get('id') || '',
@@ -138,7 +138,7 @@ const MyBookings = () => {
         if (filters.checkOutStart || filters.checkOutEnd) count++;
         if (filters.minAmount || filters.maxAmount) count++;
         if (filters.paymentStatus) count++;
-        if (filters.bookingStatuses && filters.bookingStatuses.length > 0 && !(filters.bookingStatuses.length === 1 && filters.bookingStatuses[0] === 'CONFIRMED')) count++;
+        if (filters.bookingStatuses && filters.bookingStatuses.length > 0 && !(filters.bookingStatuses.length === 2 && filters.bookingStatuses.includes('CONFIRMED') && filters.bookingStatuses.includes('RESERVED'))) count++;
         if (filters.bookingUuid) count++;
         if (filters.clientReferenceId) count++;
         if (filters.currencies && filters.currencies.length > 0) count++;
@@ -580,7 +580,7 @@ const MyBookings = () => {
             currencies: [],
             bookingUuid: '',
             paymentStatus: '',
-            bookingStatuses: ['CONFIRMED'],
+            bookingStatuses: ['CONFIRMED', 'RESERVED'],
             clientReferenceId: '',
             requestId: '',
             hotelName: '',

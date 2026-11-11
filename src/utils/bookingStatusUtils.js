@@ -31,6 +31,9 @@ const STATUS_TRANSLATIONS = {
     FAILED: {
         en: 'Failed', tr: 'Başarısız', ar: 'فاشل', es: 'Fallido', ru: 'Неуспешно', zh: '失败', ja: '失敗', fa: 'ناموفق', fr: 'Échoué', it: 'Fallito', el: 'Αποτυχία', pt: 'Falhou'
     },
+    RESERVED: {
+        en: 'Reserved', tr: 'Rezerve Edildi', ar: 'محجوز', es: 'Reservado', ru: 'Зарезервировано', zh: '已预订', ja: '予約済み', fa: 'رزرو شده', fr: 'Réservé', it: 'Riservato', el: 'Κρατημένο', pt: 'Reservado'
+    },
     UNKNOWN: {
         en: 'Unknown', tr: 'Bilinmiyor', ar: 'غير معروف', es: 'Desconocido', ru: 'Неизвестно', zh: '未知', ja: '不明', fa: 'نامشخص', fr: 'Inconnu', it: 'Sconosciuto', el: 'Άγνωστο', pt: 'Desconhecido'
     }
@@ -72,6 +75,10 @@ export const BOOKING_STATUS_CONFIG = {
     FAILED: {
         colorClass: 'bg-rose-50 text-rose-600 border border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50',
         icon: 'error'
+    },
+    RESERVED: {
+        colorClass: 'bg-violet-50 text-violet-600 border border-violet-200/60 dark:bg-violet-950/40 dark:text-violet-400 dark:border-violet-800/50',
+        icon: 'bookmark'
     }
 };
 

@@ -248,6 +248,15 @@ export const hotelService = {
     },
 
     /**
+     * Check if reserve (non-payment hold) is allowed for the given book request.
+     * Returns true if allowed, null/false if not, or throws on error.
+     * @param {Object} request - Same payload as book request
+     */
+    isAllowedReserve: async (request) => {
+        return apiClient.post(`${ENV.API_GATEWAY_URL}/b2b-backend/v1/hotels/is-allowed-reserve`, request);
+    },
+
+    /**
      * Check rates for selected rooms.
      * @param {Object} request - HubCheckRatesRequestModel
      */

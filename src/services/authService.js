@@ -1,5 +1,6 @@
 import apiClient from '../utils/apiClient';
 import ENV from '../config/environment';
+import { isTokenExpired } from '../utils/tokenUtils';
 
 const AUTH_BASE_URL = `${ENV.API_GATEWAY_URL}/auth/v1/agency-token`;
 const API_URL = `${AUTH_BASE_URL}/access`;
@@ -129,9 +130,21 @@ export const authService = {
         const token = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
 
-        // User is considered authenticated if they have either an access token 
-        // or a refresh token that can be used to obtain a new access token.
-        return !!(token || refreshToken);
+        if (token && !isTokenExpired(token)) {
+            return true;
+        }
+
+        if (refreshToken && !isTokenExpired(refreshToken)) {
+            return true;
+        }
+
+        if (token || refreshToken) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+        }
+
+        return false;
     },
 
     getToken: () => localStorage.getItem('accessToken'),

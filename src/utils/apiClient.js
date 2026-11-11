@@ -129,10 +129,23 @@ const apiClient = {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        
+
+        const currentPath = window.location.pathname || '/';
+        const currentSearch = window.location.search || '';
+        const currentHash = window.location.hash || '';
+
         // Only redirect if not already on login page to avoid loops
-        if (!window.location.pathname.includes('/login')) {
-            window.location.href = '/login?expired=true';
+        if (!currentPath.includes('/login')) {
+            const fullTarget = `${currentPath}${currentSearch}${currentHash}`;
+            const isDefaultEntry = currentPath === '/' || currentPath === '';
+
+            if (!isDefaultEntry) {
+                sessionStorage.setItem('b2b_post_login_redirect', fullTarget);
+                window.location.href = `/login?expired=true&redirect=${encodeURIComponent(fullTarget)}`;
+            } else {
+                sessionStorage.removeItem('b2b_post_login_redirect');
+                window.location.href = '/login?expired=true';
+            }
         }
     },
 

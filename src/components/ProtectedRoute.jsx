@@ -15,6 +15,23 @@ const ProtectedRoute = ({ children }) => {
     }
 
     if (!user) {
+        const currentPath = location.pathname || '/';
+        const currentSearch = location.search || '';
+        const currentHash = location.hash || '';
+        const fullTarget = `${currentPath}${currentSearch}${currentHash}`;
+        const isDefaultEntry = currentPath === '/' || currentPath === '';
+
+        if (!isDefaultEntry && !currentPath.startsWith('/login')) {
+            sessionStorage.setItem('b2b_post_login_redirect', fullTarget);
+            return (
+                <Navigate
+                    to={`/login?redirect=${encodeURIComponent(fullTarget)}`}
+                    state={{ from: location }}
+                    replace
+                />
+            );
+        }
+
         // Redirect to login but keep current location
         return <Navigate to="/login" state={{ from: location }} replace />;
     }

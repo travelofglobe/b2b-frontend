@@ -25,20 +25,59 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Redirect to travel hotels if already logged in
+    const redirectTarget = useMemo(() => {
+        const isValidTarget = (target) => {
+            if (!target || typeof target !== 'string') return false;
+            const trimmed = target.trim();
+            if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return false;
+            if (
+                trimmed === '/' ||
+                trimmed.startsWith('/login') ||
+                trimmed.startsWith('/reset-password') ||
+                trimmed.startsWith('/agency-application')
+            ) {
+                return false;
+            }
+            return true;
+        };
+
+        const searchParams = new URLSearchParams(location.search);
+        const queryRedirect = searchParams.get('redirect');
+        if (isValidTarget(queryRedirect)) {
+            return queryRedirect.trim();
+        }
+
+        const stateFrom = location.state?.from;
+        if (stateFrom) {
+            const stateTarget = typeof stateFrom === 'string'
+                ? stateFrom
+                : `${stateFrom.pathname || ''}${stateFrom.search || ''}${stateFrom.hash || ''}`;
+            if (isValidTarget(stateTarget)) {
+                return stateTarget.trim();
+            }
+        }
+
+        const storedRedirect = sessionStorage.getItem('b2b_post_login_redirect');
+        if (isValidTarget(storedRedirect)) {
+            return storedRedirect.trim();
+        }
+
+        return '/travel/hotels';
+    }, [location]);
+
+    // Redirect to intended page (or /travel/hotels) if already logged in
     useEffect(() => {
         if (user) {
-            navigate('/travel/hotels', { replace: true });
+            sessionStorage.removeItem('b2b_post_login_redirect');
+            navigate(redirectTarget, { replace: true });
         }
-    }, [user, navigate]);
+    }, [user, navigate, redirectTarget]);
 
     const selectedBg = useMemo(() => {
         if (!backgrounds || backgrounds.length === 0) return '';
         const randomIndex = Math.floor(Math.random() * backgrounds.length);
         return backgrounds[randomIndex];
     }, []);
-
-    const from = location.state?.from?.pathname || "/travel/hotels";
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -47,7 +86,8 @@ const LoginPage = () => {
 
         try {
             await login(email, password);
-            navigate(from, { replace: true });
+            sessionStorage.removeItem('b2b_post_login_redirect');
+            navigate(redirectTarget, { replace: true });
         } catch (err) {
             setError(err.message || t('login.error'));
         } finally {

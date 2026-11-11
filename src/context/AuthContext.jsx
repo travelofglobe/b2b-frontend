@@ -6,7 +6,7 @@ import { financeService } from '../services/financeService';
 
 import i18n from '../i18n';
 import { getCountryCodeFromName, getUserCountryCode } from '../utils/geoUtils';
-import { getTokenExpiration } from '../utils/tokenUtils';
+import { getTokenExpiration, isTokenExpired } from '../utils/tokenUtils';
 
 const AuthContext = createContext(null);
 
@@ -26,10 +26,33 @@ export const AuthProvider = ({ children }) => {
 
     // Initial auth check - runs only once on mount
     useEffect(() => {
-        const checkAuth = () => {
-            if (authService.isAuthenticated()) {
+        const checkAuth = async () => {
+            const token = authService.getToken();
+            const refreshToken = localStorage.getItem('refreshToken');
+
+            if (token && !isTokenExpired(token)) {
                 setUser(authService.getUser());
+                setLoading(false);
+                return;
             }
+
+            if (refreshToken && !isTokenExpired(refreshToken)) {
+                try {
+                    await authService.refreshToken();
+                    setUser(authService.getUser());
+                } catch (err) {
+                    console.warn('Initial token refresh failed:', err);
+                    setUser(null);
+                } finally {
+                    setLoading(false);
+                }
+                return;
+            }
+
+            if (token || refreshToken) {
+                authService.logout();
+            }
+            setUser(null);
             setLoading(false);
         };
         checkAuth();
@@ -183,6 +206,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const logout = useCallback(() => {
+        sessionStorage.removeItem('b2b_post_login_redirect');
         agencyService.clearMeCache();
         authService.logout();
         setUser(null);

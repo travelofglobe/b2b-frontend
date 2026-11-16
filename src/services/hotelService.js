@@ -314,7 +314,19 @@ export const hotelService = {
             `${ENV.API_GATEWAY_URL}/b2b-backend/v1/hotels/book/cancel`,
             request
         );
-    }
+    },
+
+    /**
+     * Complete a reserved (unpaid) order and collect payment.
+     * @param {string} voucher - The booking voucher code (e.g. TG-20261111-Z95XN)
+     * @returns {Promise<{voucher: string, paymentStatus: string, limitProcessDone: boolean, transactionsCreated: boolean}>}
+     */
+    completeReservedOrder: async (voucher) => {
+        return apiClient.post(
+            `${ENV.API_GATEWAY_URL}/b2b-backend/v1/hotels/complete-reserved-order/${voucher}`,
+            {}
+        );
+    },
 };
 
 

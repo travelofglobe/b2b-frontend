@@ -22,6 +22,12 @@ const BookingDetail = () => {
     const [error, setError] = useState(null);
     const [copiedText, setCopiedText] = useState(null);
 
+    // ── Pay (complete reserved order) flow state ──────────────────
+    const [isPayLoading, setIsPayLoading] = useState(false);
+    const [payError, setPayError] = useState(null);
+    const [paySuccess, setPaySuccess] = useState(false);
+    // ──────────────────────────────────────────────────────────────
+
     // ── Cancel flow state ──────────────────────────────────────────
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -266,6 +272,29 @@ const BookingDetail = () => {
         setIsCancelModalOpen(false);
         setCancelSimResult(null);
         setCancelError(null);
+    };
+    // ──────────────────────────────────────────────────────────────
+
+    // ── Pay: complete reserved order ──────────────────────────────
+    const handlePayClick = async () => {
+        setIsPayLoading(true);
+        setPayError(null);
+        setPaySuccess(false);
+        try {
+            const result = await hotelService.completeReservedOrder(booking.voucher);
+            const paid = result?.paymentStatus === 'PAID_CREDIT_CARD' || result?.paymentStatus === 'PAID_ACCOUNT';
+            if (paid) {
+                setPaySuccess(true);
+                await fetchBookingDetail();
+            } else {
+                setPayError(currentLang === 'tr' ? 'Ödeme tamamlanamadı. Lütfen tekrar deneyin.' : 'Payment could not be completed. Please try again.');
+            }
+        } catch (err) {
+            console.error('Complete reserved order error:', err);
+            setPayError(err?.message || (currentLang === 'tr' ? 'Ödeme sırasında bir hata oluştu.' : 'An error occurred during payment.'));
+        } finally {
+            setIsPayLoading(false);
+        }
     };
     // ──────────────────────────────────────────────────────────────
 
@@ -663,6 +692,17 @@ const BookingDetail = () => {
                 </div>
             )}
 
+            {/* Pay Error Toast */}
+            {payError && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[#d93025] text-white px-4 py-2 rounded-full shadow-lg text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <span className="material-symbols-outlined text-[16px]">error</span>
+                    <span>{payError}</span>
+                    <button onClick={() => setPayError(null)} className="ml-1 opacity-70 hover:opacity-100 cursor-pointer">
+                        <span className="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                </div>
+            )}
+
             {/* Google Flights / Workspace Style Sticky Top Bar */}
             <header className="sticky top-0 bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-[#3c4043] px-6 sm:px-10 lg:px-12 py-3 flex-shrink-0 z-30 transition-all shadow-2xs">
                 <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -700,6 +740,20 @@ const BookingDetail = () => {
                             <span className="material-symbols-outlined text-[18px]">support_agent</span>
                             <span>{currentLang === 'tr' ? 'Talep Oluştur' : 'Create Request'}</span>
                         </button>
+                        {booking.hotel?.bookingStatus === 'RESERVED' && booking.payment?.status === 'PENDING_PAYMENT' && (
+                            <button
+                                onClick={handlePayClick}
+                                disabled={isPayLoading}
+                                className="h-9 px-4 rounded-full flex items-center gap-1.5 font-semibold text-xs transition-all bg-[#1e8e3e] hover:bg-[#137333] text-white shadow-xs active:scale-95 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+                            >
+                                {isPayLoading ? (
+                                    <span className="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-[18px]">payments</span>
+                                )}
+                                <span>{currentLang === 'tr' ? 'Ödeme Yap' : 'Pay Now'}</span>
+                            </button>
+                        )}
                         {(() => {
                             const { canCancel } = getCancelEligibility();
                             if (!canCancel) return null;

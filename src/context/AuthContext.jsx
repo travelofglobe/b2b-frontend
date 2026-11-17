@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
                     // Auto-set language based on agency defaultLanguage (fallback to 'en')
                     const rawLang = res.defaultLanguage ? String(res.defaultLanguage).trim().toLowerCase() : 'en';
                     const targetLang = ['en', 'tr', 'ar', 'es', 'ru', 'zh', 'ja', 'fa', 'fr', 'it', 'el', 'pt'].includes(rawLang) ? rawLang : 'en';
-                    
+
                     const isUserOverridden = localStorage.getItem('user_manual_lang_override');
                     if (!isUserOverridden) {
                         i18n.changeLanguage(targetLang);
@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }) => {
         const interval = setInterval(updateTimer, 1000);
 
         return () => clearInterval(interval);
-    }, []); 
+    }, []);
 
     const login = useCallback(async (email, password) => {
         // Clear agency cache so the new user's agency data is fetched fresh

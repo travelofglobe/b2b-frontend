@@ -166,7 +166,7 @@ export const authService = {
             });
 
             const text = await response.text();
-            
+
             if (!response.ok) {
                 let errorMessage = 'Şifre sıfırlama isteği başarısız oldu.';
                 try {

@@ -123,7 +123,7 @@ const LoginPage = () => {
                 {/* Balanced ambient tint to allow bright luxury imagery to shine through */}
                 <div className="absolute inset-0 bg-slate-950/15 z-10"></div>
                 <div className="absolute inset-0 bg-gradient-to-b from-slate-900/25 via-sky-950/10 to-slate-950/45 z-10"></div>
-                
+
                 {/* Subtle luminous ambient glows for freshness and depth */}
                 <div className="absolute top-1/4 left-1/12 w-96 h-96 bg-sky-400/15 rounded-full blur-3xl pointer-events-none z-10"></div>
                 <div className="absolute bottom-1/4 right-1/12 w-[30rem] h-[30rem] bg-blue-500/15 rounded-full blur-3xl pointer-events-none z-10"></div>
@@ -166,7 +166,7 @@ const LoginPage = () => {
                 <div className="lg:col-span-4 w-full">
                     {/* Premium Glass Card */}
                     <div className="bg-slate-900/35 backdrop-blur-2xl rounded-2xl border border-white/20 shadow-[0_24px_64px_-12px_rgba(0,0,0,0.35)] ring-1 ring-white/10 overflow-hidden animate-in fade-in zoom-in duration-700 relative">
-                        
+
                         {!isResetMode ? (
                             <>
                                 {/* Card Header */}
@@ -217,7 +217,7 @@ const LoginPage = () => {
                                     </div>
 
                                     <div className="flex justify-end px-1">
-                                        <button 
+                                        <button
                                             type="button"
                                             onClick={() => {
                                                 setIsResetMode(true);
@@ -265,7 +265,7 @@ const LoginPage = () => {
                                         <div className="space-y-2">
                                             <h3 className="text-white font-bold text-lg">Instructions Sent!</h3>
                                             <p className="text-slate-200 text-sm leading-relaxed">
-                                                We've sent password reset instructions to <br/>
+                                                We've sent password reset instructions to <br />
                                                 <span className="text-white font-semibold">{resetEmail}</span>
                                             </p>
                                         </div>

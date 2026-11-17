@@ -964,6 +964,7 @@ const CheckoutPayment = () => {
         setIsProcessing(true);
         try {
             const requestBody = buildBookRequestBody();
+            const response = await hotelService.book(requestBody);
 
             // Delete session from Redis on successful booking
             if (response && (response.status === 'CONFIRMED' || response.status === 'NEW')) {

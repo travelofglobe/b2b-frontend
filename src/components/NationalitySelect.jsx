@@ -162,7 +162,7 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
     const popoverContent = (
         <div
             ref={popoverRef}
-            className="absolute top-full right-0 mt-2 z-[1000] bg-white dark:bg-[#202124] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] border border-[#dadce0] dark:border-slate-700 p-4 w-[320px] sm:w-[360px] max-h-[460px] flex flex-col font-roboto transition-all duration-200 ease-out pointer-events-auto"
+            className="absolute top-full right-0 mt-2 z-[2100] bg-white dark:bg-[#202124] rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] border border-[#dadce0] dark:border-slate-700 p-4 w-[320px] sm:w-[360px] max-h-[460px] flex flex-col font-roboto transition-all duration-200 ease-out pointer-events-auto"
             style={{
                 transform: isMounted && !isClosing ? 'translateY(0)' : 'translateY(-8px)',
                 opacity: isMounted && !isClosing ? 1 : 0

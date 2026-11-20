@@ -35,7 +35,8 @@ registerLocale('ar', ar);
 
 import { getSearchLocale } from '../utils/searchLocales';
 
-const ListingSearch = ({ isCompact = false }) => {
+const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWidthClass = null }) => {
+    const itemHeight = isSingleRow ? "h-9" : "h-12";
     const { i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const ls = getSearchLocale(currentLang);
@@ -1044,22 +1045,22 @@ const ListingSearch = ({ isCompact = false }) => {
         };
 
         return (
-            <section className="relative group/search w-full">
-                <div className="w-full flex flex-wrap items-center gap-2 relative z-50">
-                    <div className="flex-1 min-w-[110px] relative h-12 font-roboto" ref={searchWrapperRef}>
+            <section className={`relative group/search ${isSingleRow ? 'shrink-0' : 'w-full'}`}>
+                <div className={`items-center gap-2 relative ${isSingleRow ? 'z-[2060] flex flex-nowrap' : 'z-50 w-full flex flex-wrap'}`}>
+                    <div className={`${isSingleRow ? (autocompleteWidthClass || 'w-[180px] sm:w-[210px] md:w-[230px] shrink-0') : 'flex-1 min-w-[110px]'} relative ${itemHeight} font-roboto`} ref={searchWrapperRef}>
                         <div
                             className={`w-full transition-all ${showDropdown && hasAnyResults
-                                    ? 'absolute top-0 left-0 w-full min-w-[320px] sm:min-w-[380px] md:min-w-[420px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden'
-                                    : 'h-12 flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20'
+                                    ? 'absolute top-0 left-0 w-full min-w-[320px] sm:min-w-[380px] md:min-w-[420px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[2100] overflow-hidden'
+                                    : `${itemHeight} flex items-center border border-[#dadce0] dark:border-slate-600 rounded-lg shadow-2xs bg-white dark:bg-[#303134] hover:border-[#bdc1c6] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20`
                                 }`}
                         >
-                            <div className={`flex items-center ${isCompact && !(showDropdown && hasAnyResults) ? "gap-2 px-2.5" : "gap-3 px-4"} h-12 w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
-                                <span className="material-symbols-outlined text-[22px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
+                            <div className={`flex items-center ${(isCompact || isSingleRow) && !(showDropdown && hasAnyResults) ? "gap-2 px-2.5" : "gap-3 px-4"} ${itemHeight} w-full ${showDropdown && hasAnyResults ? 'border-b border-[#dadce0] dark:border-[#3c4043]' : ''}`}>
+                                <span className={`material-symbols-outlined ${isSingleRow ? 'text-[19px]' : 'text-[22px]'} text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0`} style={{ fontVariationSettings: "'wght' 600, 'opsz' 22" }}>
                                     {error ? 'error' : 'search'}
                                 </span>
                                 <input
                                     ref={inputRef}
-                                    className="bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 text-[14.5px] font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate"
+                                    className={`bg-transparent border-none outline-none focus:outline-none focus:ring-0 w-full p-0 ${isSingleRow ? 'text-[13px]' : 'text-[14.5px]'} font-normal text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400 tracking-normal leading-normal truncate`}
                                     placeholder={ls.placeholder || "Nereye?"}
                                     type="text"
                                     value={query}
@@ -1425,20 +1426,20 @@ const ListingSearch = ({ isCompact = false }) => {
                     {/* Twin Datepicker Container - Transforms like Autocomplete */}
                     <div
                         ref={datePickerRef}
-                        className={`${isCompact ? "w-[230px]" : "w-full md:w-[335px] lg:w-[345px]"} h-12 flex-shrink-0 relative font-roboto`}
+                        className={`${isSingleRow ? "w-[205px] sm:w-[215px]" : (isCompact ? "w-[230px]" : "w-full md:w-[335px] lg:w-[345px]")} ${itemHeight} flex-shrink-0 relative font-roboto`}
                     >
                         <div
                             ref={datePopoverRef}
                             className={`transition-all duration-200 ${isDatePickerOpen
-                                    ? 'absolute top-0 left-0 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[300] overflow-hidden max-w-[calc(100vw-24px)]'
-                                    : 'h-12 w-full bg-white dark:bg-[#303134] flex items-center rounded-lg shadow-2xs border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6] overflow-hidden'
+                                    ? 'absolute top-0 left-0 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[2100] overflow-hidden max-w-[calc(100vw-24px)]'
+                                    : `${itemHeight} w-full bg-white dark:bg-[#303134] flex items-center rounded-lg shadow-2xs border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6] overflow-hidden`
                                 }`}
                             style={isDatePickerOpen ? { width: 'max-content', transform: dateOffsetX ? `translateX(${dateOffsetX}px)` : undefined } : undefined}
                         >
                             {/* Top Bar / Trigger Row */}
-                            <div className={`flex items-center justify-between h-12 ${isDatePickerOpen ? 'border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]' : 'w-full'}`}>
+                            <div className={`flex items-center justify-between ${isDatePickerOpen ? 'h-12 border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]' : `${itemHeight} w-full`}`}>
                                 {/* Check-In & Check-Out Half */}
-                                <div className={`${isCompact && !isDatePickerOpen ? "w-full" : "w-[335px] sm:w-[345px]"} h-full flex items-center flex-shrink-0`}>
+                                <div className={`${(isCompact || isSingleRow) && !isDatePickerOpen ? "w-full" : "w-[335px] sm:w-[345px]"} h-full flex items-center flex-shrink-0`}>
                                     {/* Check-In Half */}
                                     <div
                                         onClick={() => {
@@ -1447,22 +1448,22 @@ const ListingSearch = ({ isCompact = false }) => {
                                             setShowDropdown(false);
                                             setShowGuestDropdown(false);
                                         }}
-                                        className={`relative flex-1 h-full flex items-center justify-between ${isCompact && !isDatePickerOpen ? "px-2" : "px-3"} cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkIn'
+                                        className={`relative flex-1 h-full flex items-center justify-between ${(isCompact || isSingleRow) && !isDatePickerOpen ? "px-2" : "px-3"} cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkIn'
                                                 ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
                                                 : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
                                             }`}
                                     >
                                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                            <span className="material-symbols-outlined text-[18px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 18" }}>
+                                            <span className={`material-symbols-outlined ${isSingleRow ? 'text-[16px]' : 'text-[18px]'} text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0`} style={{ fontVariationSettings: "'wght' 500, 'opsz' 18" }}>
                                                 calendar_today
                                             </span>
-                                            <span className={`${isCompact && !isDatePickerOpen ? "text-[12.5px]" : "text-[13.5px]"} font-medium truncate`}>
+                                            <span className={`${(isCompact || isSingleRow) && !isDatePickerOpen ? "text-[12px]" : "text-[13.5px]"} font-medium truncate`}>
                                                 {formatGoogleFlightDate(checkInDate, currentLang) || ls.checkIn || 'Giriş'}
                                             </span>
                                         </div>
 
                                         {/* Quick 1-day step buttons */}
-                                        {(!isCompact || isDatePickerOpen) && (
+                                        {(!isCompact && !isSingleRow || isDatePickerOpen) && (
                                             <div className="flex items-center text-[#5f6368] dark:text-slate-400 shrink-0 ml-0.5">
                                                 <button
                                                     type="button"
@@ -1485,7 +1486,7 @@ const ListingSearch = ({ isCompact = false }) => {
                                     </div>
 
                                     {/* Middle Divider */}
-                                    <div className="w-[1px] h-6 bg-[#dadce0] dark:bg-slate-600 flex-shrink-0" />
+                                    <div className={`w-[1px] ${isSingleRow ? 'h-4' : 'h-6'} bg-[#dadce0] dark:bg-slate-600 flex-shrink-0`} />
 
                                     {/* Check-Out Half */}
                                     <div
@@ -1495,19 +1496,19 @@ const ListingSearch = ({ isCompact = false }) => {
                                             setShowDropdown(false);
                                             setShowGuestDropdown(false);
                                         }}
-                                        className={`relative flex-1 h-full flex items-center justify-between ${isCompact && !isDatePickerOpen ? "px-2" : "px-3"} cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkOut'
+                                        className={`relative flex-1 h-full flex items-center justify-between ${(isCompact || isSingleRow) && !isDatePickerOpen ? "px-2" : "px-3"} cursor-pointer transition-colors min-w-0 ${isDatePickerOpen && activeDateField === 'checkOut'
                                                 ? 'bg-blue-50/80 dark:bg-blue-950/50 text-[#1a73e8] dark:text-blue-400 font-medium'
                                                 : 'hover:bg-slate-50 dark:hover:bg-slate-700/40 text-[#3c4043] dark:text-white'
                                             }`}
                                     >
                                         <div className="flex items-center min-w-0 flex-1">
-                                            <span className={`${isCompact && !isDatePickerOpen ? "text-[12.5px]" : "text-[13.5px]"} font-medium truncate`}>
+                                            <span className={`${(isCompact || isSingleRow) && !isDatePickerOpen ? "text-[12px]" : "text-[13.5px]"} font-medium truncate`}>
                                                 {formatGoogleFlightDate(checkOutDate, currentLang) || ls.checkOut || 'Çıkış'}
                                             </span>
                                         </div>
 
                                         {/* Quick 1-day step buttons */}
-                                        {(!isCompact || isDatePickerOpen) && (
+                                        {(!isCompact && !isSingleRow || isDatePickerOpen) && (
                                             <div className="flex items-center text-[#5f6368] dark:text-slate-300 shrink-0 ml-0.5">
                                                 <button
                                                     type="button"
@@ -1582,21 +1583,21 @@ const ListingSearch = ({ isCompact = false }) => {
                                     }
                                 }
                             }}
-                            className={`flex items-center ${isCompact ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} h-12 rounded-lg shadow-2xs transition-colors duration-200 text-[#3c4043] dark:text-slate-300 font-normal text-[14px] focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${showGuestDropdown
+                            className={`flex items-center ${isCompact || isSingleRow ? "gap-1 px-2.5" : "gap-1.5 px-3.5"} ${itemHeight} rounded-lg shadow-2xs transition-colors duration-200 text-[#3c4043] dark:text-slate-300 font-normal ${isSingleRow ? 'text-[12.5px]' : 'text-[14px]'} focus:outline-none cursor-pointer bg-white dark:bg-[#303134] ${showGuestDropdown
                                     ? 'border border-[#1a73e8] ring-2 ring-[#1a73e8]/20 shadow-[0_4px_20px_rgba(26,115,232,0.12)]'
                                     : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                                 }`}
                         >
-                            <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0" style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
-                            <span className="text-[13.5px] font-normal text-[#3c4043] dark:text-slate-200">{totalAdults + totalChildren}</span>
-                            <span className={`material-symbols-outlined text-[19px] ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
+                            <span className={`material-symbols-outlined ${isSingleRow ? 'text-[17px]' : 'text-[20px]'} text-[#1a73e8] dark:text-blue-400 font-medium flex-shrink-0`} style={{ fontVariationSettings: "'wght' 500, 'opsz' 20" }}>person</span>
+                            <span className={`${isSingleRow ? 'text-[12.5px]' : 'text-[13.5px]'} font-normal text-[#3c4043] dark:text-slate-200`}>{totalAdults + totalChildren}</span>
+                            <span className={`material-symbols-outlined ${isSingleRow ? 'text-[16px]' : 'text-[19px]'} ${showGuestDropdown ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#5f6368] dark:text-slate-300'}`}>
                                 {showGuestDropdown ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
                         </button>
 
                         {/* Guest Dropdown - Google Flights Style */}
                         {showGuestDropdown && (
-                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] p-4 z-[1000] animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="absolute top-full right-0 w-[320px] sm:w-[340px] mt-2 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.5),0_4px_12px_rgba(0,0,0,0.3)] p-4 z-[2100] animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar pr-3 -mr-3">
                                     {roomState.map((room, index) => (
                                         <div key={index} className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800 last:border-0 last:pb-0 last:mb-0">
@@ -1718,7 +1719,7 @@ const ListingSearch = ({ isCompact = false }) => {
                     </div>
 
                     {/* Compact Nationality Selector (Grouped with Guests) */}
-                    <div className="flex-shrink-0 relative h-12 w-[76px] sm:w-[82px] transition-all duration-300">
+                    <div className={`flex-shrink-0 relative ${itemHeight} ${isSingleRow ? 'w-[68px] sm:w-[72px]' : 'w-[76px] sm:w-[82px]'} transition-all duration-300`}>
                         <NationalitySelect
                             value={nationality}
                             onChange={(newNat) => {

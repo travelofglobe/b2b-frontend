@@ -1963,17 +1963,31 @@ const HotelListing = () => {
     }, [isMapExpanded, recentSearchLocations, updatePillScrollState]);
 
     // Handle filter bar slide animation, mounting, and overflow-visible transition
+    const [isFilterBarSlideActive, setIsFilterBarSlideActive] = React.useState(false);
+
     React.useEffect(() => {
         let unmountTimer;
         let animatedTimer;
+        let rAF1, rAF2;
+
         if (isMapFilterBarOpen) {
             setShouldRenderFilterBar(true);
-            animatedTimer = setTimeout(() => setIsFilterBarAnimated(true), 320);
+            setIsFilterBarAnimated(false);
+            // Double rAF ensures the element is painted in its initial offscreen state before transitioning down
+            rAF1 = requestAnimationFrame(() => {
+                rAF2 = requestAnimationFrame(() => {
+                    setIsFilterBarSlideActive(true);
+                });
+            });
+            animatedTimer = setTimeout(() => setIsFilterBarAnimated(true), 340);
         } else {
             setIsFilterBarAnimated(false);
+            setIsFilterBarSlideActive(false);
             unmountTimer = setTimeout(() => setShouldRenderFilterBar(false), 310);
         }
         return () => {
+            if (rAF1) cancelAnimationFrame(rAF1);
+            if (rAF2) cancelAnimationFrame(rAF2);
             if (animatedTimer) clearTimeout(animatedTimer);
             if (unmountTimer) clearTimeout(unmountTimer);
         };
@@ -5158,8 +5172,8 @@ const HotelListing = () => {
                         {/* Collapsible Single-Row Sleek Filter Bar - Floats smoothly over the map without resizing or shifting the map canvas */}
                         {isMapExpanded && shouldRenderFilterBar && (
                             <div
-                                className={`absolute top-0 left-0 right-0 h-[56px] bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                                    isMapFilterBarOpen
+                                className={`absolute top-0 left-0 right-0 h-[56px] bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] ${
+                                    isMapFilterBarOpen && isFilterBarSlideActive
                                         ? `translate-y-0 opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
                                         : '-translate-y-full opacity-0 pointer-events-none overflow-hidden border-b border-transparent shadow-none'
                                 }`}

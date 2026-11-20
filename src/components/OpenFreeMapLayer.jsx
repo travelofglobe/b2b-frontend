@@ -94,8 +94,10 @@ export const OpenFreeMapLayer = ({ style = 'auto', colorOverrides }) => {
             if (map.attributionControl && typeof map.attributionControl.setPrefix === 'function') {
                 map.attributionControl.setPrefix(false);
             }
+
             glLayer.addTo(map);
             glLayerRef.current = glLayer;
+            map._openFreeMapGlLayer = glLayer;
         } catch (err) {
             console.error('Failed to initialize OpenFreeMap MapLibre GL layer:', err);
         }
@@ -103,6 +105,9 @@ export const OpenFreeMapLayer = ({ style = 'auto', colorOverrides }) => {
         return () => {
             if (map && glLayerRef.current) {
                 try {
+                    if (map._openFreeMapGlLayer === glLayerRef.current) {
+                        delete map._openFreeMapGlLayer;
+                    }
                     map.removeLayer(glLayerRef.current);
                 } catch (_) {}
                 glLayerRef.current = null;

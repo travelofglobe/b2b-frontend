@@ -1822,12 +1822,16 @@ const HotelListing = () => {
             closeTimeoutRef.current = null;
         }
         if (hotel) {
+            // Harita tam ekran modundayken bir otel noktasına tıklandığında soldaki otel listesi panelini tekrar göster
+            setIsMapExpanded(false);
             setSelectedHotel(hotel);
             setIsQuickLookOpen(true);
-            const cardEl = document.getElementById(`hotel-card-${hotel.id || hotel.hotelId}`);
-            if (cardEl) {
-                cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            setTimeout(() => {
+                const cardEl = document.getElementById(`hotel-card-${hotel.id || hotel.hotelId}`);
+                if (cardEl) {
+                    cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 80);
         } else {
             setIsQuickLookOpen(false);
             closeTimeoutRef.current = setTimeout(() => {
@@ -1943,7 +1947,17 @@ const HotelListing = () => {
     }, [isPoiMenuOpen]);
 
     const toggleMapExpand = React.useCallback(() => {
-        setIsMapExpanded(prev => !prev);
+        setIsMapExpanded(prev => {
+            const next = !prev;
+            if (next) {
+                setIsFilterDrawerOpen(false);
+                setIsStarOpen(false);
+                setIsPriceOpen(false);
+                setIsAmenitiesOpen(false);
+                setIsSortOpen(false);
+            }
+            return next;
+        });
     }, []);
 
     React.useEffect(() => {
@@ -1951,11 +1965,25 @@ const HotelListing = () => {
 
         isProgrammaticMoveRef.current = true;
 
+        // Smooth transition timing: single clean invalidateSize at the end of the 500ms slide animation
+        // to prevent premature mid-animation canvas resizes that shake/jitter map markers
         const timer = setTimeout(() => {
-            mapInstance.invalidateSize({ pan: false });
+            try {
+                mapInstance.invalidateSize({ animate: false });
+                const glLayer = mapInstance._openFreeMapGlLayer;
+                if (glLayer) {
+                    const glMap = glLayer.getMaplibreMap?.();
+                    if (glMap && typeof glMap.resize === 'function') {
+                        glMap.resize();
+                    }
+                    if (typeof glLayer._update === 'function') {
+                        glLayer._update();
+                    }
+                }
+            } catch (_) {}
             setTimeout(() => {
                 isProgrammaticMoveRef.current = false;
-            }, 100);
+            }, 60);
         }, 510);
 
         return () => {
@@ -3799,7 +3827,7 @@ const HotelListing = () => {
             {/* ════════════════════════════════════════════
                 LEFT PANEL: Hotel List
             ════════════════════════════════════════════ */}
-            <div className={`${isMapExpanded ? "w-[44%] min-w-[500px]" : "w-[62%]"} flex-shrink-0 flex flex-col relative z-[2000] border-r border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)] transition-[width] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[width]`}>
+            <div className={`${isMapExpanded ? "w-0 min-w-0 opacity-0 pointer-events-none border-r-0 shadow-none" : "w-[62%] opacity-100 border-r border-[#e8eaed] dark:border-slate-700 shadow-[1px_0_4px_rgba(0,0,0,0.35)] dark:shadow-[1px_0_4px_rgba(0,0,0,0.7)]"} flex-shrink-0 flex flex-col relative z-[2000] overflow-hidden bg-white dark:bg-[#303134] transition-[width,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[width]`}>
 
                 {/* Slide-in Hotel Detail Quick Look Drawer */}
                 <HotelQuickLookDrawer
@@ -4616,19 +4644,43 @@ const HotelListing = () => {
                         </MapContainer>
                     </div>
 
-                    {/* Top-left: Expand Button + 4 Category Icons (Google Maps style) */}
-                    <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col gap-2.5 pointer-events-auto">
-                        {/* Map Expansion Toggle (resizes map width without fullscreen) */}
-                        <button
-                            type="button"
-                            onClick={toggleMapExpand}
-                            className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all duration-300 cursor-pointer group active:scale-95"
-                            title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
-                        >
-                            <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-all duration-300">
-                                {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
-                            </span>
-                        </button>
+                    {/* Top-left: Expand Button + Show List Button (when expanded) + 4 Category Icons (Google Maps style) */}
+                    <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col items-start gap-2.5 pointer-events-auto">
+                        <div className="flex items-center gap-2">
+                            {/* Map Expansion Toggle (full-width map mode) */}
+                            <button
+                                type="button"
+                                onClick={toggleMapExpand}
+                                className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all duration-300 cursor-pointer group active:scale-95 shrink-0"
+                                title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-all duration-300">
+                                    {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
+                                </span>
+                            </button>
+
+                            {/* Floating "Otel Listesini Göster / Show Hotel List" pill when map is full screen */}
+                            {isMapExpanded && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMapExpanded(false)}
+                                    className="h-10 px-4 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#202124] dark:text-slate-100 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.28)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700 flex items-center gap-2 transition-all duration-200 cursor-pointer group active:scale-95"
+                                    title={currentLang === 'tr' ? 'Otel listesini tekrar göster' : 'Show hotel list'}
+                                >
+                                    <span className="material-symbols-outlined text-[19px] text-[#1a73e8] dark:text-blue-400">
+                                        view_list
+                                    </span>
+                                    <span className="text-[13px] font-semibold whitespace-nowrap">
+                                        {currentLang === 'tr' ? 'Otel Listesini Göster' : 'Show Hotel List'}
+                                    </span>
+                                    {(totalProperties || displayedHotels.length) > 0 && (
+                                        <span className="px-2 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 text-[11px] font-bold">
+                                            {(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}
+                                        </span>
+                                    )}
+                                </button>
+                            )}
+                        </div>
 
                         {/* POI Category Icons: 4 Primary + Expandable More Menu */}
                         <div className="relative bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">

@@ -4900,7 +4900,146 @@ const HotelListing = () => {
                 RIGHT PANEL: Map & Favorites Sidebar
             ════════════════════════════════════════════ */}
             <div className="flex-1 relative flex overflow-hidden">
-                <div className="flex-1 relative overflow-hidden">
+                <div className="flex-1 relative flex flex-col overflow-hidden">
+
+                    {/* Flush Top Header Bar (admin-frontend PropertyMap style) when map is expanded */}
+                    {isMapExpanded && (
+                        <header className="h-[52px] shrink-0 w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-slate-800 px-3.5 flex items-center justify-between gap-2.5 z-[1005] select-none shadow-[0_1px_3px_rgba(0,0,0,0.06)] animate-in fade-in duration-200">
+                            {/* Left: Otel Listesi Button + Divider + Recent Searches + Presets */}
+                            <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsMapExpanded(false)}
+                                    className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 flex items-center gap-2 transition-all cursor-pointer shrink-0 font-medium text-xs border border-slate-200 dark:border-slate-700 group active:scale-95"
+                                    title={currentLang === 'tr' ? 'Otel listesini tekrar göster' : 'Show hotel list'}
+                                >
+                                    <span className="material-symbols-outlined text-[17px] text-[#1a73e8] dark:text-blue-400 group-hover:scale-110 transition-transform">
+                                        view_list
+                                    </span>
+                                    <span className="font-semibold whitespace-nowrap">
+                                        {currentLang === 'tr' ? 'Otel Listesi' : 'Hotel List'}
+                                    </span>
+                                    {(totalProperties || displayedHotels.length) > 0 && (
+                                        <span className="px-1.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 text-[10px] font-bold">
+                                            {(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}
+                                        </span>
+                                    )}
+                                </button>
+
+                                <div className="w-[1px] h-5 bg-slate-200 dark:bg-slate-700 shrink-0 mx-0.5" />
+
+                                {/* Horizontal scrollable pills: Recent Searches + Quick Regions */}
+                                <div className="flex items-center gap-1 min-w-0 flex-1 overflow-x-auto scrollbar-hide py-1">
+                                    {/* Section 1: Recent Searches from Autocomplete History */}
+                                    {recentSearchLocations.length > 0 && (
+                                        <>
+                                            <div className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wider pl-1 pr-0.5 select-none">
+                                                <span className="material-symbols-outlined text-[14px]">history</span>
+                                                <span className="hidden sm:inline">{currentLang === 'tr' ? 'Son:' : 'Recent:'}</span>
+                                            </div>
+
+                                            {recentSearchLocations.map((item) => {
+                                                const isSelected = activePillKey === ('recent-' + item.cityKey);
+                                                return (
+                                                    <button
+                                                        key={item.cityKey || item.id}
+                                                        type="button"
+                                                        onClick={() => handleRecentSearchClick(item)}
+                                                        className={`h-7 px-2.5 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
+                                                            isSelected
+                                                                ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold ring-1 ring-[#1a73e8]/30 shadow-2xs'
+                                                                : 'text-slate-600 dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'
+                                                        }`}
+                                                        title={item.query || item.cityName}
+                                                    >
+                                                        <span className={`material-symbols-outlined text-[13px] ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-gray-400 group-hover:text-[#1a73e8]'}`}>
+                                                            location_on
+                                                        </span>
+                                                        <span className="truncate max-w-[120px]">{item.cityName}</span>
+                                                    </button>
+                                                );
+                                            })}
+
+                                            <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700 mx-1 shrink-0" />
+                                        </>
+                                    )}
+
+                                    {/* Section 2: Preset Quick Regions (admin-frontend PropertyMap style) */}
+                                    {QUICK_MAP_REGIONS.map(reg => {
+                                        const isSelected = activePillKey === reg.key;
+                                        return (
+                                            <button
+                                                key={reg.key}
+                                                type="button"
+                                                onClick={() => handleQuickRegionClick(reg)}
+                                                className={`h-7 px-2.5 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                                                    isSelected
+                                                        ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold ring-1 ring-[#1a73e8]/30 shadow-2xs'
+                                                        : 'text-slate-600 dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'
+                                                }`}
+                                                title={currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                            >
+                                                {currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Right: Search-as-map-moves toggle + Hotel Count Badge + Collapse Button */}
+                            <div className="flex items-center gap-2 shrink-0">
+                                {mapMoved && !searchOnMapMove ? (
+                                    <button
+                                        type="button"
+                                        disabled={isLoading || isSearchingMapArea}
+                                        onClick={() => {
+                                            isUserPanRef.current = false;
+                                            setShouldRefitMap(false);
+                                            handleMapBoundsChange(mapBoundsRef.current);
+                                        }}
+                                        className="h-8 px-3 rounded-lg bg-white dark:bg-slate-800 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 border border-[#1a73e8]/30 text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                                    >
+                                        <span className={`material-symbols-outlined text-[16px] ${(isLoading || isSearchingMapArea) ? 'animate-spin' : ''}`}>refresh</span>
+                                        <span>{(isLoading || isSearchingMapArea) ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
+                                    </button>
+                                ) : (
+                                    <div
+                                        onClick={handleToggleSearchOnMove}
+                                        className="h-8 px-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-colors select-none"
+                                        title={tListing('searchMapMoves', currentLang)}
+                                    >
+                                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${
+                                            searchOnMapMove ? 'bg-[#1a73e8] border-[#1a73e8]' : 'bg-white dark:bg-slate-900 border-slate-400'
+                                        }`}>
+                                            {searchOnMapMove && <span className="material-symbols-outlined text-white text-[11px] font-bold">check</span>}
+                                        </div>
+                                        <span className="text-[11.5px] font-medium text-slate-700 dark:text-slate-200 hidden md:inline whitespace-nowrap">
+                                            {tListing('searchMapMoves', currentLang)}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {(totalProperties || displayedHotels.length) > 0 && (
+                                    <div className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40 flex items-center gap-1.5 text-xs font-semibold shrink-0">
+                                        <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>hotel</span>
+                                        <span>{(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}</span>
+                                        <span className="hidden lg:inline text-[10.5px] font-normal text-rose-500/80 dark:text-rose-400/80">{currentLang === 'tr' ? 'otel' : 'hotels'}</span>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={toggleMapExpand}
+                                    className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all cursor-pointer shrink-0 border border-slate-200 dark:border-slate-700"
+                                    title={tListing('collapseMap', currentLang)}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">fullscreen_exit</span>
+                                </button>
+                            </div>
+                        </header>
+                    )}
+
+                    <div className="flex-1 relative overflow-hidden">
                     {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
                     <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
 
@@ -4979,107 +5118,24 @@ const HotelListing = () => {
                         </MapContainer>
                     </div>
 
-                    {/* Top Controls Bar: Expand/Collapse Button + Show List Button + Quick Regions / Recent Searches (when expanded) */}
-                    <div className="absolute top-3.5 left-3.5 right-[64px] z-[1005] flex items-center gap-2 pointer-events-auto">
-                        <div className="flex items-center gap-2 shrink-0">
-                            {/* Map Expansion Toggle (full-width map mode) */}
-                            <button
-                                type="button"
-                                onClick={toggleMapExpand}
-                                className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all duration-300 cursor-pointer group active:scale-95 shrink-0"
-                                title={isMapExpanded ? tListing('collapseMap', currentLang) : tListing('expandMap', currentLang)}
-                            >
-                                <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-all duration-300">
-                                    {isMapExpanded ? 'fullscreen_exit' : 'fullscreen'}
-                                </span>
-                            </button>
-
-                            {/* Floating "Otel Listesini Göster / Show Hotel List" pill when map is full screen */}
-                            {isMapExpanded && (
+                        {/* Split-screen Expand Button (only when map is not expanded) */}
+                        {!isMapExpanded && (
+                            <div className="absolute top-3.5 left-3.5 z-[1005] pointer-events-auto">
                                 <button
                                     type="button"
-                                    onClick={() => setIsMapExpanded(false)}
-                                    className="h-10 px-4 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#202124] dark:text-slate-100 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.28)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700 flex items-center gap-2 transition-all duration-200 cursor-pointer group active:scale-95 shrink-0"
-                                    title={currentLang === 'tr' ? 'Otel listesini tekrar göster' : 'Show hotel list'}
+                                    onClick={toggleMapExpand}
+                                    className="w-10 h-10 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#3c4043] dark:text-slate-200 rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex items-center justify-center transition-all duration-300 cursor-pointer group active:scale-95 shrink-0"
+                                    title={tListing('expandMap', currentLang)}
                                 >
-                                    <span className="material-symbols-outlined text-[19px] text-[#1a73e8] dark:text-blue-400">
-                                        view_list
+                                    <span className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-300 group-hover:text-[#1a73e8] transition-all duration-300">
+                                        fullscreen
                                     </span>
-                                    <span className="text-[13px] font-semibold whitespace-nowrap">
-                                        {currentLang === 'tr' ? 'Otel Listesini Göster' : 'Show Hotel List'}
-                                    </span>
-                                    {(totalProperties || displayedHotels.length) > 0 && (
-                                        <span className="px-2 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 text-[11px] font-bold">
-                                            {(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}
-                                        </span>
-                                    )}
                                 </button>
-                            )}
-                        </div>
-
-                        {/* Quick Region Presets & Autocomplete Search History (Expanded Map Mode) */}
-                        {isMapExpanded && (
-                            <div className="flex-1 min-w-0 h-10 bg-white/95 dark:bg-[#303134]/95 backdrop-blur-md rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700/80 px-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-hide animate-in fade-in zoom-in-95 duration-200">
-                                {/* Section 1: Recent Searches from Autocomplete History */}
-                                {recentSearchLocations.length > 0 && (
-                                    <>
-                                        <div className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wider pl-1 pr-1 select-none">
-                                            <span className="material-symbols-outlined text-[15px] text-gray-400 dark:text-slate-400">history</span>
-                                            <span className="hidden md:inline">{currentLang === 'tr' ? 'Son Aramalar:' : 'Recent:'}</span>
-                                        </div>
-
-                                        {recentSearchLocations.map((item) => {
-                                            const isSelected = activePillKey === ('recent-' + item.cityKey);
-                                            return (
-                                                <button
-                                                    key={item.cityKey || item.id}
-                                                    type="button"
-                                                    onClick={() => handleRecentSearchClick(item)}
-                                                    className={`h-7 px-2.5 rounded-full text-[12px] flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
-                                                        isSelected
-                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold shadow-2xs ring-1 ring-[#1a73e8]/30'
-                                                            : 'text-[#3c4043] dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700/60 font-medium'
-                                                    }`}
-                                                    title={item.query || item.cityName}
-                                                >
-                                                    <span className={`material-symbols-outlined text-[13px] ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-gray-400 group-hover:text-[#1a73e8]'}`}>
-                                                        location_on
-                                                    </span>
-                                                    <span className="truncate max-w-[130px]">{item.cityName}</span>
-                                                </button>
-                                            );
-                                        })}
-
-                                        {/* Divider separating Recent Searches from Presets */}
-                                        <div className="w-[1px] h-4 bg-gray-200 dark:bg-slate-600 mx-1 shrink-0" />
-                                    </>
-                                )}
-
-                                {/* Section 2: Preset Quick Regions (admin-frontend PropertyMap style) */}
-                                {QUICK_MAP_REGIONS.map(reg => {
-                                    const isSelected = activePillKey === reg.key;
-                                    return (
-                                        <button
-                                            key={reg.key}
-                                            type="button"
-                                            onClick={() => handleQuickRegionClick(reg)}
-                                            className={`h-7 px-3 rounded-full text-[12px] transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                                                isSelected
-                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold shadow-2xs ring-1 ring-[#1a73e8]/30'
-                                                    : 'text-[#3c4043] dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700/60 font-medium'
-                                            }`}
-                                            title={currentLang === 'tr' ? reg.labelTr : reg.labelEn}
-                                        >
-                                            {currentLang === 'tr' ? reg.labelTr : reg.labelEn}
-                                        </button>
-                                    );
-                                })}
                             </div>
                         )}
-                    </div>
 
-                    {/* POI Category Icons: 4 Primary + Expandable More Menu */}
-                    <div className="absolute top-[62px] left-3.5 z-[1005] pointer-events-auto">
+                        {/* POI Category Icons: 4 Primary + Expandable More Menu */}
+                        <div className={`absolute ${isMapExpanded ? 'top-3.5' : 'top-[62px]'} left-3.5 z-[1005] pointer-events-auto`}>
                         <div className="relative bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
                             {/* 1. Public Transport */}
                             <button
@@ -5240,45 +5296,47 @@ const HotelListing = () => {
                         </button>
                     </div>
 
-                    {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
-                    <div className={`absolute ${isMapExpanded ? 'top-[62px]' : 'top-4'} left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2 transition-all duration-300`}>
-                        {mapMoved && !searchOnMapMove ? (
-                            <button
-                                type="button"
-                                disabled={isLoading || isSearchingMapArea}
-                                onClick={() => {
-                                    isUserPanRef.current = false;
-                                    setShouldRefitMap(false);
-                                    handleMapBoundsChange(mapBoundsRef.current);
-                                }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-100 disabled:cursor-wait"
-                            >
-                                <span className={`material-symbols-outlined text-[18px] ${(isLoading || isSearchingMapArea) ? 'animate-spin' : ''}`}>refresh</span>
-                                <span>{(isLoading || isSearchingMapArea) ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
-                            </button>
-                        ) : (
-                            <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                    {/* Top center: Floating "Search this area" button / search-on-move toggle (only when map is in split mode) */}
+                    {!isMapExpanded && (
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2 transition-all duration-300">
+                            {mapMoved && !searchOnMapMove ? (
                                 <button
                                     type="button"
-                                    onClick={handleToggleSearchOnMove}
-                                    className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
-                                            ? 'bg-[#1a73e8] border-[#1a73e8]'
-                                            : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
-                                        }`}
+                                    disabled={isLoading || isSearchingMapArea}
+                                    onClick={() => {
+                                        isUserPanRef.current = false;
+                                        setShouldRefitMap(false);
+                                        handleMapBoundsChange(mapBoundsRef.current);
+                                    }}
+                                    className="flex items-center gap-1.5 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#1a73e8] dark:text-blue-400 font-semibold rounded-full px-4 py-2 text-[13px] shadow-[0_2px_8px_rgba(0,0,0,0.25)] transition-all cursor-pointer active:scale-95 border border-[#1a73e8]/30 whitespace-nowrap disabled:opacity-100 disabled:cursor-wait"
                                 >
-                                    {searchOnMapMove && (
-                                        <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
-                                    )}
+                                    <span className={`material-symbols-outlined text-[18px] ${(isLoading || isSearchingMapArea) ? 'animate-spin' : ''}`}>refresh</span>
+                                    <span>{(isLoading || isSearchingMapArea) ? (tListing('searching', currentLang) || 'Aranıyor...') : tListing('searchThisArea', currentLang)}</span>
                                 </button>
-                                <span
-                                    onClick={handleToggleSearchOnMove}
-                                    className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
-                                >
-                                    {tListing('searchMapMoves', currentLang)}
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                            ) : (
+                                <div className="flex items-center gap-2 bg-white dark:bg-[#303134] rounded-full px-3.5 py-2 shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)]">
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleSearchOnMove}
+                                        className={`w-4 h-4 rounded border flex items-center justify-center transition-colors shrink-0 cursor-pointer ${searchOnMapMove
+                                                ? 'bg-[#1a73e8] border-[#1a73e8]'
+                                                : 'bg-white dark:bg-[#303134] border-[#80868b] dark:border-slate-500'
+                                            }`}
+                                    >
+                                        {searchOnMapMove && (
+                                            <span className="material-symbols-outlined text-white text-[12px] font-bold">check</span>
+                                        )}
+                                    </button>
+                                    <span
+                                        onClick={handleToggleSearchOnMove}
+                                        className="text-[12px] font-medium text-[#3c4043] dark:text-slate-200 cursor-pointer select-none whitespace-nowrap"
+                                    >
+                                        {tListing('searchMapMoves', currentLang)}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Bottom-left: Map layer switcher (Google Maps style) */}
                     <div className="absolute bottom-5 left-4 z-[1005] pointer-events-auto" ref={layerMenuRef}>
@@ -5340,6 +5398,7 @@ const HotelListing = () => {
                     </div>
 
 
+                    </div>
                 </div>
 
                 {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}

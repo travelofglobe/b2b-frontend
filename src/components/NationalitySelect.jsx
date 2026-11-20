@@ -348,14 +348,14 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                     ref={triggerRef}
                     type="button"
                     onClick={toggleOpen}
-                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-center px-2' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-colors duration-200 text-left focus:outline-none font-roboto cursor-pointer ${
+                    className={`nationality-trigger w-full h-full flex items-center ${compact ? 'justify-between px-2.5' : 'justify-between px-3.5 sm:px-4'} border ${rounded} bg-white dark:bg-[#303134] transition-colors duration-200 text-left focus:outline-none font-roboto cursor-pointer ${
                         isOpen 
                             ? 'border border-[#1a73e8] ring-2 ring-[#1a73e8]/20 shadow-[0_4px_20px_rgba(26,115,232,0.12)]' 
                             : 'border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6]'
                     }`}
                     title={t('common.nationality', 'Vatandaşlık')}
                 >
-                    <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2.5 sm:gap-3'} min-w-0 flex-1`}>
+                    <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2.5 sm:gap-3'} min-w-0`}>
                         <CountryFlag code={selectedCountry?.code} name={selectedCountry?.name} fallbackEmoji={selectedCountry?.flag} size="md" />
                         {!compact && (
                             <span className="text-[14px] font-normal text-[#202124] dark:text-white truncate">
@@ -363,12 +363,12 @@ const NationalitySelect = ({ value, onChange, compact = false, googleStyle = fal
                             </span>
                         )}
                         {compact && (
-                            <span className="text-[12.5px] font-medium text-[#202124] dark:text-white">
+                            <span className="text-[12.5px] font-semibold text-[#202124] dark:text-white">
                                 {selectedCountry?.code || 'TR'}
                             </span>
                         )}
                     </div>
-                    <span className="material-symbols-outlined text-[19px] text-[#5f6368] dark:text-slate-300 flex-shrink-0 ml-0.5">
+                    <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400 flex-shrink-0 ml-1">
                         {isOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                     </span>
                 </button>

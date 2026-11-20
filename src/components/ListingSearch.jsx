@@ -1431,13 +1431,17 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
                         <div
                             ref={datePopoverRef}
                             className={`transition-all duration-200 ${isDatePickerOpen
-                                    ? 'absolute top-0 left-0 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-[#3c4043] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)] z-[2100] overflow-hidden max-w-[calc(100vw-24px)]'
+                                    ? `absolute left-0 bg-white dark:bg-[#202124] ${isSingleRow ? 'rounded-b-2xl border-x border-b border-t-0 shadow-[0_12px_36px_rgba(0,0,0,0.18),0_4px_12px_rgba(0,0,0,0.08)]' : 'rounded-xl border shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.08)]'} border-[#dadce0] dark:border-[#3c4043] z-[2100] overflow-hidden max-w-[calc(100vw-24px)]`
                                     : `${itemHeight} w-full bg-white dark:bg-[#303134] flex items-center rounded-lg shadow-2xs border border-[#dadce0] dark:border-slate-600 hover:border-[#bdc1c6] overflow-hidden`
                                 }`}
-                            style={isDatePickerOpen ? { width: 'max-content', transform: dateOffsetX ? `translateX(${dateOffsetX}px)` : undefined } : undefined}
+                            style={isDatePickerOpen ? {
+                                width: 'max-content',
+                                top: isSingleRow ? '-10px' : '0px',
+                                transform: dateOffsetX ? `translateX(${dateOffsetX}px)` : undefined
+                            } : undefined}
                         >
                             {/* Top Bar / Trigger Row */}
-                            <div className={`flex items-center justify-between ${isDatePickerOpen ? 'h-12 border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]' : `${itemHeight} w-full`}`}>
+                            <div className={`flex items-center justify-between ${isDatePickerOpen ? `${isSingleRow ? 'h-[56px]' : 'h-12'} border-b border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#202124]` : `${itemHeight} w-full`}`}>
                                 {/* Check-In & Check-Out Half */}
                                 <div className={`${(isCompact || isSingleRow) && !isDatePickerOpen ? "w-full" : "w-[335px] sm:w-[345px]"} h-full flex items-center flex-shrink-0`}>
                                     {/* Check-In Half */}
@@ -1719,7 +1723,7 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
                     </div>
 
                     {/* Compact Nationality Selector (Grouped with Guests) */}
-                    <div className={`flex-shrink-0 relative ${itemHeight} ${isSingleRow ? 'w-[68px] sm:w-[72px]' : 'w-[76px] sm:w-[82px]'} transition-all duration-300`}>
+                    <div className={`flex-shrink-0 relative ${itemHeight} ${isSingleRow ? 'w-[76px] sm:w-[82px]' : 'w-[76px] sm:w-[82px]'} transition-all duration-300`}>
                         <NationalitySelect
                             value={nationality}
                             onChange={(newNat) => {

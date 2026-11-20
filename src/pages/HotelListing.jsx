@@ -1992,18 +1992,6 @@ const HotelListing = () => {
         }
     }, [isMapStarOpen]);
 
-    // Invalidate map size when expanded map filter bar opens or closes
-    React.useEffect(() => {
-        if (mapInstance && isMapExpanded) {
-            const timer = setTimeout(() => {
-                try {
-                    mapInstance.invalidateSize({ animate: false });
-                } catch (_) {}
-            }, 250);
-            return () => clearTimeout(timer);
-        }
-    }, [isMapFilterBarOpen, mapInstance, isMapExpanded]);
-
     // Fetch user recent search locations when map is expanded (excluding preset cities like Istanbul/Antalya to prevent duplicates)
     React.useEffect(() => {
         let isCancelled = false;
@@ -5163,153 +5151,153 @@ const HotelListing = () => {
                         </header>
                     )}
 
-                    {/* Collapsible Single-Row Sleek Filter Bar with Smooth Height Animation */}
-                    {isMapExpanded && shouldRenderFilterBar && (
-                        <div
-                            className={`w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-[height,opacity,border-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
-                                isMapFilterBarOpen
-                                    ? `h-[52px] opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
-                                    : 'h-0 opacity-0 border-b border-transparent shadow-none overflow-hidden pointer-events-none'
-                            }`}
-                        >
-                            <div className={`w-full h-full flex items-center gap-2 flex-nowrap ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`}>
-                                {/* Searchbar in Single Row Mode (Compact Autocomplete) */}
-                                <ListingSearch isCompact={true} isSingleRow={true} />
+                    <div className="flex-1 relative overflow-hidden">
+                        {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
+                        <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
 
-                                {/* Subtle Divider */}
-                                <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 shrink-0 mx-1" />
+                        {/* Collapsible Single-Row Sleek Filter Bar - Floats smoothly over the map without resizing or shifting the map canvas */}
+                        {isMapExpanded && shouldRenderFilterBar && (
+                            <div
+                                className={`absolute top-0 left-0 right-0 h-[56px] bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                                    isMapFilterBarOpen
+                                        ? `translate-y-0 opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-[0_4px_16px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)] ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
+                                        : '-translate-y-full opacity-0 pointer-events-none overflow-hidden border-b border-transparent shadow-none'
+                                }`}
+                            >
+                                <div className={`w-full h-full flex items-center gap-2 flex-nowrap ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`}>
+                                    {/* Searchbar in Single Row Mode (Compact Autocomplete) */}
+                                    <ListingSearch isCompact={true} isSingleRow={true} />
 
-                                {/* Effective Compact Star Rating Filter Popover */}
-                                <div className="relative shrink-0" ref={mapStarDropdownRef}>
+                                    {/* Subtle Divider */}
+                                    <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 shrink-0 mx-1" />
+
+                                    {/* Effective Compact Star Rating Filter Popover */}
+                                    <div className="relative shrink-0" ref={mapStarDropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsMapStarOpen(prev => !prev)}
+                                            className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                                urlStars.length > 0
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
+                                                    : isMapStarOpen
+                                                        ? 'border-[#1a73e8] text-[#1a73e8] bg-white dark:bg-slate-800 ring-2 ring-[#1a73e8]/20'
+                                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px] text-amber-500">grade</span>
+                                            <span>{starChipLabel}</span>
+                                            <span className="material-symbols-outlined text-[16px] text-slate-400">
+                                                {isMapStarOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                                            </span>
+                                        </button>
+
+                                        {isMapStarOpen && (
+                                            <div className="absolute top-full left-0 mt-1.5 w-60 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_8px_30px_rgba(0,0,0,0.18)] p-3 z-[2150] animate-in fade-in slide-in-from-top-1 duration-150">
+                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                                                    <span className="text-xs font-semibold text-slate-800 dark:text-white">
+                                                        {tListing('hotelClass', currentLang)}
+                                                    </span>
+                                                    {urlStars.length > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleClearStars}
+                                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline cursor-pointer"
+                                                        >
+                                                            {tListing('clear', currentLang)}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1.5">
+                                                    {[5, 4, 3, 2, 1].map(star => {
+                                                        const active = urlStars.includes(star);
+                                                        return (
+                                                            <button
+                                                                key={star}
+                                                                type="button"
+                                                                onClick={() => handleStarChipToggle(star)}
+                                                                className={`h-8 px-2.5 rounded-lg text-xs font-medium flex items-center justify-between border transition-all cursor-pointer ${
+                                                                    active
+                                                                        ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-800 dark:text-amber-200 font-semibold'
+                                                                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                                                }`}
+                                                            >
+                                                                <span className="flex items-center gap-1">
+                                                                    <span>{star}</span>
+                                                                    <span className="text-amber-500">★</span>
+                                                                </span>
+                                                                {active && <span className="material-symbols-outlined text-[14px] text-amber-600">check</span>}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Most Recommended Toggle */}
                                     <button
                                         type="button"
-                                        onClick={() => setIsMapStarOpen(prev => !prev)}
-                                        className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${
-                                            urlStars.length > 0
+                                        onClick={handleRecommendedChip}
+                                        className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
+                                            searchParams.get('recommended') === 'true'
                                                 ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
-                                                : isMapStarOpen
-                                                    ? 'border-[#1a73e8] text-[#1a73e8] bg-white dark:bg-slate-800 ring-2 ring-[#1a73e8]/20'
-                                                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                         }`}
                                     >
-                                        <span className="material-symbols-outlined text-[16px] text-amber-500">grade</span>
-                                        <span>{starChipLabel}</span>
-                                        <span className="material-symbols-outlined text-[16px] text-slate-400">
-                                            {isMapStarOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
-                                        </span>
+                                        <span className="material-symbols-outlined text-[15px]">thumb_up</span>
+                                        <span>{tListing('recommended', currentLang)}</span>
                                     </button>
 
-                                    {isMapStarOpen && (
-                                        <div className="absolute top-full left-0 mt-1.5 w-60 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_8px_30px_rgba(0,0,0,0.18)] p-3 z-[2150] animate-in fade-in slide-in-from-top-1 duration-150">
-                                            <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                                                <span className="text-xs font-semibold text-slate-800 dark:text-white">
-                                                    {tListing('hotelClass', currentLang)}
-                                                </span>
-                                                {urlStars.length > 0 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleClearStars}
-                                                        className="text-[11px] font-medium text-[#1a73e8] hover:underline cursor-pointer"
-                                                    >
-                                                        {tListing('clear', currentLang)}
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-1.5">
-                                                {[5, 4, 3, 2, 1].map(star => {
-                                                    const active = urlStars.includes(star);
-                                                    return (
-                                                        <button
-                                                            key={star}
-                                                            type="button"
-                                                            onClick={() => handleStarChipToggle(star)}
-                                                            className={`h-8 px-2.5 rounded-lg text-xs font-medium flex items-center justify-between border transition-all cursor-pointer ${
-                                                                active
-                                                                    ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-800 dark:text-amber-200 font-semibold'
-                                                                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                                            }`}
-                                                        >
-                                                            <span className="flex items-center gap-1">
-                                                                <span>{star}</span>
-                                                                <span className="text-amber-500">★</span>
-                                                            </span>
-                                                            {active && <span className="material-symbols-outlined text-[14px] text-amber-600">check</span>}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
+                                    {/* 4.0+ Rating Toggle */}
+                                    <button
+                                        type="button"
+                                        onClick={handleRatingChip}
+                                        className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
+                                            searchParams.get('guestRating') === '4.0+'
+                                                ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
+                                                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined text-[15px] ${searchParams.get('guestRating') === '4.0+' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-amber-500'}`}>grade</span>
+                                        <span>4.0+ {currentLang === 'tr' ? 'Puan' : 'Rating'}</span>
+                                    </button>
+
+                                    {/* Clear Filters Button (if any active) */}
+                                    {activeFilterCount > 0 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const params = new URLSearchParams(window.location.search);
+                                                params.delete('guestRating');
+                                                params.delete('stars');
+                                                params.delete('facilities');
+                                                params.delete('recommended');
+                                                params.delete('priceMin');
+                                                params.delete('priceMax');
+                                                setSearchParams(params);
+                                            }}
+                                            className="h-9 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 text-xs font-semibold flex items-center gap-1 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer shrink-0"
+                                        >
+                                            <span className="material-symbols-outlined text-[14px]">restart_alt</span>
+                                            <span>{tListing('clearAll', currentLang) || 'Temizle'}</span>
+                                        </button>
                                     )}
-                                </div>
 
-                                {/* Most Recommended Toggle */}
-                                <button
-                                    type="button"
-                                    onClick={handleRecommendedChip}
-                                    className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
-                                        searchParams.get('recommended') === 'true'
-                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
-                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                    }`}
-                                >
-                                    <span className="material-symbols-outlined text-[15px]">thumb_up</span>
-                                    <span>{tListing('recommended', currentLang)}</span>
-                                </button>
-
-                                {/* 4.0+ Rating Toggle */}
-                                <button
-                                    type="button"
-                                    onClick={handleRatingChip}
-                                    className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer shrink-0 ${
-                                        searchParams.get('guestRating') === '4.0+'
-                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
-                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                    }`}
-                                >
-                                    <span className={`material-symbols-outlined text-[15px] ${searchParams.get('guestRating') === '4.0+' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-amber-500'}`}>grade</span>
-                                    <span>4.0+ {currentLang === 'tr' ? 'Puan' : 'Rating'}</span>
-                                </button>
-
-                                {/* Clear Filters Button (if any active) */}
-                                {activeFilterCount > 0 && (
+                                    {/* Close button on the right */}
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            const params = new URLSearchParams(window.location.search);
-                                            params.delete('guestRating');
-                                            params.delete('stars');
-                                            params.delete('facilities');
-                                            params.delete('recommended');
-                                            params.delete('priceMin');
-                                            params.delete('priceMax');
-                                            setSearchParams(params);
+                                            setIsMapFilterBarOpen(false);
+                                            setIsMapStarOpen(false);
                                         }}
-                                        className="h-9 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 text-xs font-semibold flex items-center gap-1 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer shrink-0"
+                                        className="w-7 h-7 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0 ml-auto"
+                                        title={currentLang === 'tr' ? 'Kapat' : 'Close'}
                                     >
-                                        <span className="material-symbols-outlined text-[14px]">restart_alt</span>
-                                        <span>{tListing('clearAll', currentLang) || 'Temizle'}</span>
+                                        <span className="material-symbols-outlined text-[16px]">close</span>
                                     </button>
-                                )}
-
-                                {/* Close button on the right */}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsMapFilterBarOpen(false);
-                                        setIsMapStarOpen(false);
-                                    }}
-                                    className="w-7 h-7 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0 ml-auto"
-                                    title={currentLang === 'tr' ? 'Kapat' : 'Close'}
-                                >
-                                    <span className="material-symbols-outlined text-[16px]">close</span>
-                                </button>
+                                </div>
                             </div>
-                        </div>
-                    )}
-
-                    <div className="flex-1 relative overflow-hidden">
-                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
-                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
+                        )}
 
                     <div className={`w-full h-full transition-opacity duration-700 ease-out ${isMapReady ? 'opacity-100' : 'opacity-0'}`}>
                         <MapContainer
@@ -5403,7 +5391,7 @@ const HotelListing = () => {
                         )}
 
                         {/* POI Category Icons: 4 Primary + Expandable More Menu */}
-                        <div className={`absolute ${isMapExpanded ? 'top-3.5' : 'top-[62px]'} left-3.5 z-[1005] pointer-events-auto`}>
+                        <div className={`absolute ${isMapExpanded ? (isMapFilterBarOpen ? 'top-[70px]' : 'top-3.5') : 'top-[62px]'} left-3.5 z-[1005] pointer-events-auto transition-all duration-300`}>
                         <div className="relative bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
                             {/* 1. Public Transport */}
                             <button
@@ -5565,7 +5553,7 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top center: Floating "Search this area" button / search-on-move toggle */}
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2 transition-all duration-300">
+                    <div className={`absolute ${isMapExpanded && isMapFilterBarOpen ? 'top-[70px]' : 'top-4'} left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2 transition-all duration-300`}>
                         {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"

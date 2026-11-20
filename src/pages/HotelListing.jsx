@@ -3,10 +3,11 @@ import ReactDOM from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
-import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl } from '../utils/searchParamsUtils';
+import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, buildLocationSlug } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { geographyService } from '../services/geographyService';
 import { poiService } from '../services/poiService';
+import { autocompleteService } from '../services/autocompleteService';
 import ListingSearch from '../components/ListingSearch';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { useFavorites } from '../context/FavoritesContext';
@@ -152,6 +153,9 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 
     // 1. Immediately pan/fly map to target search city when search parameters change (even during isLoading)
     React.useEffect(() => {
+        if (isProgrammaticMoveRef?.current) return;
+        if (searchParams?.get('bounds')) return;
+
         const targetId = searchParams?.get('poiId') || searchParams?.get('regionId') || searchParams?.get('togId') || searchParams?.get('locationId') || searchParams?.get('hotelId') || '';
         const currentQ = searchParams?.get('q') || q || '';
         // Only trigger when target destination ID or slug or primary search query changes (NOT on map-derived center lat/lng)
@@ -211,7 +215,7 @@ const MapLocationWatcher = ({ slug, q, searchParams, hotels, isLoading, shouldRe
 
     // 2. Auto-fit bounds once hotels are loaded and shouldRefit is true
     React.useEffect(() => {
-        if (isLoading || !shouldRefit || !map) return;
+        if (isProgrammaticMoveRef?.current || isLoading || !shouldRefit || !map) return;
         // Never auto-fit bounds if viewing custom map bounds
         if (searchParams?.get('bounds')) {
             if (onRefitDone) onRefitDone();
@@ -1593,6 +1597,8 @@ const KNOWN_DESTINATIONS = {
     denizli: { center: [37.7765, 29.0864], zoom: 11, label: 'Denizli' },
     pamukkale: { center: [37.9137, 29.1187], zoom: 12, label: 'Pamukkale' },
     bolu: { center: [40.7358, 31.6061], zoom: 11, label: 'Bolu' },
+    safranbolu: { center: [41.2508, 32.6942], zoom: 12, label: 'Safranbolu' },
+    karabuk: { center: [41.2061, 32.6204], zoom: 11, label: 'Karabük' },
     sapanca: { center: [40.6931, 30.2644], zoom: 12, label: 'Sapanca' },
     yalova: { center: [40.6549, 29.2842], zoom: 11, label: 'Yalova' },
     canakkale: { center: [40.1553, 26.4142], zoom: 11, label: 'Çanakkale' },
@@ -1617,7 +1623,41 @@ const KNOWN_DESTINATIONS = {
     riyadh: { center: [24.7136, 46.6753], zoom: 11, label: 'Riyadh' },
     jeddah: { center: [21.5433, 39.1728], zoom: 11, label: 'Jeddah' },
     makkah: { center: [21.3891, 39.8579], zoom: 11, label: 'Makkah' },
-    madinah: { center: [24.5247, 39.5692], zoom: 11, label: 'Madinah' }
+    madinah: { center: [24.5247, 39.5692], zoom: 11, label: 'Madinah' },
+    turkey: { center: [39.0, 35.2], zoom: 6, label: 'Türkiye' },
+    europe: { center: [48.5, 11.5], zoom: 5, label: 'Europe' }
+};
+
+// ═══════════════════════════════════════════════
+// Quick Map Regions Presets (admin-frontend PropertyMap style)
+// ═══════════════════════════════════════════════
+export const QUICK_MAP_REGIONS = [
+    { key: 'eurasia', labelTr: 'Avrupa · Türkiye · Asya', labelEn: 'Europe · Türkiye · Asia', center: [39.5, 32.0], zoom: 5 },
+    { key: 'turkey', labelTr: 'Türkiye', labelEn: 'Türkiye', center: [39.0, 35.2], zoom: 6, q: 'Türkiye' },
+    { key: 'istanbul', labelTr: 'İstanbul', labelEn: 'Istanbul', center: [41.0082, 28.9784], zoom: 12, q: 'Istanbul, Türkiye', regionId: '654078240806088704' },
+    { key: 'antalya', labelTr: 'Antalya', labelEn: 'Antalya', center: [36.8969, 30.7133], zoom: 11, q: 'Antalya, Türkiye', regionId: '654078240806088705' },
+    { key: 'europe', labelTr: 'Avrupa', labelEn: 'Europe', center: [48.5, 11.5], zoom: 5, q: 'Europe' },
+    { key: 'middle_east', labelTr: 'Orta Doğu & BAE', labelEn: 'Middle East & UAE', center: [25.2048, 55.2708], zoom: 6, q: 'Dubai, UAE' },
+    { key: 'world', labelTr: 'Dünya Görünümü', labelEn: 'World View', center: [30.0, 18.0], zoom: 3 },
+];
+
+// Keys of preset regions/cities to exclude from Recent Searches to prevent duplicates like "two Antalyas, two Istanbuls"
+export const PRESET_CITY_KEYS = new Set(['istanbul', 'antalya', 'turkey', 'turkiye', 'europe', 'avrupa', 'world', 'dunya', 'eurasia', 'middleeast']);
+
+export const extractBaseCity = (queryText) => {
+    if (!queryText) return { name: '', key: '' };
+    let clean = queryText.split(',')[0].trim();
+    clean = clean.replace(/\s*\([^)]*\)/g, '').trim();
+    const key = clean
+        .toLowerCase()
+        .replace(/ı/g, 'i')
+        .replace(/ğ/g, 'g')
+        .replace(/ü/g, 'u')
+        .replace(/ş/g, 's')
+        .replace(/ö/g, 'o')
+        .replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]/g, '');
+    return { name: clean, key };
 };
 
 const normalizeLoc = (str) => {
@@ -1637,21 +1677,37 @@ const resolveInitialLocation = (slug, q, searchParams) => {
     const isPoi = searchParams?.get('type') === 'POI' || Boolean(searchParams?.get('poiId'));
     const isHotel = searchParams?.get('type') === 'HOTEL' || Boolean(searchParams?.get('hotelId') || searchParams?.get('togId'));
 
+    const slugTokens = (slug || '')
+        .toLowerCase()
+        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
+
+    const qTokens = (q || '')
+        .toLowerCase()
+        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
+
     let knownZoom = null;
-    const cleanSlug = normalizeLoc(slug);
-    if (cleanSlug) {
-        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-            if (cleanSlug.includes(key) || key.includes(cleanSlug)) {
-                knownZoom = val.zoom;
-                break;
-            }
+    let knownDest = null;
+
+    // Check slug tokens by exact word equality (prevents "safranbolu" falsely matching "bolu")
+    for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+        if (slugTokens.includes(key) || slugTokens.join('') === key) {
+            knownZoom = val.zoom;
+            knownDest = val;
+            break;
         }
     }
-    const cleanQ = normalizeLoc(q);
-    if (!knownZoom && cleanQ) {
+
+    if (!knownDest) {
         for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-            if (cleanQ.includes(key)) {
+            if (qTokens.includes(key) || qTokens.join('') === key) {
                 knownZoom = val.zoom;
+                knownDest = val;
                 break;
             }
         }
@@ -1675,20 +1731,8 @@ const resolveInitialLocation = (slug, q, searchParams) => {
         return { center: [lat, lng], zoom: defaultZoom, label: q || '' };
     }
 
-    if (cleanSlug) {
-        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-            if (cleanSlug.includes(key) || key.includes(cleanSlug)) {
-                return val;
-            }
-        }
-    }
-
-    if (cleanQ) {
-        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-            if (cleanQ.includes(key)) {
-                return val;
-            }
-        }
+    if (knownDest) {
+        return { center: knownDest.center || [knownDest.lat, knownDest.lng], zoom: defaultZoom, label: knownDest.label || q || '' };
     }
 
     return null;
@@ -1874,6 +1918,114 @@ const HotelListing = () => {
 
     // Map expansion & POI category states
     const [isMapExpanded, setIsMapExpanded] = React.useState(false);
+    const [recentSearchLocations, setRecentSearchLocations] = React.useState([]);
+    const [activePillKey, setActivePillKey] = React.useState(null);
+
+    // Fetch user recent search locations when map is expanded (excluding preset cities like Istanbul/Antalya to prevent duplicates)
+    React.useEffect(() => {
+        let isCancelled = false;
+        const fetchRecentLocations = async () => {
+            try {
+                const res = await autocompleteService.getSearchHistory();
+                const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []));
+                if (!isCancelled && Array.isArray(items) && items.length > 0) {
+                    const seen = new Set();
+                    const filtered = [];
+                    for (const item of items) {
+                        const qText = (item.query || '').trim();
+                        if (!qText) continue;
+                        const { name, key } = extractBaseCity(qText);
+                        if (!key || !name) continue;
+                        // Skip if already covered by preset quick regions (Istanbul, Antalya, etc.)
+                        if (PRESET_CITY_KEYS.has(key)) continue;
+                        // Skip duplicate cities
+                        if (seen.has(key)) continue;
+                        seen.add(key);
+
+                        const sType = item.type || item.searchType || 'SEARCH';
+                        if (sType !== 'HOTEL' && sType !== 'PROPERTY') {
+                            filtered.push({
+                                ...item,
+                                cityName: name,
+                                cityKey: key
+                            });
+                        }
+                        if (filtered.length >= 5) break;
+                    }
+                    if (filtered.length > 0) {
+                        setRecentSearchLocations(filtered);
+                        return;
+                    }
+                }
+                // Fallback to localStorage if server returns empty
+                if (!isCancelled) {
+                    const lastSearch = localStorage.getItem('dashboard_last_search');
+                    if (lastSearch) {
+                        const { name, key } = extractBaseCity(lastSearch);
+                        if (key && name && !PRESET_CITY_KEYS.has(key)) {
+                            setRecentSearchLocations([{
+                                query: lastSearch,
+                                cityName: name,
+                                cityKey: key,
+                                searchType: localStorage.getItem('dashboard_last_type') || 'SEARCH'
+                            }]);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load recent search history in HotelListing:', err);
+                const lastSearch = localStorage.getItem('dashboard_last_search');
+                if (!isCancelled && lastSearch) {
+                    const { name, key } = extractBaseCity(lastSearch);
+                    if (key && name && !PRESET_CITY_KEYS.has(key)) {
+                        setRecentSearchLocations([{
+                            query: lastSearch,
+                            cityName: name,
+                            cityKey: key,
+                            searchType: localStorage.getItem('dashboard_last_type') || 'SEARCH'
+                        }]);
+                    }
+                }
+            }
+        };
+
+        if (isMapExpanded) {
+            fetchRecentLocations();
+        }
+        return () => { isCancelled = true; };
+    }, [isMapExpanded]);
+
+    // Sync active quick region key with current search destination (strict matching so ONLY ONE pill is active)
+    React.useEffect(() => {
+        const qStr = (searchParams.get('q') || '').toLowerCase();
+        const slugStr = (slug || '').toLowerCase();
+        const combined = `${slugStr} ${qStr}`
+            .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+            .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+            .replace(/[^a-z0-9]+/g, ' ');
+        const tokens = combined.split(' ').filter(Boolean);
+
+        if (tokens.includes('istanbul')) {
+            setActivePillKey('istanbul');
+        } else if (tokens.includes('antalya')) {
+            setActivePillKey('antalya');
+        } else if (tokens.includes('europe') || tokens.includes('avrupa')) {
+            setActivePillKey('europe');
+        } else if (tokens.includes('middleeast') || tokens.includes('dubai') || tokens.includes('uae')) {
+            setActivePillKey('middle_east');
+        } else if (tokens.length === 1 && (tokens[0] === 'turkey' || tokens[0] === 'turkiye')) {
+            setActivePillKey('turkey');
+        } else {
+            const matchRecent = recentSearchLocations.find(loc => {
+                const locTokens = loc.cityKey.split(/[^a-z0-9]+/).filter(Boolean);
+                return locTokens.some(lt => tokens.includes(lt)) || combined.includes(loc.cityKey);
+            });
+            if (matchRecent) {
+                setActivePillKey('recent-' + matchRecent.cityKey);
+            }
+        }
+    }, [searchParams, slug, recentSearchLocations]);
+
     const [activePoiCategories, setActivePoiCategories] = React.useState({
         transit: false,
         restaurants: false,
@@ -3368,6 +3520,145 @@ const HotelListing = () => {
         });
     }, [handleMapBoundsChange]);
 
+    // Quick map region click handler (admin-frontend PropertyMap style)
+    const handleQuickRegionClick = React.useCallback((region) => {
+        if (!mapInstance || !region) return;
+        setActivePillKey(region.key);
+        setShouldRefitMap(false);
+        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+
+        mapInstance.flyTo(region.center, region.zoom, { duration: 0.85 });
+
+        setTimeout(() => {
+            const b = mapInstance.getBounds();
+            const nw = b.getNorthWest();
+            const se = b.getSouthEast();
+            const boundsData = {
+                bounds: {
+                    topLeft: { lat: nw.lat, lon: nw.lng },
+                    bottomRight: { lat: se.lat, lon: se.lng }
+                },
+                zoom: Math.round(mapInstance.getZoom())
+            };
+            mapBoundsRef.current = boundsData;
+            isMapBoundsSyncRef.current = true;
+            isSyncingQRef.current = true;
+
+            const boundsStr = `${nw.lat.toFixed(5)},${nw.lon.toFixed(5)},${se.lat.toFixed(5)},${se.lon.toFixed(5)}`;
+            setSearchParams(prev => {
+                const next = new URLSearchParams(prev);
+                next.set('bounds', boundsStr);
+                next.set('lat', String(region.center[0]));
+                next.set('lng', String(region.center[1]));
+                next.set('zoom', String(region.zoom));
+                if (region.labelTr || region.labelEn) {
+                    next.set('q', currentLang === 'tr' ? region.labelTr : region.labelEn);
+                }
+                next.delete('regionId');
+                next.delete('locationId');
+                next.delete('togId');
+                return next;
+            }, { replace: true });
+
+            loadMoreHotels(true, boundsData);
+            fetchMapMarkers(boundsData, false, true);
+
+            setTimeout(() => {
+                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                isMapBoundsSyncRef.current = false;
+                isSyncingQRef.current = false;
+            }, 350);
+        }, 900);
+    }, [mapInstance, setSearchParams, loadMoreHotels, fetchMapMarkers, currentLang]);
+
+    // Recent autocomplete location search click handler
+    const handleRecentSearchClick = React.useCallback(async (item) => {
+        if (!mapInstance || !item) return;
+        setActivePillKey('recent-' + item.cityKey);
+        setShouldRefitMap(false);
+        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
+
+        const queryText = item.query || item.cityName || '';
+        let targetCenter = null;
+        let targetZoom = 12;
+
+        const known = resolveKnownCoordinates(queryText) || resolveKnownCoordinates(item.subtitle) || resolveKnownCoordinates(item.cityName);
+        if (known) {
+            targetCenter = [known.center?.[0] || known.lat, known.center?.[1] || known.lng];
+            targetZoom = known.zoom || 12;
+        } else {
+            try {
+                const res = await autocompleteService.search({ query: queryText, page: 0, size: 5 });
+                const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
+                if (match) {
+                    targetCenter = [parseFloat(match.geoCoordinate.lat), parseFloat(match.geoCoordinate.lon || match.geoCoordinate.lng)];
+                    targetZoom = 12;
+                }
+            } catch (err) {
+                console.error('Error fetching coords for history item:', err);
+            }
+        }
+
+        if (targetCenter) {
+            mapInstance.flyTo(targetCenter, targetZoom, { duration: 0.85 });
+
+            setTimeout(() => {
+                const b = mapInstance.getBounds();
+                const nw = b.getNorthWest();
+                const se = b.getSouthEast();
+                const boundsData = {
+                    bounds: {
+                        topLeft: { lat: nw.lat, lon: nw.lng },
+                        bottomRight: { lat: se.lat, lon: se.lng }
+                    },
+                    zoom: Math.round(mapInstance.getZoom())
+                };
+                mapBoundsRef.current = boundsData;
+                isMapBoundsSyncRef.current = true;
+                isSyncingQRef.current = true;
+
+                const boundsStr = `${nw.lat.toFixed(5)},${nw.lon.toFixed(5)},${se.lat.toFixed(5)},${se.lon.toFixed(5)}`;
+                setSearchParams(prev => {
+                    const next = new URLSearchParams(prev);
+                    next.set('bounds', boundsStr);
+                    next.set('lat', String(targetCenter[0]));
+                    next.set('lng', String(targetCenter[1]));
+                    next.set('zoom', String(targetZoom));
+                    next.set('q', item.cityName || queryText);
+                    if (item.targetId) {
+                        const isHotel = (item.searchType === 'HOTEL' || item.type === 'HOTEL' || item.searchType === 'PROPERTY');
+                        if (isHotel) {
+                            next.set('togId', String(item.targetId));
+                            next.delete('regionId');
+                        } else {
+                            next.set('regionId', String(item.targetId));
+                            next.delete('togId');
+                        }
+                    } else {
+                        next.delete('regionId');
+                        next.delete('togId');
+                    }
+                    next.delete('locationId');
+                    return next;
+                }, { replace: true });
+
+                loadMoreHotels(true, boundsData);
+                fetchMapMarkers(boundsData, false, true);
+
+                setTimeout(() => {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    isMapBoundsSyncRef.current = false;
+                    isSyncingQRef.current = false;
+                }, 350);
+            }, 900);
+        } else {
+            // Fallback navigation if coordinates couldn't be resolved
+            const slugPart = buildLocationSlug(queryText) || 'search';
+            navigate(`/travel/hotels/search/${slugPart}?q=${encodeURIComponent(queryText)}&checkin=${searchParams.get('checkin') || ''}&checkout=${searchParams.get('checkout') || ''}&guests=${encodeURIComponent(searchParams.get('guests') || '')}&nationality=${searchParams.get('nationality') || 'TR'}`);
+        }
+    }, [mapInstance, setSearchParams, loadMoreHotels, fetchMapMarkers, navigate, searchParams]);
+
     // Sync autocomplete (q) with map center ONLY after an explicit map bounds search (user exploring map bounds)
     // Never run or overwrite explicit destination / region / hotel / POI searches!
     React.useEffect(() => {
@@ -4644,9 +4935,9 @@ const HotelListing = () => {
                         </MapContainer>
                     </div>
 
-                    {/* Top-left: Expand Button + Show List Button (when expanded) + 4 Category Icons (Google Maps style) */}
-                    <div className="absolute top-3.5 left-3.5 z-[1005] flex flex-col items-start gap-2.5 pointer-events-auto">
-                        <div className="flex items-center gap-2">
+                    {/* Top Controls Bar: Expand/Collapse Button + Show List Button + Quick Regions / Recent Searches (when expanded) */}
+                    <div className="absolute top-3.5 left-3.5 right-[64px] z-[1005] flex items-center gap-2 pointer-events-auto">
+                        <div className="flex items-center gap-2 shrink-0">
                             {/* Map Expansion Toggle (full-width map mode) */}
                             <button
                                 type="button"
@@ -4664,7 +4955,7 @@ const HotelListing = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMapExpanded(false)}
-                                    className="h-10 px-4 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#202124] dark:text-slate-100 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.28)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700 flex items-center gap-2 transition-all duration-200 cursor-pointer group active:scale-95"
+                                    className="h-10 px-4 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#202124] dark:text-slate-100 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.28)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700 flex items-center gap-2 transition-all duration-200 cursor-pointer group active:scale-95 shrink-0"
                                     title={currentLang === 'tr' ? 'Otel listesini tekrar göster' : 'Show hotel list'}
                                 >
                                     <span className="material-symbols-outlined text-[19px] text-[#1a73e8] dark:text-blue-400">
@@ -4682,7 +4973,69 @@ const HotelListing = () => {
                             )}
                         </div>
 
-                        {/* POI Category Icons: 4 Primary + Expandable More Menu */}
+                        {/* Quick Region Presets & Autocomplete Search History (Expanded Map Mode) */}
+                        {isMapExpanded && (
+                            <div className="flex-1 min-w-0 h-10 bg-white/95 dark:bg-[#303134]/95 backdrop-blur-md rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] border border-[#dadce0]/80 dark:border-slate-700/80 px-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-hide animate-in fade-in zoom-in-95 duration-200">
+                                {/* Section 1: Recent Searches from Autocomplete History */}
+                                {recentSearchLocations.length > 0 && (
+                                    <>
+                                        <div className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wider pl-1 pr-1 select-none">
+                                            <span className="material-symbols-outlined text-[15px] text-gray-400 dark:text-slate-400">history</span>
+                                            <span className="hidden md:inline">{currentLang === 'tr' ? 'Son Aramalar:' : 'Recent:'}</span>
+                                        </div>
+
+                                        {recentSearchLocations.map((item) => {
+                                            const isSelected = activePillKey === ('recent-' + item.cityKey);
+                                            return (
+                                                <button
+                                                    key={item.cityKey || item.id}
+                                                    type="button"
+                                                    onClick={() => handleRecentSearchClick(item)}
+                                                    className={`h-7 px-2.5 rounded-full text-[12px] flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 group ${
+                                                        isSelected
+                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold shadow-2xs ring-1 ring-[#1a73e8]/30'
+                                                            : 'text-[#3c4043] dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700/60 font-medium'
+                                                    }`}
+                                                    title={item.query || item.cityName}
+                                                >
+                                                    <span className={`material-symbols-outlined text-[13px] ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-gray-400 group-hover:text-[#1a73e8]'}`}>
+                                                        location_on
+                                                    </span>
+                                                    <span className="truncate max-w-[130px]">{item.cityName}</span>
+                                                </button>
+                                            );
+                                        })}
+
+                                        {/* Divider separating Recent Searches from Presets */}
+                                        <div className="w-[1px] h-4 bg-gray-200 dark:bg-slate-600 mx-1 shrink-0" />
+                                    </>
+                                )}
+
+                                {/* Section 2: Preset Quick Regions (admin-frontend PropertyMap style) */}
+                                {QUICK_MAP_REGIONS.map(reg => {
+                                    const isSelected = activePillKey === reg.key;
+                                    return (
+                                        <button
+                                            key={reg.key}
+                                            type="button"
+                                            onClick={() => handleQuickRegionClick(reg)}
+                                            className={`h-7 px-3 rounded-full text-[12px] transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                                                isSelected
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold shadow-2xs ring-1 ring-[#1a73e8]/30'
+                                                    : 'text-[#3c4043] dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-[#f1f3f4] dark:hover:bg-slate-700/60 font-medium'
+                                            }`}
+                                            title={currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                        >
+                                            {currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* POI Category Icons: 4 Primary + Expandable More Menu */}
+                    <div className="absolute top-[62px] left-3.5 z-[1005] pointer-events-auto">
                         <div className="relative bg-white dark:bg-[#303134] rounded-full shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] flex flex-col items-center py-2 px-1 gap-1">
                             {/* 1. Public Transport */}
                             <button
@@ -4844,7 +5197,7 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top center: Either "Listeyi güncelle" (when map moved & manual mode) OR "Harita hareket ettiğinde listeyi güncelle" toggle */}
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2">
+                    <div className={`absolute ${isMapExpanded ? 'top-[62px]' : 'top-4'} left-1/2 -translate-x-1/2 z-[1005] pointer-events-auto flex items-center gap-2 transition-all duration-300`}>
                         {mapMoved && !searchOnMapMove ? (
                             <button
                                 type="button"

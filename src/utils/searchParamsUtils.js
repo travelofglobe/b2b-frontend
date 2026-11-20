@@ -206,6 +206,8 @@ export const KNOWN_DESTINATIONS = {
     denizli: { lat: 37.7765, lng: 29.0864 },
     pamukkale: { lat: 37.9137, lng: 29.1187 },
     bolu: { lat: 40.7358, lng: 31.6061 },
+    safranbolu: { lat: 41.2508, lng: 32.6942 },
+    karabuk: { lat: 41.2061, lng: 32.6204 },
     sapanca: { lat: 40.6931, lng: 30.2644 },
     yalova: { lat: 40.6549, lng: 29.2842 },
     canakkale: { lat: 40.1553, lng: 26.4142 },
@@ -241,31 +243,36 @@ export const resolveKnownCoordinates = (str) => {
         return null;
     }
 
-    // Check primary part before comma first (e.g. "Antalya, Türkiye" -> "Antalya")
-    const primaryPart = lower.split(',')[0].trim();
-    const cleanPrimary = primaryPart
+    const tokens = lower
         .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
         .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-        .replace(/[^a-z0-9]/g, '');
+        .split(/[^a-z0-9]+/)
+        .filter(Boolean);
 
-    if (cleanPrimary) {
-        for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-            if (cleanPrimary === key || (cleanPrimary.startsWith(key) && cleanPrimary.length <= key.length + 3)) {
-                return val;
-            }
-        }
-    }
+    if (tokens.length === 0) return null;
 
-    const clean = lower
-        .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
-        .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-        .replace(/[^a-z0-9]/g, '');
-    if (!clean) return null;
+    // 1. Exact first token match (e.g. "Safranbolu, Karabük" -> tokens[0] is "safranbolu")
     for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
-        if (clean === key || (clean.startsWith(key) && clean.length <= key.length + 3) || clean.includes(key)) {
+        if (tokens[0] === key) {
             return val;
         }
     }
+
+    // 2. Exact word token match (e.g. "Safranbolu City Center" -> tokens has "safranbolu")
+    for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+        if (tokens.includes(key)) {
+            return val;
+        }
+    }
+
+    // 3. Combined word match for multi-word keys (e.g. "new york" -> "newyork")
+    const joined = tokens.join('');
+    for (const [key, val] of Object.entries(KNOWN_DESTINATIONS)) {
+        if (joined === key || (key.length >= 6 && joined.startsWith(key))) {
+            return val;
+        }
+    }
+
     return null;
 };
 

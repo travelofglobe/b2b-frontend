@@ -5669,7 +5669,7 @@ const HotelListing = () => {
 
                 {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
                 <div
-                    className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000] shadow-[-2px_0_8px_rgba(0,0,0,0.08),-1px_0_2px_rgba(0,0,0,0.04)] dark:shadow-[-2px_0_12px_rgba(0,0,0,0.4)]"
+                    className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2070] shadow-[-2px_0_8px_rgba(0,0,0,0.08),-1px_0_2px_rgba(0,0,0,0.04)] dark:shadow-[-2px_0_12px_rgba(0,0,0,0.4)]"
                     onMouseEnter={handleFavMouseEnter}
                     onMouseLeave={handleFavMouseLeave}
                 >

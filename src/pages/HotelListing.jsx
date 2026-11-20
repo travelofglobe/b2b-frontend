@@ -1919,6 +1919,7 @@ const HotelListing = () => {
     // Map expansion & POI category states
     const [isMapExpanded, setIsMapExpanded] = React.useState(false);
     const [isMapFilterBarOpen, setIsMapFilterBarOpen] = React.useState(false);
+    const [shouldRenderFilterBar, setShouldRenderFilterBar] = React.useState(false);
     const [isFilterBarAnimated, setIsFilterBarAnimated] = React.useState(false);
     const [isMapStarOpen, setIsMapStarOpen] = React.useState(false);
     const mapStarDropdownRef = React.useRef(null);
@@ -1958,14 +1959,21 @@ const HotelListing = () => {
         }
     }, [isMapExpanded, recentSearchLocations, updatePillScrollState]);
 
-    // Handle filter bar slide animation and overflow-visible transition
+    // Handle filter bar slide animation, mounting, and overflow-visible transition
     React.useEffect(() => {
+        let unmountTimer;
+        let animatedTimer;
         if (isMapFilterBarOpen) {
-            const timer = setTimeout(() => setIsFilterBarAnimated(true), 320);
-            return () => clearTimeout(timer);
+            setShouldRenderFilterBar(true);
+            animatedTimer = setTimeout(() => setIsFilterBarAnimated(true), 320);
         } else {
             setIsFilterBarAnimated(false);
+            unmountTimer = setTimeout(() => setShouldRenderFilterBar(false), 310);
         }
+        return () => {
+            if (animatedTimer) clearTimeout(animatedTimer);
+            if (unmountTimer) clearTimeout(unmountTimer);
+        };
     }, [isMapFilterBarOpen]);
 
     // Outside click listener for expanded map star filter popover
@@ -4978,7 +4986,7 @@ const HotelListing = () => {
 
                     {/* Flush Top Header Bar (admin-frontend PropertyMap style) when map is expanded */}
                     {isMapExpanded && (
-                        <header className="h-[56px] shrink-0 w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-slate-700 px-3.5 flex items-center justify-between gap-2.5 z-[2060] select-none shadow-[0_1px_3px_rgba(0,0,0,0.06)] animate-in fade-in duration-200">
+                        <header className="h-[56px] shrink-0 w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-slate-700 px-3.5 flex items-center justify-between gap-2.5 z-[2060] select-none animate-in fade-in duration-200">
                             {/* Left: Otel Listesi Button + Divider + Recent Searches + Presets */}
                             <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                                 <button
@@ -5138,12 +5146,12 @@ const HotelListing = () => {
                     )}
 
                     {/* Collapsible Single-Row Sleek Filter Bar with Smooth Height Animation */}
-                    {isMapExpanded && (
+                    {isMapExpanded && shouldRenderFilterBar && (
                         <div
-                            className={`w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] shadow-xs transition-[height,opacity,border-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
+                            className={`w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-[height,opacity,border-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
                                 isMapFilterBarOpen
-                                    ? `h-[52px] opacity-100 border-b border-[#dadce0] dark:border-slate-700 ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
-                                    : 'h-0 opacity-0 border-b border-transparent overflow-hidden pointer-events-none'
+                                    ? `h-[52px] opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-xs ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
+                                    : 'h-0 opacity-0 border-b border-transparent shadow-none overflow-hidden pointer-events-none'
                             }`}
                         >
                             <div className={`w-full h-full flex items-center gap-2 flex-nowrap ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`}>
@@ -5282,8 +5290,10 @@ const HotelListing = () => {
                     )}
 
                     <div className="flex-1 relative overflow-hidden">
-                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
-                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
+                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map (only in split mode) */}
+                    {!isMapExpanded && (
+                        <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
+                    )}
 
                     <div className={`w-full h-full transition-opacity duration-700 ease-out ${isMapReady ? 'opacity-100' : 'opacity-0'}`}>
                         <MapContainer
@@ -5685,7 +5695,7 @@ const HotelListing = () => {
 
                 {/* Favorites Overlay Drawer (Floats over the map without changing map dimensions) */}
                 <div
-                    className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2010] transform transition-transform duration-300 ease-in-out ${isFavOpen
+                    className={`absolute top-0 right-0 h-full w-[380px] bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[3000] transform transition-transform duration-300 ease-in-out ${isFavOpen
                             ? 'translate-x-0 pointer-events-auto shadow-[-8px_0_24px_rgba(0,0,0,0.16),-2px_0_6px_rgba(0,0,0,0.08)] dark:shadow-[-8px_0_32px_rgba(0,0,0,0.6)]'
                             : 'translate-x-full pointer-events-none'
                         }`}

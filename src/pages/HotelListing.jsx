@@ -5006,20 +5006,17 @@ const HotelListing = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMapExpanded(false)}
-                                    className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 flex items-center gap-2 transition-all cursor-pointer shrink-0 font-medium text-xs border border-slate-200 dark:border-slate-700 group active:scale-95"
-                                    title={currentLang === 'tr' ? 'Otel listesini tekrar göster' : 'Show hotel list'}
+                                    className="h-8 pl-2 pr-3.5 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 hover:border-[#1a73e8]/50 hover:bg-blue-50/40 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer shrink-0 text-xs group active:scale-95"
+                                    title={currentLang === 'tr' ? 'Otel listesini göster' : 'Show hotel list'}
                                 >
-                                    <span className="material-symbols-outlined text-[17px] text-[#1a73e8] dark:text-blue-400 group-hover:scale-110 transition-transform">
-                                        view_list
-                                    </span>
-                                    <span className="font-semibold whitespace-nowrap">
+                                    <div className="w-5 h-5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/50 flex items-center justify-center text-[#1a73e8] dark:text-blue-300 group-hover:bg-[#1a73e8] group-hover:text-white transition-all duration-200">
+                                        <span className="material-symbols-outlined text-[13px] group-hover:-translate-x-0.5 transition-transform" style={{ fontVariationSettings: "'wght' 700" }}>
+                                            chevron_left
+                                        </span>
+                                    </div>
+                                    <span className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-[#1a73e8] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                                         {currentLang === 'tr' ? 'Otel Listesi' : 'Hotel List'}
                                     </span>
-                                    {(rawHotelCount || lastKnownHotelCount) > 0 && (
-                                        <span className="px-1.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 text-[10px] font-bold">
-                                            {(rawHotelCount || lastKnownHotelCount).toLocaleString('tr-TR')}
-                                        </span>
-                                    )}
                                 </button>
 
                                 <div className="w-[1px] h-5 bg-slate-200 dark:bg-slate-700 shrink-0 mx-0.5" />

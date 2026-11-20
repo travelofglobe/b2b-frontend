@@ -638,42 +638,76 @@ const BookingDetail = () => {
     const internalHotelId = propertySummary?.togId || booking?.hotel?.internalHotelId || null;
     const supplierDisplayName = booking?.supplier?.name || booking?.hotel?.supplier?.name || 'Expedia';
 
-    const CopyBadge = ({ label, value, copyId, icon, isPrimary = false, onClickValue = null }) => {
+    const CopyBadge = ({ label, value, copyId, icon, isPrimary = false, onClickValue = null, color = 'default' }) => {
         if (!value) return null;
         const isCopied = copiedText === copyId;
 
+        let containerClass = "bg-[#f8f9fa] dark:bg-[#303134] border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:border-[#1a73e8]/40";
+        let iconBoxClass = "bg-slate-200/70 dark:bg-[#3c4043] text-[#5f6368] dark:text-slate-300";
+        let labelClass = "text-[#70757a] dark:text-slate-400";
+        let valueClass = "text-[#202124] dark:text-white";
+        let actionBtnClass = "text-[#70757a] hover:text-[#1a73e8] hover:bg-black/5 dark:hover:bg-white/10";
+
+        if (isPrimary) {
+            containerClass = "bg-blue-50/70 dark:bg-blue-950/30 border-blue-200/90 dark:border-blue-800/60 text-blue-900 dark:text-blue-200 hover:border-blue-400 dark:hover:border-blue-700";
+            iconBoxClass = "bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300";
+            labelClass = "text-blue-700/80 dark:text-blue-300/80";
+            valueClass = "text-blue-950 dark:text-blue-100";
+            actionBtnClass = "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 hover:bg-blue-100/60 dark:hover:bg-blue-900/50";
+        } else if (color === 'purple' || label?.toLowerCase().includes('voucher')) {
+            containerClass = "bg-purple-50/60 dark:bg-purple-950/25 border-purple-200/80 dark:border-purple-800/50 text-purple-950 dark:text-purple-200 hover:border-purple-300 dark:hover:border-purple-700";
+            iconBoxClass = "bg-purple-100/80 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300";
+            labelClass = "text-purple-700/80 dark:text-purple-300/80";
+            valueClass = "text-purple-950 dark:text-purple-100";
+            actionBtnClass = "text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 hover:bg-purple-100/60 dark:hover:bg-purple-900/50";
+        }
+
         return (
-            <div className={`inline-flex items-center h-8 rounded-xl border transition-all text-xs shadow-2xs overflow-hidden ${
-                isPrimary
-                    ? 'bg-[#137fec]/10 border-[#137fec]/30 text-[#137fec] hover:border-[#137fec]/60'
-                    : 'bg-white dark:bg-[#303134] border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:border-[#137fec]/40'
-            }`}>
+            <div className={`inline-flex items-center gap-1.5 pl-1.5 pr-1 py-1 rounded-xl border text-xs shadow-2xs transition-all ${containerClass}`}>
+                {/* Left: Icon Pill */}
+                {icon && (
+                    <span className={`size-5 rounded-md flex items-center justify-center shrink-0 ${iconBoxClass}`}>
+                        <span className="material-symbols-outlined text-[13px]">{icon}</span>
+                    </span>
+                )}
+
+                {/* Middle: Label & Value */}
                 {onClickValue ? (
                     <button
                         type="button"
                         onClick={onClickValue}
-                        className="inline-flex items-center gap-1.5 px-3 h-full cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-mono"
+                        className="inline-flex items-center gap-1 font-mono text-left cursor-pointer hover:underline decoration-current/40 group"
                         title={`${label}: ${value}`}
                     >
-                        {icon && <span className="material-symbols-outlined text-[15px] opacity-75 shrink-0">{icon}</span>}
-                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 font-sans">{label}:</span>
-                        <strong className="font-bold text-xs truncate max-w-[200px]">{value}</strong>
-                        <span className="material-symbols-outlined text-[13px] opacity-75">open_in_new</span>
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider font-sans select-none ${labelClass}`}>
+                            {label}:
+                        </span>
+                        <span className={`font-bold text-xs truncate max-w-[180px] sm:max-w-[220px] ${valueClass}`}>
+                            {value}
+                        </span>
+                        <span className="material-symbols-outlined text-[13px] opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
+                            open_in_new
+                        </span>
                     </button>
                 ) : (
-                    <div className="inline-flex items-center gap-1.5 px-3 h-full font-mono">
-                        {icon && <span className="material-symbols-outlined text-[15px] opacity-75 shrink-0">{icon}</span>}
-                        <span className="text-[10px] font-semibold uppercase tracking-wider opacity-70 font-sans">{label}:</span>
-                        <span className="font-bold text-xs truncate max-w-[200px]">{value}</span>
+                    <div className="inline-flex items-center gap-1 font-mono">
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider font-sans select-none ${labelClass}`}>
+                            {label}:
+                        </span>
+                        <span className={`font-bold text-xs truncate max-w-[180px] sm:max-w-[220px] ${valueClass}`}>
+                            {value}
+                        </span>
                     </div>
                 )}
+
+                {/* Right: Copy Button */}
                 <button
                     type="button"
                     onClick={() => handleCopy(value, copyId)}
-                    className="px-2 h-full flex items-center justify-center border-l border-inherit hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[#70757a] hover:text-[#137fec]"
-                    title={`Kopyala: ${label}`}
+                    className={`size-6 rounded-md flex items-center justify-center cursor-pointer transition-colors shrink-0 ml-0.5 ${actionBtnClass}`}
+                    title={currentLang === 'tr' ? `Kopyala: ${label}` : `Copy: ${label}`}
                 >
-                    <span className="material-symbols-outlined text-[15px]">
+                    <span className="material-symbols-outlined text-[14px]">
                         {isCopied ? 'check' : 'content_copy'}
                     </span>
                 </button>
@@ -895,14 +929,14 @@ const BookingDetail = () => {
                     {/* Top Row: Hotel Media & Details Showcase */}
                     <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#dadce0] dark:border-[#3c4043]">
                         {/* Hotel Media Showcase & Info */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-stretch gap-5 min-w-0 flex-1 w-full">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 min-w-0 flex-1 w-full">
                             {/* Hero Hotel Photo Container */}
                             <div
                                 onClick={() => {
                                     if (heroImage) setShowImageLightbox(true);
                                     else if (internalHotelId) navigate(`/travel/hotels/detail/${internalHotelId}`);
                                 }}
-                                className="relative group w-full sm:w-56 md:w-64 lg:w-72 sm:self-stretch min-h-[170px] md:min-h-[185px] rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] shadow-2xs shrink-0 cursor-pointer"
+                                className="relative group w-full sm:w-60 md:w-64 lg:w-72 h-44 sm:h-48 md:h-52 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] shadow-2xs shrink-0 cursor-pointer"
                                 title={heroImage ? (currentLang === 'tr' ? "Fotoğrafı Büyüt" : "Zoom Photo") : (currentLang === 'tr' ? "Otel Sayfasına Git" : "Go to Hotel Page")}
                             >
                                 {heroImage ? (
@@ -910,7 +944,7 @@ const BookingDetail = () => {
                                         <img
                                             src={heroImage}
                                             alt={hotelName}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2.5">
                                             <span className="text-[11px] font-bold text-white flex items-center gap-1 drop-shadow">
@@ -926,14 +960,14 @@ const BookingDetail = () => {
                                         )}
                                     </>
                                 ) : propertyLoading ? (
-                                    <div className="w-full h-full min-h-[170px] flex flex-col items-center justify-center animate-pulse bg-slate-100 dark:bg-[#303134] text-slate-400">
+                                    <div className="w-full h-full flex flex-col items-center justify-center animate-pulse bg-slate-100 dark:bg-[#303134] text-slate-400">
                                         <span className="material-symbols-outlined text-[24px] animate-spin text-[#137fec]">sync</span>
                                         <span className="text-[11px] font-semibold text-slate-400 mt-2">
                                             {currentLang === 'tr' ? 'Otel görseli yükleniyor...' : 'Loading hotel image...'}
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className="w-full h-full min-h-[170px] flex flex-col items-center justify-center bg-gradient-to-br from-[#137fec] to-[#0b5baf] text-white">
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#137fec] to-[#0b5baf] text-white">
                                         <span className="material-symbols-outlined text-[36px]">hotel</span>
                                         <span className="text-xs font-semibold mt-1">Travel Of Globe</span>
                                     </div>
@@ -941,7 +975,7 @@ const BookingDetail = () => {
                             </div>
 
                             {/* Hotel Details & Metadata Column */}
-                            <div className="min-w-0 flex-1 flex flex-col justify-between py-0.5 space-y-3">
+                            <div className="min-w-0 flex-1 flex flex-col justify-center gap-2.5 sm:gap-3 py-1">
                                 {/* Stars & Location & Refundable row */}
                                 <div className="flex flex-wrap items-center gap-2">
                                     {/* Star Rating */}
@@ -1011,75 +1045,71 @@ const BookingDetail = () => {
                                     </h1>
                                 </div>
 
-                                {/* Structured ID Ribbon Rows */}
-                                <div className="space-y-2 pt-0.5">
-                                    {/* Line 1: Hotel Identifiers */}
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {/* TOG Hotel ID */}
-                                        {internalHotelId && (
-                                            <CopyBadge
-                                                label="TOG Hotel ID"
-                                                value={internalHotelId}
-                                                copyId="hero-tog-hotel-id"
-                                                icon="apartment"
-                                                isPrimary={true}
-                                                onClickValue={() => navigate(`/travel/hotels/detail/${internalHotelId}`)}
-                                            />
-                                        )}
+                                {/* Structured ID Ribbon */}
+                                <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                                    {/* TOG Hotel ID */}
+                                    {internalHotelId && (
+                                        <CopyBadge
+                                            label="TOG Hotel ID"
+                                            value={internalHotelId}
+                                            copyId="hero-tog-hotel-id"
+                                            icon="apartment"
+                                            isPrimary={true}
+                                            onClickValue={() => navigate(`/travel/hotels/detail/${internalHotelId}`)}
+                                        />
+                                    )}
 
-                                        {/* Supplier / Expedia Hotel ID */}
-                                        {booking.hotel?.supplierHotelId && (
-                                            <CopyBadge
-                                                label={`${supplierDisplayName} ID`}
-                                                value={booking.hotel.supplierHotelId}
-                                                copyId="hero-sup-hotel-id"
-                                                icon="travel_explore"
-                                            />
-                                        )}
+                                    {/* Voucher */}
+                                    {booking.voucher && (
+                                        <CopyBadge
+                                            label="Voucher"
+                                            value={booking.voucher}
+                                            copyId="hero-voucher"
+                                            icon="receipt_long"
+                                            color="purple"
+                                        />
+                                    )}
 
-                                        {/* DB ID */}
-                                        {booking.hotel?.dbId && (
-                                            <CopyBadge
-                                                label="DB ID"
-                                                value={booking.hotel.dbId}
-                                                copyId="hero-db-id"
-                                                icon="database"
-                                            />
-                                        )}
-                                    </div>
+                                    {/* Supplier / Expedia Hotel ID */}
+                                    {booking.hotel?.supplierHotelId && (
+                                        <CopyBadge
+                                            label={`${supplierDisplayName} ID`}
+                                            value={booking.hotel.supplierHotelId}
+                                            copyId="hero-sup-hotel-id"
+                                            icon="travel_explore"
+                                        />
+                                    )}
 
-                                    {/* Line 2: Booking Vouchers & Client Ref */}
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        {/* Voucher */}
-                                        {booking.voucher && (
-                                            <CopyBadge
-                                                label="Voucher"
-                                                value={booking.voucher}
-                                                copyId="hero-voucher"
-                                                icon="receipt_long"
-                                            />
-                                        )}
+                                    {/* Supplier Voucher */}
+                                    {booking.hotel?.supplierVoucher && (
+                                        <CopyBadge
+                                            label="Supplier Voucher"
+                                            value={booking.hotel.supplierVoucher}
+                                            copyId="hero-sup-voucher"
+                                            icon="confirmation_number"
+                                            color="purple"
+                                        />
+                                    )}
 
-                                        {/* Supplier Voucher */}
-                                        {booking.hotel?.supplierVoucher && (
-                                            <CopyBadge
-                                                label="Supplier Voucher"
-                                                value={booking.hotel.supplierVoucher}
-                                                copyId="hero-sup-voucher"
-                                                icon="confirmation_number"
-                                            />
-                                        )}
+                                    {/* DB ID */}
+                                    {booking.hotel?.dbId && (
+                                        <CopyBadge
+                                            label="DB ID"
+                                            value={booking.hotel.dbId}
+                                            copyId="hero-db-id"
+                                            icon="database"
+                                        />
+                                    )}
 
-                                        {/* Client Reference */}
-                                        {booking.clientReferenceId && (
-                                            <CopyBadge
-                                                label="Ref"
-                                                value={booking.clientReferenceId}
-                                                copyId="hero-client-ref"
-                                                icon="tag"
-                                            />
-                                        )}
-                                    </div>
+                                    {/* Client Reference */}
+                                    {booking.clientReferenceId && (
+                                        <CopyBadge
+                                            label="Ref"
+                                            value={booking.clientReferenceId}
+                                            copyId="hero-client-ref"
+                                            icon="tag"
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </div>

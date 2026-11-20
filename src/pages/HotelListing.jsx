@@ -1920,6 +1920,7 @@ const HotelListing = () => {
     const [isMapExpanded, setIsMapExpanded] = React.useState(false);
     const [recentSearchLocations, setRecentSearchLocations] = React.useState([]);
     const [activePillKey, setActivePillKey] = React.useState(null);
+    const isUserPillClickRef = React.useRef(false);
 
     // Fetch user recent search locations when map is expanded (excluding preset cities like Istanbul/Antalya to prevent duplicates)
     React.useEffect(() => {
@@ -1993,36 +1994,65 @@ const HotelListing = () => {
             fetchRecentLocations();
         }
         return () => { isCancelled = true; };
-    }, [isMapExpanded]);
+    }, [isMapExpanded, searchParams]);
 
     // Sync active quick region key with current search destination (strict matching so ONLY ONE pill is active)
     React.useEffect(() => {
-        const qStr = (searchParams.get('q') || '').toLowerCase();
-        const slugStr = (slug || '').toLowerCase();
-        const combined = `${slugStr} ${qStr}`
-            .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
-            .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
-            .replace(/[^a-z0-9]+/g, ' ');
-        const tokens = combined.split(' ').filter(Boolean);
+        if (isUserPillClickRef.current) return;
 
-        if (tokens.includes('istanbul')) {
+        const getTokens = (str) => {
+            if (!str) return [];
+            return str
+                .toLowerCase()
+                .replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u')
+                .replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .split(/[^a-z0-9]+/)
+                .filter(Boolean);
+        };
+
+        const currentQ = searchParams.get('q');
+        const qTokens = getTokens(currentQ);
+        const slugTokens = getTokens(slug);
+        // Prioritize explicit search query (q) over route slug so changing destination clears previous slug match
+        const activeTokens = qTokens.length > 0 ? qTokens : slugTokens;
+
+        if (activeTokens.length === 0) {
+            setActivePillKey(null);
+            return;
+        }
+
+        // 1. Presets (exact token match)
+        if (activeTokens.includes('istanbul')) {
             setActivePillKey('istanbul');
-        } else if (tokens.includes('antalya')) {
+            return;
+        }
+        if (activeTokens.includes('antalya')) {
             setActivePillKey('antalya');
-        } else if (tokens.includes('europe') || tokens.includes('avrupa')) {
+            return;
+        }
+        if (activeTokens.includes('europe') || activeTokens.includes('avrupa')) {
             setActivePillKey('europe');
-        } else if (tokens.includes('middleeast') || tokens.includes('dubai') || tokens.includes('uae')) {
+            return;
+        }
+        if (activeTokens.includes('middleeast') || activeTokens.includes('dubai') || activeTokens.includes('uae')) {
             setActivePillKey('middle_east');
-        } else if (tokens.length === 1 && (tokens[0] === 'turkey' || tokens[0] === 'turkiye')) {
+            return;
+        }
+        if (activeTokens.length === 1 && (activeTokens[0] === 'turkey' || activeTokens[0] === 'turkiye')) {
             setActivePillKey('turkey');
+            return;
+        }
+
+        // 2. Recent searches: match item whose tokens overlap with activeTokens
+        const matchRecent = recentSearchLocations.find(loc => {
+            const locTokens = getTokens(loc.cityName || loc.query || loc.cityKey);
+            return locTokens.some(lt => activeTokens.includes(lt));
+        });
+
+        if (matchRecent) {
+            setActivePillKey('recent-' + matchRecent.cityKey);
         } else {
-            const matchRecent = recentSearchLocations.find(loc => {
-                const locTokens = loc.cityKey.split(/[^a-z0-9]+/).filter(Boolean);
-                return locTokens.some(lt => tokens.includes(lt)) || combined.includes(loc.cityKey);
-            });
-            if (matchRecent) {
-                setActivePillKey('recent-' + matchRecent.cityKey);
-            }
+            setActivePillKey(null);
         }
     }, [searchParams, slug, recentSearchLocations]);
 
@@ -3435,9 +3465,9 @@ const HotelListing = () => {
         const nw = boundsData.bounds.topLeft;
         const se = boundsData.bounds.bottomRight;
         const centerLat = ((nw.lat + se.lat) / 2).toFixed(5);
-        const centerLng = ((nw.lon + se.lon) / 2).toFixed(5);
+        const centerLng = (((nw.lng ?? nw.lon) + (se.lng ?? se.lon)) / 2).toFixed(5);
         const currentZoom = boundsData.zoom || (mapInstance?.getZoom ? Math.round(mapInstance.getZoom()) : 12);
-        const boundsStr = `${nw.lat.toFixed(5)},${nw.lon.toFixed(5)},${se.lat.toFixed(5)},${se.lon.toFixed(5)}`;
+        const boundsStr = `${nw.lat.toFixed(5)},${(nw.lng ?? nw.lon).toFixed(5)},${se.lat.toFixed(5)},${(se.lng ?? se.lon).toFixed(5)}`;
 
         isMapBoundsSyncRef.current = true;
         isSyncingQRef.current = true;
@@ -3523,6 +3553,7 @@ const HotelListing = () => {
     // Quick map region click handler (admin-frontend PropertyMap style)
     const handleQuickRegionClick = React.useCallback((region) => {
         if (!mapInstance || !region) return;
+        isUserPillClickRef.current = true;
         setActivePillKey(region.key);
         setShouldRefitMap(false);
         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
@@ -3530,50 +3561,56 @@ const HotelListing = () => {
         mapInstance.flyTo(region.center, region.zoom, { duration: 0.85 });
 
         setTimeout(() => {
-            const b = mapInstance.getBounds();
-            const nw = b.getNorthWest();
-            const se = b.getSouthEast();
-            const boundsData = {
-                bounds: {
-                    topLeft: { lat: nw.lat, lon: nw.lng },
-                    bottomRight: { lat: se.lat, lon: se.lng }
-                },
-                zoom: Math.round(mapInstance.getZoom())
-            };
-            mapBoundsRef.current = boundsData;
-            isMapBoundsSyncRef.current = true;
-            isSyncingQRef.current = true;
+            try {
+                const b = mapInstance.getBounds();
+                const nw = b.getNorthWest();
+                const se = b.getSouthEast();
+                const boundsData = {
+                    bounds: {
+                        topLeft: { lat: nw.lat, lon: (nw.lng ?? nw.lon) },
+                        bottomRight: { lat: se.lat, lon: (se.lng ?? se.lon) }
+                    },
+                    zoom: Math.round(mapInstance.getZoom())
+                };
+                mapBoundsRef.current = boundsData;
+                isMapBoundsSyncRef.current = true;
+                isSyncingQRef.current = true;
 
-            const boundsStr = `${nw.lat.toFixed(5)},${nw.lon.toFixed(5)},${se.lat.toFixed(5)},${se.lon.toFixed(5)}`;
-            setSearchParams(prev => {
-                const next = new URLSearchParams(prev);
-                next.set('bounds', boundsStr);
-                next.set('lat', String(region.center[0]));
-                next.set('lng', String(region.center[1]));
-                next.set('zoom', String(region.zoom));
-                if (region.labelTr || region.labelEn) {
-                    next.set('q', currentLang === 'tr' ? region.labelTr : region.labelEn);
-                }
-                next.delete('regionId');
-                next.delete('locationId');
-                next.delete('togId');
-                return next;
-            }, { replace: true });
+                const boundsStr = `${nw.lat.toFixed(5)},${(nw.lng ?? nw.lon).toFixed(5)},${se.lat.toFixed(5)},${(se.lng ?? se.lon).toFixed(5)}`;
+                setSearchParams(prev => {
+                    const next = new URLSearchParams(prev);
+                    next.set('bounds', boundsStr);
+                    next.set('lat', String(region.center[0]));
+                    next.set('lng', String(region.center[1]));
+                    next.set('zoom', String(region.zoom));
+                    if (region.labelTr || region.labelEn) {
+                        next.set('q', currentLang === 'tr' ? region.labelTr : region.labelEn);
+                    }
+                    next.delete('regionId');
+                    next.delete('locationId');
+                    next.delete('togId');
+                    return next;
+                }, { replace: true });
 
-            loadMoreHotels(true, boundsData);
-            fetchMapMarkers(boundsData, false, true);
-
-            setTimeout(() => {
-                if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                isMapBoundsSyncRef.current = false;
-                isSyncingQRef.current = false;
-            }, 350);
+                loadMoreHotels(true, boundsData);
+                fetchMapMarkers(boundsData, false, true);
+            } catch (err) {
+                console.error('Error in handleQuickRegionClick:', err);
+            } finally {
+                setTimeout(() => {
+                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                    isMapBoundsSyncRef.current = false;
+                    isSyncingQRef.current = false;
+                    isUserPillClickRef.current = false;
+                }, 350);
+            }
         }, 900);
     }, [mapInstance, setSearchParams, loadMoreHotels, fetchMapMarkers, currentLang]);
 
     // Recent autocomplete location search click handler
     const handleRecentSearchClick = React.useCallback(async (item) => {
         if (!mapInstance || !item) return;
+        isUserPillClickRef.current = true;
         setActivePillKey('recent-' + item.cityKey);
         setShouldRefitMap(false);
         if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = true;
@@ -3604,56 +3641,63 @@ const HotelListing = () => {
             mapInstance.flyTo(targetCenter, targetZoom, { duration: 0.85 });
 
             setTimeout(() => {
-                const b = mapInstance.getBounds();
-                const nw = b.getNorthWest();
-                const se = b.getSouthEast();
-                const boundsData = {
-                    bounds: {
-                        topLeft: { lat: nw.lat, lon: nw.lng },
-                        bottomRight: { lat: se.lat, lon: se.lng }
-                    },
-                    zoom: Math.round(mapInstance.getZoom())
-                };
-                mapBoundsRef.current = boundsData;
-                isMapBoundsSyncRef.current = true;
-                isSyncingQRef.current = true;
+                try {
+                    const b = mapInstance.getBounds();
+                    const nw = b.getNorthWest();
+                    const se = b.getSouthEast();
+                    const boundsData = {
+                        bounds: {
+                            topLeft: { lat: nw.lat, lon: (nw.lng ?? nw.lon) },
+                            bottomRight: { lat: se.lat, lon: (se.lng ?? se.lon) }
+                        },
+                        zoom: Math.round(mapInstance.getZoom())
+                    };
+                    mapBoundsRef.current = boundsData;
+                    isMapBoundsSyncRef.current = true;
+                    isSyncingQRef.current = true;
 
-                const boundsStr = `${nw.lat.toFixed(5)},${nw.lon.toFixed(5)},${se.lat.toFixed(5)},${se.lon.toFixed(5)}`;
-                setSearchParams(prev => {
-                    const next = new URLSearchParams(prev);
-                    next.set('bounds', boundsStr);
-                    next.set('lat', String(targetCenter[0]));
-                    next.set('lng', String(targetCenter[1]));
-                    next.set('zoom', String(targetZoom));
-                    next.set('q', item.cityName || queryText);
-                    if (item.targetId) {
-                        const isHotel = (item.searchType === 'HOTEL' || item.type === 'HOTEL' || item.searchType === 'PROPERTY');
-                        if (isHotel) {
-                            next.set('togId', String(item.targetId));
-                            next.delete('regionId');
+                    const boundsStr = `${nw.lat.toFixed(5)},${(nw.lng ?? nw.lon).toFixed(5)},${se.lat.toFixed(5)},${(se.lng ?? se.lon).toFixed(5)}`;
+                    setSearchParams(prev => {
+                        const next = new URLSearchParams(prev);
+                        next.set('bounds', boundsStr);
+                        next.set('lat', String(targetCenter[0]));
+                        next.set('lng', String(targetCenter[1]));
+                        next.set('zoom', String(targetZoom));
+                        next.set('q', item.cityName || queryText);
+                        if (item.targetId) {
+                            const isHotel = (item.searchType === 'HOTEL' || item.type === 'HOTEL' || item.searchType === 'PROPERTY');
+                            if (isHotel) {
+                                next.set('togId', String(item.targetId));
+                                next.delete('regionId');
+                            } else {
+                                next.set('regionId', String(item.targetId));
+                                next.delete('togId');
+                            }
                         } else {
-                            next.set('regionId', String(item.targetId));
+                            next.delete('regionId');
                             next.delete('togId');
                         }
-                    } else {
-                        next.delete('regionId');
-                        next.delete('togId');
-                    }
-                    next.delete('locationId');
-                    return next;
-                }, { replace: true });
+                        next.delete('locationId');
+                        return next;
+                    }, { replace: true });
 
-                loadMoreHotels(true, boundsData);
-                fetchMapMarkers(boundsData, false, true);
-
-                setTimeout(() => {
-                    if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
-                    isMapBoundsSyncRef.current = false;
-                    isSyncingQRef.current = false;
-                }, 350);
+                    loadMoreHotels(true, boundsData);
+                    fetchMapMarkers(boundsData, false, true);
+                } catch (err) {
+                    console.error('Error in handleRecentSearchClick:', err);
+                } finally {
+                    setTimeout(() => {
+                        if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
+                        isMapBoundsSyncRef.current = false;
+                        isSyncingQRef.current = false;
+                        isUserPillClickRef.current = false;
+                    }, 350);
+                }
             }, 900);
         } else {
             // Fallback navigation if coordinates couldn't be resolved
+            isUserPillClickRef.current = false;
+            if (isProgrammaticMoveRef) isProgrammaticMoveRef.current = false;
             const slugPart = buildLocationSlug(queryText) || 'search';
             navigate(`/travel/hotels/search/${slugPart}?q=${encodeURIComponent(queryText)}&checkin=${searchParams.get('checkin') || ''}&checkout=${searchParams.get('checkout') || ''}&guests=${encodeURIComponent(searchParams.get('guests') || '')}&nationality=${searchParams.get('nationality') || 'TR'}`);
         }

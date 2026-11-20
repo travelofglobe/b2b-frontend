@@ -1927,6 +1927,9 @@ const HotelListing = () => {
     const [activePillKey, setActivePillKey] = React.useState(null);
     const isUserPillClickRef = React.useRef(false);
 
+    // Stable hotel count to prevent layout shift while loading new locations
+    const [lastKnownHotelCount, setLastKnownHotelCount] = React.useState(0);
+
     // Pill scroll states & refs
     const [canScrollPillsLeft, setCanScrollPillsLeft] = React.useState(false);
     const [canScrollPillsRight, setCanScrollPillsRight] = React.useState(false);
@@ -2788,6 +2791,15 @@ const HotelListing = () => {
         }
         return filtered;
     }, [hotels, searchParams, isPriceActive, priceRange, maxHotelPrice]);
+
+    // Stable hotel count to prevent layout shift while loading new locations
+    const rawHotelCount = isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length || 0);
+
+    React.useEffect(() => {
+        if (rawHotelCount > 0) {
+            setLastKnownHotelCount(rawHotelCount);
+        }
+    }, [rawHotelCount]);
 
     // Results count text
     const resultsText = useMemo(() => {
@@ -4986,7 +4998,7 @@ const HotelListing = () => {
 
                     {/* Flush Top Header Bar (admin-frontend PropertyMap style) when map is expanded */}
                     {isMapExpanded && (
-                        <header className="h-[56px] shrink-0 w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-slate-700 px-3.5 flex items-center justify-between gap-2.5 z-[2060] select-none animate-in fade-in duration-200">
+                        <header className="h-[56px] shrink-0 w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md border-b border-[#dadce0] dark:border-slate-700 px-3.5 flex items-center justify-between gap-2.5 z-[2060] select-none animate-in fade-in duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
                             {/* Left: Otel Listesi Button + Divider + Recent Searches + Presets */}
                             <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
                                 <button
@@ -5001,9 +5013,9 @@ const HotelListing = () => {
                                     <span className="font-semibold whitespace-nowrap">
                                         {currentLang === 'tr' ? 'Otel Listesi' : 'Hotel List'}
                                     </span>
-                                    {(totalProperties || displayedHotels.length) > 0 && (
+                                    {(rawHotelCount || lastKnownHotelCount) > 0 && (
                                         <span className="px-1.5 py-0.5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 text-[10px] font-bold">
-                                            {(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}
+                                            {(rawHotelCount || lastKnownHotelCount).toLocaleString('tr-TR')}
                                         </span>
                                     )}
                                 </button>
@@ -5125,10 +5137,16 @@ const HotelListing = () => {
                                     )}
                                 </button>
 
-                                {(totalProperties || displayedHotels.length) > 0 && (
-                                    <div className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40 flex items-center gap-1.5 text-xs font-semibold shrink-0">
+                                {(rawHotelCount > 0 || lastKnownHotelCount > 0 || isLoading || isSearchingMapArea) && (
+                                    <div className="h-8 px-2.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40 flex items-center gap-1.5 text-xs font-semibold shrink-0 select-none">
                                         <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>hotel</span>
-                                        <span>{(isPriceActive ? displayedHotels.length : (totalProperties || displayedHotels.length)).toLocaleString('tr-TR')}</span>
+                                        {(isLoading || isSearchingMapArea) && !rawHotelCount ? (
+                                            <span className="w-3.5 h-3.5 border-2 border-rose-500 border-t-transparent rounded-full animate-spin inline-block mx-0.5" />
+                                        ) : (
+                                            <span className={`${(isLoading || isSearchingMapArea) ? 'opacity-70 animate-pulse' : 'opacity-100'} transition-opacity`}>
+                                                {(rawHotelCount || lastKnownHotelCount || 0).toLocaleString('tr-TR')}
+                                            </span>
+                                        )}
                                         <span className="hidden lg:inline text-[10.5px] font-normal text-rose-500/80 dark:text-rose-400/80">{currentLang === 'tr' ? 'otel' : 'hotels'}</span>
                                     </div>
                                 )}
@@ -5150,7 +5168,7 @@ const HotelListing = () => {
                         <div
                             className={`w-full bg-white/95 dark:bg-[#202124]/95 backdrop-blur-md px-3.5 z-[2050] transition-[height,opacity,border-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0 ${
                                 isMapFilterBarOpen
-                                    ? `h-[52px] opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-xs ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
+                                    ? `h-[52px] opacity-100 border-b border-[#dadce0] dark:border-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.08),0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] ${isFilterBarAnimated ? 'overflow-visible' : 'overflow-hidden'}`
                                     : 'h-0 opacity-0 border-b border-transparent shadow-none overflow-hidden pointer-events-none'
                             }`}
                         >
@@ -5290,10 +5308,8 @@ const HotelListing = () => {
                     )}
 
                     <div className="flex-1 relative overflow-hidden">
-                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map (only in split mode) */}
-                    {!isMapExpanded && (
-                        <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
-                    )}
+                    {/* Top inner shadow - Soft realistic inset shadow inside the top of the map */}
+                    <div className="absolute inset-0 pointer-events-none z-[1001] shadow-[inset_0_1px_4px_rgba(0,0,0,0.3)] dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.7)]" />
 
                     <div className={`w-full h-full transition-opacity duration-700 ease-out ${isMapReady ? 'opacity-100' : 'opacity-0'}`}>
                         <MapContainer
@@ -5653,7 +5669,7 @@ const HotelListing = () => {
 
                 {/* Favorites Right Sidebar Dock (Google Style - Fixed width) */}
                 <div
-                    className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000]"
+                    className="w-[58px] shrink-0 relative bg-white dark:bg-[#202124] border-l border-[#dadce0] dark:border-slate-700 flex flex-col z-[2000] shadow-[-2px_0_8px_rgba(0,0,0,0.08),-1px_0_2px_rgba(0,0,0,0.04)] dark:shadow-[-2px_0_12px_rgba(0,0,0,0.4)]"
                     onMouseEnter={handleFavMouseEnter}
                     onMouseLeave={handleFavMouseLeave}
                 >

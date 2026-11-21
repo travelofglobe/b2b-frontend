@@ -97,7 +97,7 @@ const IosBatteryCredit = ({
     const batteryState = batteryTier;
 
     const formatNumber = (num) => {
-        return Number(num || 0).toLocaleString('tr-TR', {
+        return Number(num || 0).toLocaleString(i18n.language || 'en', {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         });
@@ -115,7 +115,7 @@ const IosBatteryCredit = ({
                 dateObj = new Date(dateVal);
             }
             if (isNaN(dateObj.getTime())) return null;
-            return dateObj.toLocaleString('tr-TR', {
+            return dateObj.toLocaleString(i18n.language || 'en', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -128,7 +128,7 @@ const IosBatteryCredit = ({
     };
 
     const lastUpdatedStr = formatDateTime(myLimit?.updateDateTime || myLimit?.createDateTime)
-        || new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        || new Date().toLocaleTimeString(i18n.language || 'en', { hour: '2-digit', minute: '2-digit' });
 
     const handleRefresh = async (e) => {
         e?.stopPropagation?.();
@@ -173,8 +173,8 @@ const IosBatteryCredit = ({
                     ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-900 dark:text-white'
                     : 'hover:bg-slate-100 dark:hover:bg-slate-800/60'
                     }`}
-                title={isLoading ? 'Kredi bilgileri yükleniyor...' : `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın`}
-                aria-label="Kredi Durumu"
+                title={isLoading ? t('drawers.loadingCredit', 'Kredi bilgileri yükleniyor...') : t('drawers.creditLimitInfo', { percent: percentage, currency: currencySymbol, amount: formatNumber(availableLimit), defaultValue: `Kredi Limiti: %${percentage} (${currencySymbol} ${formatNumber(availableLimit)} kullanılabilir) - Detaylar için tıklayın` })}
+                aria-label={t('drawers.creditStatus', 'Kredi Durumu')}
             >
                 {/* iOS Battery with dynamic fill level matching credit percentage */}
                 <div className="relative flex items-center shrink-0">
@@ -290,10 +290,10 @@ const IosBatteryCredit = ({
                         <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
                             <div>
                                 <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white leading-tight">
-                                    Kredi & Limit
+                                    {t('drawers.creditAndLimit', 'Kredi & Limit')}
                                 </h3>
                                 <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[220px]">
-                                    {agencyInfo?.name || myLimit?.agency?.name || 'Acente Hesabı'}
+                                    {agencyInfo?.name || myLimit?.agency?.name || t('drawers.agencyAccount', 'Acente Hesabı')}
                                 </p>
                             </div>
 
@@ -301,7 +301,7 @@ const IosBatteryCredit = ({
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing || isLoading}
-                                    title="Yenile"
+                                    title={t('drawers.refresh', 'Yenile')}
                                     className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     <span className={`material-symbols-outlined text-[19px] ${(isRefreshing || isLoading) ? 'animate-spin text-blue-600' : ''}`}>
@@ -310,7 +310,7 @@ const IosBatteryCredit = ({
                                 </button>
                                 <button
                                     onClick={closeDrawer}
-                                    title="Kapat"
+                                    title={t('common.close', 'Kapat')}
                                     className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[20px]">close</span>
@@ -324,7 +324,7 @@ const IosBatteryCredit = ({
                                 {/* 1. Main Balance Highlight */}
                                 <div>
                                     <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-1">
-                                        Kullanılabilir Limit
+                                        {t('drawers.availableLimit', 'Kullanılabilir Limit')}
                                     </span>
                                     <div className="text-[34px] font-bold tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
                                         {isLoading ? (
@@ -348,8 +348,8 @@ const IosBatteryCredit = ({
                                             />
                                         </div>
                                         <div className="flex justify-between items-center text-[11px] text-slate-400 font-medium">
-                                            <span>%{percentage} kullanılabilir</span>
-                                            <span>Güncelleme: {lastUpdatedStr}</span>
+                                            <span>{t('drawers.availablePercent', { percent: percentage, defaultValue: `%${percentage} kullanılabilir` })}</span>
+                                            <span>{t('drawers.updated', 'Güncelleme:')} {lastUpdatedStr}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -357,25 +357,25 @@ const IosBatteryCredit = ({
                                 {/* 2. Financial Summary (Key-Value rows, zero nested clutter) */}
                                 <div className="border-t border-slate-100 dark:border-slate-800 pt-5 space-y-3">
                                     <div className="flex items-center justify-between text-[13px]">
-                                        <span className="text-slate-500 dark:text-slate-400">Toplam Limit</span>
+                                        <span className="text-slate-500 dark:text-slate-400">{t('drawers.totalLimit', 'Toplam Limit')}</span>
                                         <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
                                             {isLoading ? '...' : `${currencySymbol} ${formatNumber(creditLimit)}`}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-[13px]">
-                                        <span className="text-slate-500 dark:text-slate-400">Kullanılan Tutar</span>
+                                        <span className="text-slate-500 dark:text-slate-400">{t('drawers.usedAmount', 'Kullanılan Tutar')}</span>
                                         <span className={`font-semibold tabular-nums ${usedLimit > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-slate-200'}`}>
                                             {isLoading ? '...' : `${currencySymbol} ${formatNumber(usedLimit)}`}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-[13px]">
-                                        <span className="text-slate-500 dark:text-slate-400">Para Birimi</span>
+                                        <span className="text-slate-500 dark:text-slate-400">{t('drawers.currency', 'Para Birimi')}</span>
                                         <span className="font-medium text-slate-700 dark:text-slate-300">
                                             {currency}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-[13px]">
-                                        <span className="text-slate-500 dark:text-slate-400">Hesap Türü</span>
+                                        <span className="text-slate-500 dark:text-slate-400">{t('drawers.accountType', 'Hesap Türü')}</span>
                                         <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                                             {agencyInfo?.agencyType || 'GSA'}
                                         </span>
@@ -413,7 +413,7 @@ const IosBatteryCredit = ({
                                             <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
                                                 query_stats
                                             </span>
-                                            <span>Finans & Cari Hareketler</span>
+                                            <span>{t('drawers.financeTransactions', 'Finans & Cari Hareketler')}</span>
                                         </div>
                                         <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right
@@ -431,7 +431,7 @@ const IosBatteryCredit = ({
                                             <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-blue-600 transition-colors">
                                                 receipt_long
                                             </span>
-                                            <span>Fatura ve İşlem Detayları</span>
+                                            <span>{t('drawers.invoiceDetails', 'Fatura ve İşlem Detayları')}</span>
                                         </div>
                                         <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:translate-x-0.5 transition-transform">
                                             chevron_right
@@ -455,10 +455,10 @@ const IosBatteryCredit = ({
                                         </div>
                                         <div className="min-w-0">
                                             <div className="text-[12px] font-medium text-slate-800 dark:text-slate-200 truncate group-hover:text-blue-600 transition-colors">
-                                                Acente Ofisim
+                                                {t('drawers.agencyOffice', 'Acente Ofisim')}
                                             </div>
                                             <div className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
-                                                Firma bilgileri ve yetkiler
+                                                {t('drawers.agencyOfficeDesc', 'Firma bilgileri ve yetkiler')}
                                             </div>
                                         </div>
                                     </div>
@@ -470,9 +470,9 @@ const IosBatteryCredit = ({
                                 <div className="flex items-center justify-between px-1 text-[11px] text-slate-400 dark:text-slate-500">
                                     <span className="flex items-center gap-1.5">
                                         <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                        <span>Güvenli B2B Kredi Hattı</span>
+                                        <span>{t('drawers.secureCreditLine', 'Güvenli B2B Kredi Hattı')}</span>
                                     </span>
-                                    <span>Anlık Senkron</span>
+                                    <span>{t('drawers.instantSync', 'Anlık Senkron')}</span>
                                 </div>
                             </div>
                         </div>

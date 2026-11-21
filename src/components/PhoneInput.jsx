@@ -56,7 +56,7 @@ const countries = [
     { name: 'Güney Afrika', code: '+27', flag: '🇿🇦', id: 'ZA' },
 ];
 
-const PhoneInput = ({ value, onChange, label, error }) => {
+const PhoneInput = ({ value, onChange, label, error, className }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeIndex, setActiveIndex] = useState(0);
@@ -114,14 +114,14 @@ const PhoneInput = ({ value, onChange, label, error }) => {
                 </label>
             )}
             <div className="relative" ref={dropdownRef}>
-                <div className={`flex items-stretch h-10 bg-white dark:bg-[#303134] border rounded-lg transition-all ${
-                    error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600 focus-within:border-[#1a73e8] focus-within:ring-1 focus-within:ring-[#1a73e8]'
+                <div className={`flex items-stretch ${className || 'h-10 rounded-lg'} bg-slate-50/70 dark:bg-slate-800/40 border transition-all ${
+                    error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-700 focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20 focus-within:bg-white dark:focus-within:bg-slate-800'
                 }`}>
                     <button
                         type="button"
                         ref={buttonRef}
                         onClick={toggleOpen}
-                        className="flex items-center gap-1.5 px-2.5 border-r border-[#dadce0] dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors rounded-l-lg shrink-0 cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 border-r border-[#dadce0] dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors rounded-l-2xl shrink-0 cursor-pointer"
                     >
                         <CountryFlag code={selectedCountry.code || selectedCountry.id} name={selectedCountry.name} fallbackEmoji={selectedCountry.flag || selectedCountry.emoji} size="sm" />
                         <span className="text-xs font-normal text-[#202124] dark:text-white">{selectedCountry.code}</span>

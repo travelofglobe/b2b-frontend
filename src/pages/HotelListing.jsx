@@ -1632,13 +1632,13 @@ const KNOWN_DESTINATIONS = {
 // Quick Map Regions Presets (admin-frontend PropertyMap style)
 // ═══════════════════════════════════════════════
 export const QUICK_MAP_REGIONS = [
-    { key: 'eurasia', labelTr: 'Avrupa · Türkiye · Asya', labelEn: 'Europe · Türkiye · Asia', center: [39.5, 32.0], zoom: 5 },
-    { key: 'turkey', labelTr: 'Türkiye', labelEn: 'Türkiye', center: [39.0, 35.2], zoom: 6, q: 'Türkiye' },
-    { key: 'istanbul', labelTr: 'İstanbul', labelEn: 'Istanbul', center: [41.0082, 28.9784], zoom: 12, q: 'Istanbul, Türkiye', regionId: '654078240806088704' },
-    { key: 'antalya', labelTr: 'Antalya', labelEn: 'Antalya', center: [36.8969, 30.7133], zoom: 11, q: 'Antalya, Türkiye', regionId: '654078240806088705' },
-    { key: 'europe', labelTr: 'Avrupa', labelEn: 'Europe', center: [48.5, 11.5], zoom: 5, q: 'Europe' },
-    { key: 'middle_east', labelTr: 'Orta Doğu & BAE', labelEn: 'Middle East & UAE', center: [25.2048, 55.2708], zoom: 6, q: 'Dubai, UAE' },
-    { key: 'world', labelTr: 'Dünya Görünümü', labelEn: 'World View', center: [30.0, 18.0], zoom: 3 },
+    { key: 'eurasia', localeKey: 'regionEurasia', labelTr: 'Avrupa · Türkiye · Asya', labelEn: 'Europe · Türkiye · Asia', center: [39.5, 32.0], zoom: 5 },
+    { key: 'turkey', localeKey: 'regionTurkey', labelTr: 'Türkiye', labelEn: 'Türkiye', center: [39.0, 35.2], zoom: 6, q: 'Türkiye' },
+    { key: 'istanbul', localeKey: 'regionIstanbul', labelTr: 'İstanbul', labelEn: 'Istanbul', center: [41.0082, 28.9784], zoom: 12, q: 'Istanbul, Türkiye', regionId: '654078240806088704' },
+    { key: 'antalya', localeKey: 'regionAntalya', labelTr: 'Antalya', labelEn: 'Antalya', center: [36.8969, 30.7133], zoom: 11, q: 'Antalya, Türkiye', regionId: '654078240806088705' },
+    { key: 'europe', localeKey: 'regionEurope', labelTr: 'Avrupa', labelEn: 'Europe', center: [48.5, 11.5], zoom: 5, q: 'Europe' },
+    { key: 'middle_east', localeKey: 'regionMiddleEast', labelTr: 'Orta Doğu & BAE', labelEn: 'Middle East & UAE', center: [25.2048, 55.2708], zoom: 6, q: 'Dubai, UAE' },
+    { key: 'world', localeKey: 'regionWorld', labelTr: 'Dünya Görünümü', labelEn: 'World View', center: [30.0, 18.0], zoom: 3 },
 ];
 
 // Keys of preset regions/cities to exclude from Recent Searches to prevent duplicates like "two Antalyas, two Istanbuls"
@@ -5007,7 +5007,7 @@ const HotelListing = () => {
                                     type="button"
                                     onClick={() => setIsMapExpanded(false)}
                                     className="h-8 pl-2 pr-3.5 rounded-full bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 hover:border-[#1a73e8]/50 hover:bg-blue-50/40 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center gap-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer shrink-0 text-xs group active:scale-95"
-                                    title={currentLang === 'tr' ? 'Otel listesini göster' : 'Show hotel list'}
+                                    title={tListing('showHotelList', currentLang)}
                                 >
                                     <div className="w-5 h-5 rounded-full bg-[#e8f0fe] dark:bg-blue-900/50 flex items-center justify-center text-[#1a73e8] dark:text-blue-300 group-hover:bg-[#1a73e8] group-hover:text-white transition-all duration-200">
                                         <span className="material-symbols-outlined text-[13px] group-hover:-translate-x-0.5 transition-transform" style={{ fontVariationSettings: "'wght' 700" }}>
@@ -5015,7 +5015,7 @@ const HotelListing = () => {
                                         </span>
                                     </div>
                                     <span className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-[#1a73e8] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
-                                        {currentLang === 'tr' ? 'Otel Listesi' : 'Hotel List'}
+                                        {tListing('hotelList', currentLang)}
                                     </span>
                                 </button>
 
@@ -5030,7 +5030,7 @@ const HotelListing = () => {
                                                 type="button"
                                                 onClick={() => handlePillScroll('left')}
                                                 className="w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:border-[#1a73e8]/40 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto opacity-75 group-hover/pillscroll:opacity-100"
-                                                title={currentLang === 'tr' ? 'Sola kaydır' : 'Scroll left'}
+                                                title={tListing('scrollLeft', currentLang)}
                                             >
                                                 <span className="material-symbols-outlined text-[16px]">chevron_left</span>
                                             </button>
@@ -5048,7 +5048,7 @@ const HotelListing = () => {
                                             <>
                                                 <div className="flex items-center gap-1 shrink-0 text-[11px] font-semibold text-gray-400 dark:text-slate-400 uppercase tracking-wider pl-1 pr-0.5 select-none">
                                                     <span className="material-symbols-outlined text-[14px]">history</span>
-                                                    <span className="hidden sm:inline">{currentLang === 'tr' ? 'Son:' : 'Recent:'}</span>
+                                                    <span className="hidden sm:inline">{tListing('recent', currentLang)}</span>
                                                 </div>
 
                                                 {recentSearchLocations.map((item) => {
@@ -5080,6 +5080,7 @@ const HotelListing = () => {
                                         {/* Section 2: Preset Quick Regions (admin-frontend PropertyMap style) */}
                                         {QUICK_MAP_REGIONS.map(reg => {
                                             const isSelected = activePillKey === reg.key;
+                                            const label = tListing(reg.localeKey, currentLang) || (currentLang === 'tr' ? reg.labelTr : reg.labelEn);
                                             return (
                                                 <button
                                                     key={reg.key}
@@ -5090,9 +5091,9 @@ const HotelListing = () => {
                                                             ? 'bg-[#e8f0fe] dark:bg-blue-900/50 text-[#1a73e8] dark:text-blue-300 font-semibold ring-1 ring-[#1a73e8]/30 shadow-2xs'
                                                             : 'text-slate-600 dark:text-slate-300 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium'
                                                     }`}
-                                                    title={currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                                    title={label}
                                                 >
-                                                    {currentLang === 'tr' ? reg.labelTr : reg.labelEn}
+                                                    {label}
                                                 </button>
                                             );
                                         })}
@@ -5105,7 +5106,7 @@ const HotelListing = () => {
                                                 type="button"
                                                 onClick={() => handlePillScroll('right')}
                                                 className="w-6 h-6 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-700 dark:text-slate-200 hover:text-[#1a73e8] dark:hover:text-blue-400 hover:border-[#1a73e8]/40 hover:scale-105 active:scale-95 transition-all cursor-pointer pointer-events-auto opacity-75 group-hover/pillscroll:opacity-100"
-                                                title={currentLang === 'tr' ? 'Sağa kaydır' : 'Scroll right'}
+                                                title={tListing('scrollRight', currentLang)}
                                             >
                                                 <span className="material-symbols-outlined text-[16px]">chevron_right</span>
                                             </button>
@@ -5125,10 +5126,10 @@ const HotelListing = () => {
                                             ? 'bg-[#1a73e8]/10 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-400 shadow-2xs'
                                             : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                                     }`}
-                                    title={currentLang === 'tr' ? 'Arama & Filtre Paneli' : 'Search & Filters Panel'}
+                                    title={tListing('searchAndFilters', currentLang)}
                                 >
                                     <span className="material-symbols-outlined text-[17px]">tune</span>
-                                    <span className="hidden sm:inline">{currentLang === 'tr' ? 'Filtreler' : 'Filters'}</span>
+                                    <span className="hidden sm:inline">{tListing('filters', currentLang)}</span>
                                     {activeFilterCount > 0 && (
                                         <span className="px-1.5 py-0.2 rounded-full bg-[#1a73e8] text-white text-[10px] font-bold">
                                             {activeFilterCount}
@@ -5146,7 +5147,7 @@ const HotelListing = () => {
                                                 {(rawHotelCount || lastKnownHotelCount || 0).toLocaleString('tr-TR')}
                                             </span>
                                         )}
-                                        <span className="hidden lg:inline text-[10.5px] font-normal text-rose-500/80 dark:text-rose-400/80">{currentLang === 'tr' ? 'otel' : 'hotels'}</span>
+                                        <span className="hidden lg:inline text-[10.5px] font-normal text-rose-500/80 dark:text-rose-400/80">{tListing('hotels', currentLang)}</span>
                                     </div>
                                 )}
 
@@ -5270,7 +5271,7 @@ const HotelListing = () => {
                                         }`}
                                     >
                                         <span className={`material-symbols-outlined text-[15px] ${searchParams.get('guestRating') === '4.0+' ? 'text-[#1a73e8] dark:text-blue-300' : 'text-amber-500'}`}>grade</span>
-                                        <span>4.0+ {currentLang === 'tr' ? 'Puan' : 'Rating'}</span>
+                                        <span>4.0+ {tListing('rating', currentLang)}</span>
                                     </button>
 
                                     {/* Clear Filters Button (if any active) */}
@@ -5302,7 +5303,7 @@ const HotelListing = () => {
                                             setIsMapStarOpen(false);
                                         }}
                                         className="w-7 h-7 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0 ml-auto"
-                                        title={currentLang === 'tr' ? 'Kapat' : 'Close'}
+                                        title={tListing('close', currentLang)}
                                     >
                                         <span className="material-symbols-outlined text-[16px]">close</span>
                                     </button>

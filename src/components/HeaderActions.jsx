@@ -128,7 +128,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                             : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/70'
                     }`}
                     title={`${userDisplayName}${agencyInfo ? ` (${agencyInfo.agencyType || ''}: ${agencyInfo.name || ''})` : ''}`}
-                    aria-label="Kullanıcı Profili"
+                    aria-label={t('drawers.userProfile', 'Kullanıcı Profili')}
                 >
                     <UserAvatarIcon className="size-[22px]" />
                 </button>
@@ -157,7 +157,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                             <div className="px-5 py-4 border-b border-[#dadce0] dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-[#25272a] shrink-0">
                                 <div className="flex flex-col min-w-0">
                                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                                        Kullanıcı Profili
+                                        {t('drawers.userProfile', 'Kullanıcı Profili')}
                                     </span>
                                     <span className="text-[13px] font-medium text-[#70757a] dark:text-slate-300 truncate max-w-[240px]" title={user?.email}>
                                         {user?.email}
@@ -166,7 +166,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                                 <button
                                     onClick={() => setActiveDrawer(null)}
                                     className="size-8 rounded-full hover:bg-slate-200/70 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
-                                    title="Kapat"
+                                    title={t('common.close', 'Kapat')}
                                 >
                                     <span className="material-symbols-outlined text-[20px]">close</span>
                                 </button>
@@ -231,7 +231,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                                 {/* ── Essential Agency Shortcuts ── */}
                                 <div className="space-y-1">
                                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-1">
-                                        Hızlı Kısayollar
+                                        {t('drawers.quickShortcuts', 'Hızlı Kısayollar')}
                                     </span>
                                     <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800/80 overflow-hidden bg-white dark:bg-[#202124] shadow-2xs">
                                         <button
@@ -246,7 +246,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                                                     <span className="material-symbols-outlined text-[17px]">book_online</span>
                                                 </div>
                                                 <span className="text-[13px] font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 transition-colors">
-                                                    Rezervasyonlarım
+                                                    {t('drawers.myBookings', 'Rezervasyonlarım')}
                                                 </span>
                                             </div>
                                             <span className="material-symbols-outlined text-[17px] text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all">
@@ -266,7 +266,7 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
                                                     <span className="material-symbols-outlined text-[17px]">corporate_fare</span>
                                                 </div>
                                                 <span className="text-[13px] font-medium text-slate-800 dark:text-slate-200 group-hover:text-blue-600 transition-colors">
-                                                    Acente ve Profil Yönetimi
+                                                    {t('drawers.agencyProfileManagement', 'Acente ve Profil Yönetimi')}
                                                 </span>
                                             </div>
                                             <span className="material-symbols-outlined text-[17px] text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all">

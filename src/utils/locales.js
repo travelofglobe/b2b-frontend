@@ -310,6 +310,32 @@ export const resources = {
           "successUpdate": "Limit updated successfully.",
           "errorSave": "An error occurred during the operation."
         }
+      },
+      "drawers": {
+        "userProfile": "User Profile",
+        "quickShortcuts": "Quick Shortcuts",
+        "myBookings": "My Bookings",
+        "agencyProfileManagement": "Agency & Profile Management",
+        "creditAndLimit": "Credit & Limit",
+        "agencyAccount": "Agency Account",
+        "availableLimit": "Available Limit",
+        "availablePercent": "{{percent}}% available",
+        "updated": "Updated:",
+        "totalLimit": "Total Limit",
+        "usedAmount": "Used Amount",
+        "currency": "Currency",
+        "accountType": "Account Type",
+        "financeTransactions": "Finance & Transactions",
+        "invoiceDetails": "Invoices & Transaction Details",
+        "agencyOffice": "My Office",
+        "agencyOfficeDesc": "Company information and permissions",
+        "secureCreditLine": "Secure B2B Credit Line",
+        "instantSync": "Live Sync",
+        "refresh": "Refresh",
+        "close": "Close",
+        "creditStatus": "Credit Status",
+        "loadingCredit": "Loading credit details...",
+        "creditLimitInfo": "Credit Limit: {{percent}}% ({{currency}} {{amount}} available) - Click for details"
       }
     }
   },
@@ -624,6 +650,32 @@ export const resources = {
           "successUpdate": "Limit başarıyla güncellendi.",
           "errorSave": "İşlem sırasında hata oluştu."
         }
+      },
+      "drawers": {
+        "userProfile": "Kullanıcı Profili",
+        "quickShortcuts": "Hızlı Kısayollar",
+        "myBookings": "Rezervasyonlarım",
+        "agencyProfileManagement": "Acente ve Profil Yönetimi",
+        "creditAndLimit": "Kredi & Limit",
+        "agencyAccount": "Acente Hesabı",
+        "availableLimit": "Kullanılabilir Limit",
+        "availablePercent": "%{{percent}} kullanılabilir",
+        "updated": "Güncelleme:",
+        "totalLimit": "Toplam Limit",
+        "usedAmount": "Kullanılan Tutar",
+        "currency": "Para Birimi",
+        "accountType": "Hesap Türü",
+        "financeTransactions": "Finans & Cari Hareketler",
+        "invoiceDetails": "Fatura ve İşlem Detayları",
+        "agencyOffice": "Acente Ofisim",
+        "agencyOfficeDesc": "Firma bilgileri ve yetkiler",
+        "secureCreditLine": "Güvenli B2B Kredi Hattı",
+        "instantSync": "Anlık Senkron",
+        "refresh": "Yenile",
+        "close": "Kapat",
+        "creditStatus": "Kredi Durumu",
+        "loadingCredit": "Kredi bilgileri yükleniyor...",
+        "creditLimitInfo": "Kredi Limiti: %{{percent}} ({{currency}} {{amount}} kullanılabilir) - Detaylar için tıklayın"
       }
     }
   },
@@ -930,6 +982,32 @@ export const resources = {
           "successUpdate": "تم تحديث الحد بنجاح.",
           "errorSave": "حدث خطأ أثناء العملية."
         }
+      },
+      "drawers": {
+        "userProfile": "الملف الشخصي للمستخدم",
+        "quickShortcuts": "اختصارات سريعة",
+        "myBookings": "حجوزاتي",
+        "agencyProfileManagement": "إدارة الوكالة والملف الشخصي",
+        "creditAndLimit": "الائتمان والحد",
+        "agencyAccount": "حساب الوكالة",
+        "availableLimit": "الحد المتاح",
+        "availablePercent": "{{percent}}% متاح",
+        "updated": "تم التحديث:",
+        "totalLimit": "إجمالي الحد",
+        "usedAmount": "المبلغ المستخدم",
+        "currency": "العملة",
+        "accountType": "نوع الحساب",
+        "financeTransactions": "المالية والحركات",
+        "invoiceDetails": "الفواتير وتفاصيل المعاملات",
+        "agencyOffice": "مكتب وكالتي",
+        "agencyOfficeDesc": "معلومات الشركة والصلاحيات",
+        "secureCreditLine": "خط ائتمان B2B آمن",
+        "instantSync": "مزامنة فورية",
+        "refresh": "تحديث",
+        "close": "إغلاق",
+        "creditStatus": "حالة الائتمان",
+        "loadingCredit": "جاري تحميل تفاصيل الائتمان...",
+        "creditLimitInfo": "حد الائتمان: {{percent}}% ({{currency}} {{amount}} متاح) - انقر للتفاصيل"
       }
     }
   },
@@ -1236,6 +1314,32 @@ export const resources = {
           "successUpdate": "Límite actualizado con éxito.",
           "errorSave": "Se produjo un error durante la operación."
         }
+      },
+      "drawers": {
+        "userProfile": "Perfil de Usuario",
+        "quickShortcuts": "Accesos Rápidos",
+        "myBookings": "Mis Reservas",
+        "agencyProfileManagement": "Gestión de Agencia y Perfil",
+        "creditAndLimit": "Crédito y Límite",
+        "agencyAccount": "Cuenta de Agencia",
+        "availableLimit": "Límite Disponible",
+        "availablePercent": "{{percent}}% disponible",
+        "updated": "Actualizado:",
+        "totalLimit": "Límite Total",
+        "usedAmount": "Monto Utilizado",
+        "currency": "Moneda",
+        "accountType": "Tipo de Cuenta",
+        "financeTransactions": "Finanzas y Transacciones",
+        "invoiceDetails": "Facturas y Detalles de Operaciones",
+        "agencyOffice": "Mi Oficina de Agencia",
+        "agencyOfficeDesc": "Información de la empresa y permisos",
+        "secureCreditLine": "Línea de Crédito B2B Segura",
+        "instantSync": "Sincronización en Vivo",
+        "refresh": "Actualizar",
+        "close": "Cerrar",
+        "creditStatus": "Estado del Crédito",
+        "loadingCredit": "Cargando información crediticia...",
+        "creditLimitInfo": "Límite de Crédito: {{percent}}% ({{currency}} {{amount}} disponible) - Clic para ver detalles"
       }
     }
   },
@@ -1542,6 +1646,32 @@ export const resources = {
           "successUpdate": "Лимит успешно обновлён.",
           "errorSave": "Произошла ошибка при выполнении операции."
         }
+      },
+      "drawers": {
+        "userProfile": "Профиль пользователя",
+        "quickShortcuts": "Быстрый доступ",
+        "myBookings": "Мои бронирования",
+        "agencyProfileManagement": "Управление агентством и профилем",
+        "creditAndLimit": "Кредит и Лимит",
+        "agencyAccount": "Счет агентства",
+        "availableLimit": "Доступный лимит",
+        "availablePercent": "{{percent}}% доступно",
+        "updated": "Обновлено:",
+        "totalLimit": "Общий лимит",
+        "usedAmount": "Использованная сумма",
+        "currency": "Валюта",
+        "accountType": "Тип счета",
+        "financeTransactions": "Финансы и движения",
+        "invoiceDetails": "Счета и детали транзакций",
+        "agencyOffice": "Мой Офис",
+        "agencyOfficeDesc": "Данные компании и права доступа",
+        "secureCreditLine": "Безопасная кредитная линия B2B",
+        "instantSync": "Мгновенная синхронизация",
+        "refresh": "Обновить",
+        "close": "Закрыть",
+        "creditStatus": "Состояние кредита",
+        "loadingCredit": "Загрузка информации о кредите...",
+        "creditLimitInfo": "Кредитный лимит: {{percent}}% ({{currency}} {{amount}} доступно) - Нажмите для деталей"
       }
     }
   },
@@ -1848,6 +1978,32 @@ export const resources = {
           "successUpdate": "额度更新成功。",
           "errorSave": "操作过程中发生错误。"
         }
+      },
+      "drawers": {
+        "userProfile": "用户资料",
+        "quickShortcuts": "快捷方式",
+        "myBookings": "我的预订",
+        "agencyProfileManagement": "代理商与个人资料管理",
+        "creditAndLimit": "授信与额度",
+        "agencyAccount": "代理商账户",
+        "availableLimit": "可用额度",
+        "availablePercent": "{{percent}}% 可用",
+        "updated": "更新时间:",
+        "totalLimit": "总额度",
+        "usedAmount": "已用金额",
+        "currency": "货币",
+        "accountType": "账户类型",
+        "financeTransactions": "财务与流水",
+        "invoiceDetails": "发票与交易明细",
+        "agencyOffice": "我的办公室",
+        "agencyOfficeDesc": "公司信息与权限",
+        "secureCreditLine": "安全 B2B 授信额度",
+        "instantSync": "实时同步",
+        "refresh": "刷新",
+        "close": "关闭",
+        "creditStatus": "授信状态",
+        "loadingCredit": "正在加载授信详情...",
+        "creditLimitInfo": "授信额度: {{percent}}% ({{currency}} {{amount}} 可用) - 点击查看详情"
       }
     }
   },
@@ -2154,6 +2310,32 @@ export const resources = {
           "successUpdate": "限度が正常に更新されました。",
           "errorSave": "操作中にエラーが発生しました。"
         }
+      },
+      "drawers": {
+        "userProfile": "ユーザープロフィール",
+        "quickShortcuts": "クイックショートカット",
+        "myBookings": "マイ予約",
+        "agencyProfileManagement": "代理店・プロフィール管理",
+        "creditAndLimit": "クレジット＆限度額",
+        "agencyAccount": "代理店アカウント",
+        "availableLimit": "利用可能限度額",
+        "availablePercent": "{{percent}}% 利用可能",
+        "updated": "更新日時:",
+        "totalLimit": "総限度額",
+        "usedAmount": "利用済み金額",
+        "currency": "通貨",
+        "accountType": "口座種別",
+        "financeTransactions": "財務・取引履歴",
+        "invoiceDetails": "請求書・取引詳細",
+        "agencyOffice": "マイオフィス",
+        "agencyOfficeDesc": "会社情報と権限",
+        "secureCreditLine": "安全なB2Bクレジットライン",
+        "instantSync": "リアルタイム同期",
+        "refresh": "更新",
+        "close": "閉じる",
+        "creditStatus": "クレジット状態",
+        "loadingCredit": "クレジット情報を読み込み中...",
+        "creditLimitInfo": "クレジット限度額: {{percent}}% ({{currency}} {{amount}} 利用可能) - クリックして詳細を表示"
       }
     }
   },
@@ -2460,6 +2642,32 @@ export const resources = {
           "successUpdate": "سقف با موفقیت به‌روزرسانی شد.",
           "errorSave": "خطایی در حین عملیات رخ داد."
         }
+      },
+      "drawers": {
+        "userProfile": "پروفایل کاربر",
+        "quickShortcuts": "میانبرهای سریع",
+        "myBookings": "رزروهای من",
+        "agencyProfileManagement": "مدیریت آژانس و پروفایل",
+        "creditAndLimit": "اعتبار و سقف",
+        "agencyAccount": "حساب آژانس",
+        "availableLimit": "سقف اعتبار در دسترس",
+        "availablePercent": "{{percent}}% در دسترس",
+        "updated": "به‌روزرسانی:",
+        "totalLimit": "مجموع سقف اعتبار",
+        "usedAmount": "مبلغ مصرف شده",
+        "currency": "واحد پول",
+        "accountType": "نوع حساب",
+        "financeTransactions": "مالی و گردش حساب",
+        "invoiceDetails": "فاکتورها و جزئیات تراکنش",
+        "agencyOffice": "دفتر من",
+        "agencyOfficeDesc": "اطلاعات شرکت و دسترسی‌ها",
+        "secureCreditLine": "خط اعتباری امن B2B",
+        "instantSync": "همگام‌سازی زنده",
+        "refresh": "تازه‌سازی",
+        "close": "بستن",
+        "creditStatus": "وضعیت اعتبار",
+        "loadingCredit": "در حال بارگذاری اطلاعات اعتبار...",
+        "creditLimitInfo": "سقف اعتبار: {{percent}}% ({{currency}} {{amount}} در دسترس) - کلیک برای مشاهده جزئیات"
       }
     }
   },
@@ -2766,6 +2974,32 @@ export const resources = {
           "successUpdate": "Limite mise à jour avec succès.",
           "errorSave": "Une erreur s'est produite lors de l'opération."
         }
+      },
+      "drawers": {
+        "userProfile": "Profil Utilisateur",
+        "quickShortcuts": "Raccourcis Rapides",
+        "myBookings": "Mes Réservations",
+        "agencyProfileManagement": "Gestion de l'Agence & Profil",
+        "creditAndLimit": "Crédit & Limite",
+        "agencyAccount": "Compte Agence",
+        "availableLimit": "Limite Disponible",
+        "availablePercent": "{{percent}}% disponible",
+        "updated": "Mise à jour :",
+        "totalLimit": "Limite Totale",
+        "usedAmount": "Montant Utilisé",
+        "currency": "Devise",
+        "accountType": "Type de Compte",
+        "financeTransactions": "Finances & Transactions",
+        "invoiceDetails": "Factures & Détails des Opérations",
+        "agencyOffice": "Mon Bureau d'Agence",
+        "agencyOfficeDesc": "Informations entreprise et habilitations",
+        "secureCreditLine": "Ligne de Crédit B2B Sécurisée",
+        "instantSync": "Synchronisation Instantanée",
+        "refresh": "Actualiser",
+        "close": "Fermer",
+        "creditStatus": "État du Crédit",
+        "loadingCredit": "Chargement des informations de crédit...",
+        "creditLimitInfo": "Limite de Crédit : {{percent}}% ({{currency}} {{amount}} disponible) - Cliquez pour les détails"
       }
     }
   },
@@ -3072,6 +3306,32 @@ export const resources = {
           "successUpdate": "Limite aggiornato con successo.",
           "errorSave": "Si è verificato un errore durante l'operazione."
         }
+      },
+      "drawers": {
+        "userProfile": "Profilo Utente",
+        "quickShortcuts": "Scorciatoie Rapide",
+        "myBookings": "Le Mie Prenotazioni",
+        "agencyProfileManagement": "Gestione Agenzia e Profilo",
+        "creditAndLimit": "Credito & Limite",
+        "agencyAccount": "Conto Agenzia",
+        "availableLimit": "Limite Disponibile",
+        "availablePercent": "{{percent}}% disponibile",
+        "updated": "Aggiornato:",
+        "totalLimit": "Limite Totale",
+        "usedAmount": "Importo Utilizzato",
+        "currency": "Valuta",
+        "accountType": "Tipo di Conto",
+        "financeTransactions": "Finanze & Movimenti",
+        "invoiceDetails": "Fatture e Dettagli Transazioni",
+        "agencyOffice": "Il Mio Ufficio Agenzia",
+        "agencyOfficeDesc": "Informazioni aziendali e permessi",
+        "secureCreditLine": "Linea di Credito B2B Sicura",
+        "instantSync": "Sincronizzazione Istantanea",
+        "refresh": "Aggiorna",
+        "close": "Chiudi",
+        "creditStatus": "Stato del Credito",
+        "loadingCredit": "Caricamento dettagli credito...",
+        "creditLimitInfo": "Limite di Credito: {{percent}}% ({{currency}} {{amount}} disponibile) - Clicca per dettagli"
       }
     }
   },
@@ -3378,6 +3638,32 @@ export const resources = {
           "successUpdate": "Το όριο ενημερώθηκε επιτυχώς.",
           "errorSave": "Παρουσιάστηκε σφάλμα κατά τη λειτουργία."
         }
+      },
+      "drawers": {
+        "userProfile": "Προφίλ Χρήστη",
+        "quickShortcuts": "Γρήγορες Συντομεύσεις",
+        "myBookings": "Οι Κρατήσεις μου",
+        "agencyProfileManagement": "Διαχείριση Πρακτορείου & Προφίλ",
+        "creditAndLimit": "Πίστωση & Όριο",
+        "agencyAccount": "Λογαριασμός Πρακτορείου",
+        "availableLimit": "Διαθέσιμο Όριο",
+        "availablePercent": "{{percent}}% διαθέσιμο",
+        "updated": "Ενημέρωση:",
+        "totalLimit": "Συνολικό Όριο",
+        "usedAmount": "Χρησιμοποιημένο Ποσό",
+        "currency": "Νόμισμα",
+        "accountType": "Τύπος Λογαριασμού",
+        "financeTransactions": "Οικονομικά & Κινήσεις",
+        "invoiceDetails": "Τιμολόγια & Λεπτομέρειες Συναλλαγών",
+        "agencyOffice": "Το Γραφείο μου",
+        "agencyOfficeDesc": "Στοιχεία εταιρείας και δικαιώματα",
+        "secureCreditLine": "Ασφαλής Πιστωτική Γραμμή B2B",
+        "instantSync": "Ζωντανός Συγχρονισμός",
+        "refresh": "Ανανέωση",
+        "close": "Κλείσιμο",
+        "creditStatus": "Κατάσταση Πίστωσης",
+        "loadingCredit": "Φόρτωση στοιχείων πίστωσης...",
+        "creditLimitInfo": "Όριο Πίστωσης: {{percent}}% ({{currency}} {{amount}} διαθέσιμο) - Κάντε κλικ για λεπτομέρειες"
       }
     }
   },
@@ -3684,6 +3970,32 @@ export const resources = {
           "successUpdate": "Limite atualizado com sucesso.",
           "errorSave": "Ocorreu um erro durante a operação."
         }
+      },
+      "drawers": {
+        "userProfile": "Perfil de Usuário",
+        "quickShortcuts": "Atalhos Rápidos",
+        "myBookings": "Minhas Reservas",
+        "agencyProfileManagement": "Gestão da Agência e Perfil",
+        "creditAndLimit": "Crédito e Limite",
+        "agencyAccount": "Conta da Agência",
+        "availableLimit": "Limite Disponível",
+        "availablePercent": "{{percent}}% disponível",
+        "updated": "Atualizado:",
+        "totalLimit": "Limite Total",
+        "usedAmount": "Valor Utilizado",
+        "currency": "Moeda",
+        "accountType": "Tipo de Conta",
+        "financeTransactions": "Finanças e Movimentações",
+        "invoiceDetails": "Faturas e Detalhes de Transações",
+        "agencyOffice": "Meu Escritório",
+        "agencyOfficeDesc": "Informações da empresa e permissões",
+        "secureCreditLine": "Linha de Crédito B2B Segura",
+        "instantSync": "Sincronização em Tempo Real",
+        "refresh": "Atualizar",
+        "close": "Fechar",
+        "creditStatus": "Status do Crédito",
+        "loadingCredit": "Carregando detalhes do crédito...",
+        "creditLimitInfo": "Limite de Crédito: {{percent}}% ({{currency}} {{amount}} disponível) - Clique para ver detalhes"
       }
     }
   }

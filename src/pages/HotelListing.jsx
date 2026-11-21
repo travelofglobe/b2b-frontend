@@ -5543,7 +5543,7 @@ const HotelListing = () => {
                     </div>
 
                     {/* Top-right: Zoom in / Zoom out controls (Google Maps style) */}
-                    <div className="absolute top-3.5 right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] overflow-hidden pointer-events-auto">
+                    <div className={`absolute ${isMapExpanded && isMapFilterBarOpen ? 'top-[70px]' : 'top-3.5'} right-3.5 z-[1005] flex flex-col bg-white dark:bg-[#303134] rounded-xl shadow-[0_1px_4px_rgba(0,0,0,0.35)] dark:shadow-[0_1px_4px_rgba(0,0,0,0.7)] overflow-hidden pointer-events-auto transition-all duration-300`}>
                         <button
                             type="button"
                             onClick={() => mapInstance?.zoomIn()}

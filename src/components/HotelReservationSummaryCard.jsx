@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import RefundPolicyTooltip from './RefundPolicyTooltip';
 import { getCurrencySymbol, useAuth } from '../context/AuthContext';
 
@@ -48,8 +48,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Checking Best Rates...",
         authorizePayment: "Authorize Payment",
         processing: "Processing...",
-        remove: "Remove"
-    },
+        remove: "Remove",
+        priceAndRoomHoldingActive: "Price & Room Holding Active",
+        changeRoom: "Change Room",
+        selectedServices: "Selected Services",
+        freeComplimentary: "Complimentary",
+        totalAmount: "Total Amount",
+        allTaxesIncluded: "All taxes included",
+        googlePaySslTrust: "Google Pay & 256-Bit SSL / PCI-DSS Protected",
+        bestPriceGuarantee: "Best Price Guarantee • No Hidden Fees",
+        conciergeSupport: "24/7 Agency & Concierge Support",
+        welcomeAmenity: "Welcome Amenity & Valet Service",
+        roomStayPrice: "Room Stay Price",
+        freeCancellationGuarantee: "Free Cancellation Guarantee"
+        },
     tr: {
         checkIn: "Giriş",
         checkOut: "Çıkış",
@@ -95,8 +107,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "En İyi Fiyatlar Kontrol Ediliyor...",
         authorizePayment: "Ödemeyi Onayla",
         processing: "İşleniyor...",
-        remove: "Kaldır"
-    },
+        remove: "Kaldır",
+        priceAndRoomHoldingActive: "Fiyat & Oda Koruması Aktif",
+        changeRoom: "Oda Değiştir",
+        selectedServices: "Seçilen Hizmetler",
+        freeComplimentary: "Ücretsiz İkram",
+        totalAmount: "Toplam Tutar",
+        allTaxesIncluded: "Tüm vergiler dahildir",
+        googlePaySslTrust: "Google Pay & 256-Bit SSL / PCI-DSS Koruması",
+        bestPriceGuarantee: "En İyi Fiyat Garantisi • Sürpriz Masraf Yok",
+        conciergeSupport: "7/24 Acente & Konsiyerj Desteği",
+        welcomeAmenity: "Odaya Karşılama İkramı & Vale Hizmeti",
+        roomStayPrice: "Süit / Oda Ücreti",
+        freeCancellationGuarantee: "Ücretsiz İptal Garantisi"
+        },
     ar: {
         checkIn: "تسجيل الوصول",
         checkOut: "تسجيل المغادرة",
@@ -142,8 +166,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "جاري التحقق من أفضل الأسعار...",
         authorizePayment: "تفويض الدفع",
         processing: "جاري المعالجة...",
-        remove: "إزالة"
-    },
+        remove: "إزالة",
+        priceAndRoomHoldingActive: "ضمان السعر والغرفة نشط",
+        changeRoom: "تغيير الغرفة",
+        selectedServices: "الخدمات المختارة",
+        freeComplimentary: "مجاناً",
+        totalAmount: "المبلغ الإجمالي",
+        allTaxesIncluded: "شامل جميع الضرائب",
+        googlePaySslTrust: "حماية Google Pay وتشفير 256 بت SSL / PCI-DSS",
+        bestPriceGuarantee: "ضمان أفضل سعر • بدون رسوم خفية",
+        conciergeSupport: "دعم الوكالة والكونسيرج على مدار الساعة",
+        welcomeAmenity: "ضيافة ترحيبية وخدمة صف السيارات",
+        roomStayPrice: "سعر الإقامة في الغرفة",
+        freeCancellationGuarantee: "ضمان الإلغاء المجاني"
+        },
     es: {
         checkIn: "Entrada",
         checkOut: "Salida",
@@ -189,8 +225,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Comprobando mejores tarifas...",
         authorizePayment: "Autorizar Pago",
         processing: "Procesando...",
-        remove: "Eliminar"
-    },
+        remove: "Eliminar",
+        priceAndRoomHoldingActive: "Bloqueo de precio y habitación activo",
+        changeRoom: "Cambiar habitación",
+        selectedServices: "Servicios seleccionados",
+        freeComplimentary: "Cortesía",
+        totalAmount: "Importe Total",
+        allTaxesIncluded: "Todos los impuestos incluidos",
+        googlePaySslTrust: "Protegido por Google Pay y SSL 256 bits / PCI-DSS",
+        bestPriceGuarantee: "Mejor precio garantizado • Sin cargos ocultos",
+        conciergeSupport: "Soporte de agencia y conserjería 24/7",
+        welcomeAmenity: "Atención de bienvenida y servicio de aparcacoches",
+        roomStayPrice: "Tarifa de habitación",
+        freeCancellationGuarantee: "Garantía de cancelación gratuita"
+        },
     ru: {
         checkIn: "Заезд",
         checkOut: "Выезд",
@@ -236,8 +284,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Проверка лучших тарифов...",
         authorizePayment: "Подтвердить Оплату",
         processing: "Обработка...",
-        remove: "Удалить"
-    },
+        remove: "Удалить",
+        priceAndRoomHoldingActive: "Фиксация цены и номера активна",
+        changeRoom: "Изменить номер",
+        selectedServices: "Выбранные услуги",
+        freeComplimentary: "Бесплатно",
+        totalAmount: "Итоговая сумма",
+        allTaxesIncluded: "Все налоги включены",
+        googlePaySslTrust: "Защита Google Pay и 256-битный SSL / PCI-DSS",
+        bestPriceGuarantee: "Гарантия лучшей цены • Без скрытых комиссий",
+        conciergeSupport: "Круглосуточная поддержка агентства и консьержа",
+        welcomeAmenity: "Приветственный комплимент и услуги парковщика",
+        roomStayPrice: "Стоимость номера",
+        freeCancellationGuarantee: "Гарантия бесплатной отмены"
+        },
     zh: {
         checkIn: "入住",
         checkOut: "离店",
@@ -283,8 +343,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "正在查询最佳价格...",
         authorizePayment: "授权支付",
         processing: "处理中...",
-        remove: "移除"
-    },
+        remove: "移除",
+        priceAndRoomHoldingActive: "价格与房型保留中",
+        changeRoom: "更换房型",
+        selectedServices: "已选服务",
+        freeComplimentary: "免费赠送",
+        totalAmount: "总计金额",
+        allTaxesIncluded: "含所有税费",
+        googlePaySslTrust: "Google Pay 与 256 位 SSL / PCI-DSS 安全防护",
+        bestPriceGuarantee: "最优惠价格保证 · 无任何隐藏费用",
+        conciergeSupport: "7x24小时代理商与礼宾服务",
+        welcomeAmenity: "欢迎礼遇与代客泊车服务",
+        roomStayPrice: "房费",
+        freeCancellationGuarantee: "免费取消保障"
+        },
     ja: {
         checkIn: "チェックイン",
         checkOut: "チェックアウト",
@@ -330,8 +402,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "最安値を照会中...",
         authorizePayment: "支払いを承認",
         processing: "処理中...",
-        remove: "削除"
-    },
+        remove: "削除",
+        priceAndRoomHoldingActive: "価格と客室を確保中",
+        changeRoom: "客室を変更",
+        selectedServices: "選択されたサービス",
+        freeComplimentary: "無料サービス",
+        totalAmount: "合計金額",
+        allTaxesIncluded: "諸税込み",
+        googlePaySslTrust: "Google Pay & 256ビットSSL / PCI-DSS保護",
+        bestPriceGuarantee: "ベストプライス保証・隠れた手数料なし",
+        conciergeSupport: "24時間365日の代理店＆コンシェルジュサポート",
+        welcomeAmenity: "ウェルカムアメニティ＆バレーパーキング",
+        roomStayPrice: "宿泊料金",
+        freeCancellationGuarantee: "無料キャンセル保証"
+        },
     fa: {
         checkIn: "ورود",
         checkOut: "خروج",
@@ -377,8 +461,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "بررسی بهترین نرخ‌ها...",
         authorizePayment: "تایید پرداخت",
         processing: "در حال پردازش...",
-        remove: "حذف"
-    },
+        remove: "حذف",
+        priceAndRoomHoldingActive: "تضمین قیمت و اتاق فعال است",
+        changeRoom: "تغییر اتاق",
+        selectedServices: "خدمات انتخاب شده",
+        freeComplimentary: "رایگان",
+        totalAmount: "مبلغ کل",
+        allTaxesIncluded: "با احتساب کلیه مالیات‌ها",
+        googlePaySslTrust: "محافظت شده با Google Pay و SSL ۲۵۶ بیتی / PCI-DSS",
+        bestPriceGuarantee: "تضمین بهترین قیمت • بدون هزینه پنهان",
+        conciergeSupport: "پشتیبانی ۲۴ ساعته آژانس و خدمات اختصاصی",
+        welcomeAmenity: "پذیرایی خوش‌آمدگویی و خدمات پارک خودرو",
+        roomStayPrice: "هزینه اقامت اتاق",
+        freeCancellationGuarantee: "تضمین کنسلی رایگان"
+        },
     fr: {
         checkIn: "Arrivée",
         checkOut: "Départ",
@@ -424,8 +520,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Vérification des meilleurs tarifs...",
         authorizePayment: "Autoriser le Paiement",
         processing: "Traitement en cours...",
-        remove: "Supprimer"
-    },
+        remove: "Supprimer",
+        priceAndRoomHoldingActive: "Garantie de prix et chambre active",
+        changeRoom: "Changer de chambre",
+        selectedServices: "Services sélectionnés",
+        freeComplimentary: "Offert",
+        totalAmount: "Montant Total",
+        allTaxesIncluded: "Toutes taxes comprises",
+        googlePaySslTrust: "Protection Google Pay et SSL 256 bits / PCI-DSS",
+        bestPriceGuarantee: "Meilleur prix garanti • Aucun frais caché",
+        conciergeSupport: "Assistance conciergerie 24h/24 et 7j/7",
+        welcomeAmenity: "Accueil en chambre & Service voiturier",
+        roomStayPrice: "Tarif de la chambre",
+        freeCancellationGuarantee: "Garantie d'annulation gratuite"
+        },
     it: {
         checkIn: "Check-in",
         checkOut: "Check-out",
@@ -471,8 +579,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Verifica delle migliori tariffe...",
         authorizePayment: "Autorizza Pagamento",
         processing: "Elaborazione in corso...",
-        remove: "Rimuovi"
-    },
+        remove: "Rimuovi",
+        priceAndRoomHoldingActive: "Blocco prezzo e camera attivo",
+        changeRoom: "Cambia camera",
+        selectedServices: "Servizi selezionati",
+        freeComplimentary: "Gratuito",
+        totalAmount: "Importo Totale",
+        allTaxesIncluded: "Tutte le tasse incluse",
+        googlePaySslTrust: "Protetto da Google Pay e SSL a 256 bit / PCI-DSS",
+        bestPriceGuarantee: "Miglior prezzo garantito • Nessun costo nascosto",
+        conciergeSupport: "Supporto agenzia e concierge 24/7",
+        welcomeAmenity: "Omaggio di benvenuto e servizio parcheggio",
+        roomStayPrice: "Tariffa camera",
+        freeCancellationGuarantee: "Garanzia di cancellazione gratuita"
+        },
     el: {
         checkIn: "Check-in",
         checkOut: "Check-out",
@@ -518,8 +638,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "Έλεγχος καλύτερων τιμών...",
         authorizePayment: "Έγκριση Πληρωμής",
         processing: "Επεξεργασία...",
-        remove: "Αφαίρεση"
-    },
+        remove: "Αφαίρεση",
+        priceAndRoomHoldingActive: "Ενεργή δέσμευση τιμής & δωματίου",
+        changeRoom: "Αλλαγή δωματίου",
+        selectedServices: "Επιλεγμένες υπηρεσίες",
+        freeComplimentary: "Δωρεάν",
+        totalAmount: "Συνολικό Ποσό",
+        allTaxesIncluded: "Συμπεριλαμβάνονται όλοι οι φόροι",
+        googlePaySslTrust: "Προστασία Google Pay & 256-Bit SSL / PCI-DSS",
+        bestPriceGuarantee: "Εγγύηση καλύτερης τιμής • Χωρίς κρυφές χρεώσεις",
+        conciergeSupport: "24/7 Υποστήριξη πρακτορείου & θυρωρού",
+        welcomeAmenity: "Κέρασμα καλωσορίσματος & Υπηρεσία παρκαδόρου",
+        roomStayPrice: "Τιμή διαμονής δωματίου",
+        freeCancellationGuarantee: "Εγγύηση δωρεάν ακύρωσης"
+        },
     pt: {
         checkIn: "Entrada",
         checkOut: "Saída",
@@ -565,8 +697,20 @@ const SUMMARY_LOCALES = {
         checkingBestRates: "A verificar melhores tarifas...",
         authorizePayment: "Autorizar Pagamento",
         processing: "A processar...",
-        remove: "Remover"
-    }
+        remove: "Remover",
+        priceAndRoomHoldingActive: "Garantia de preço e quarto ativa",
+        changeRoom: "Alterar quarto",
+        selectedServices: "Serviços selecionados",
+        freeComplimentary: "Cortesia",
+        totalAmount: "Valor Total",
+        allTaxesIncluded: "Todos os impostos inclusos",
+        googlePaySslTrust: "Protegido por Google Pay e SSL de 256 bits / PCI-DSS",
+        bestPriceGuarantee: "Melhor Preço Garantido • Sem taxas ocultas",
+        conciergeSupport: "Suporte 24/7 de agência e concierge",
+        welcomeAmenity: "Cortesia de boas-vindas e manobrista",
+        roomStayPrice: "Diária do quarto",
+        freeCancellationGuarantee: "Garantia de cancelamento grátis"
+        }
 };
 
 const decodeHTMLEntities = (text) => {
@@ -612,7 +756,9 @@ const HotelReservationSummaryCard = ({
     actionButton = null,
     actionConfig = null,
     showSecurityBadge = true,
-    lang = null
+    lang = null,
+    expireAt = null,
+    onChangeRoom = null
 }) => {
     const { currencySymbolMap: authCurrencyMap } = useAuth ? useAuth() : { currencySymbolMap: {} };
     const currentLang = (lang || localStorage.getItem('language') || 'tr').split('-')[0].toLowerCase();
@@ -621,9 +767,45 @@ const HotelReservationSummaryCard = ({
         return SUMMARY_LOCALES[currentLang]?.[key] || SUMMARY_LOCALES['en']?.[key] || key;
     };
 
+    // Holding Countdown Timer
+    const [summaryTimeLeft, setSummaryTimeLeft] = useState(() => {
+        const target = expireAt || (Date.now() + 29 * 60 * 1000 + 45 * 1000);
+        return Math.max(0, target - Date.now());
+    });
+
+    useEffect(() => {
+        const target = expireAt || (Date.now() + 29 * 60 * 1000 + 45 * 1000);
+        const interval = setInterval(() => {
+            const diff = Math.max(0, target - Date.now());
+            setSummaryTimeLeft(diff);
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [expireAt]);
+
+    const timerMin = Math.floor(summaryTimeLeft / 1000 / 60);
+    const timerSec = Math.floor((summaryTimeLeft / 1000) % 60);
+    const formattedTimerMinutes = timerMin.toString().padStart(2, '0');
+    const formattedTimerSeconds = timerSec.toString().padStart(2, '0');
+
     // Dates formatting
     const startDate = formattedDates?.start || dates?.start || hotel?.checkInDate || '';
     const endDate = formattedDates?.end || dates?.end || hotel?.checkOutDate || '';
+
+    const formatCheckDate = (dateVal) => {
+        if (!dateVal) return { dateStr: '', dayStr: '' };
+        try {
+            const d = new Date(dateVal);
+            if (isNaN(d.getTime())) return { dateStr: String(dateVal), dayStr: '' };
+            const dateStr = d.toLocaleDateString(currentLang, { day: 'numeric', month: 'short', year: 'numeric' });
+            const dayStr = d.toLocaleDateString(currentLang, { weekday: 'long' });
+            return { dateStr, dayStr };
+        } catch {
+            return { dateStr: String(dateVal), dayStr: '' };
+        }
+    };
+
+    const checkInFormatted = formatCheckDate(checkRatesData?.checkIn || hotel?.checkInDate || startDate);
+    const checkOutFormatted = formatCheckDate(checkRatesData?.checkOut || hotel?.checkOutDate || endDate);
 
     // Hotel details extraction
     const hotelName = decodeHTMLEntities(
@@ -684,361 +866,418 @@ const HotelReservationSummaryCard = ({
         || selectedRooms.length 
         || 1;
 
+    // Primary room information for headline display
+    const primaryRoom = selectedRooms?.[0];
+    const primaryRoomName = decodeHTMLEntities(primaryRoom?.name || 'Standard Room');
+    const primaryBoardLabel = getBoardLabel(
+        checkRatesData?.rooms?.[0]?.rates?.[0]?.boardName || primaryRoom?.hubRateModel?.boardCode || primaryRoom?.boardName || primaryRoom?.boardCode || 'Room Only',
+        t,
+        currentLang
+    );
+    const primaryRefundable = checkRatesData?.rooms?.[0]?.rates?.[0]?.refundable !== undefined
+        ? checkRatesData?.rooms?.[0]?.rates?.[0]?.refundable
+        : (primaryRoom?.hubRateModel?.refundable ?? (primaryRoom?.isRefundable ?? true));
+
     // Rate notes
     const rateNotesList = checkRatesData?.notes || hotel?.rateNotes || [];
 
     return (
         <div className="space-y-3 font-roboto">
-            <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
-                {/* Instant Confirmation Header */}
-                <div className="flex items-center gap-2 text-[#137333] dark:text-emerald-300 font-medium text-xs mb-3.5 bg-[#e6f4ea] dark:bg-emerald-950/40 p-2.5 rounded-lg border border-[#ceead6] dark:border-emerald-800" lang={currentLang}>
-                    <span className="material-symbols-outlined text-base fill-1">bolt</span>
-                    <span>{t('instantConfirmation')}</span>
-                </div>
-
-                {/* Reservation Summary Title & Room Count Badge */}
-                <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5" lang={currentLang}>
-                        <span className="material-symbols-outlined text-sm text-[#1a73e8]">auto_awesome</span>
-                        {t('reservationSummary')}
-                    </h3>
-                    <span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">
-                        {selectedRooms.length} / {totalRoomsCount} {t('room')}
+            <div className="rounded-3xl shadow-sm border border-slate-200/90 dark:border-slate-800 overflow-hidden bg-white dark:bg-[#202124]">
+                {/* 1. Top Price & Room Holding Timer Banner (Mockup style) */}
+                <div className="bg-rose-50/90 dark:bg-rose-950/40 border-b border-rose-200/70 dark:border-rose-900/50 px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-rose-700 dark:text-rose-300">
+                    <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[17px] text-rose-600 dark:text-rose-400">schedule</span>
+                        <span>{t('priceAndRoomHoldingActive')}</span>
+                    </div>
+                    <span className="tabular-nums font-mono font-bold bg-white/90 dark:bg-slate-900/70 px-2 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 shadow-2xs">
+                        {formattedTimerMinutes}:{formattedTimerSeconds}
                     </span>
                 </div>
 
-                {/* Hotel Preview Mini Card */}
-                <div className="mb-3.5 rounded-xl overflow-hidden border border-[#dadce0] dark:border-slate-700 shadow-2xs">
-                    <div className="relative h-28 overflow-hidden bg-gray-100 dark:bg-slate-800">
+                <div className="p-4 sm:p-5 space-y-4">
+                    {/* 2. Hotel Image Card with Overlaid Badges, Stars & Name */}
+                    <div className="relative h-48 sm:h-52 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-2xs group">
                         <img
                             src={hotelImage}
                             alt={hotelName}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             loading="lazy"
-                            decoding="async"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
-                        <div className="absolute bottom-2.5 left-3 right-3">
-                            <div className="flex items-center gap-0.5 mb-1">
-                                {[...Array(hotelStars)].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined text-[12px] text-[#fbbc04] fill-1">star</span>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+
+                        {/* Top Overlay Badge: Board Type */}
+                        {primaryBoardLabel && (
+                            <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                                <span className="px-2.5 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-[#202124] dark:text-white text-[10.5px] font-semibold shadow-xs">
+                                    {primaryBoardLabel}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Bottom Overlay: Stars, Hotel Name & Location (Eskiden olduğu gibi) */}
+                        <div className="absolute bottom-3 left-3 right-3">
+                            <div className="flex items-center gap-1 mb-1 text-amber-400">
+                                {[...Array(Math.min(5, Math.max(1, hotelStars)))].map((_, i) => (
+                                    <span key={i} className="material-symbols-outlined text-[13px] fill-1 drop-shadow-xs">star</span>
                                 ))}
+                                <span className="text-white text-xs font-bold drop-shadow-xs ml-0.5">{hotelStars}.0</span>
                                 {hotel?.isRecommended && (
-                                    <span className="ml-1 bg-[#1a73e8] text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
+                                    <span className="ml-1.5 bg-[#1a73e8] text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
                                         <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
                                         REC
                                     </span>
                                 )}
                             </div>
-                            <h4 className="font-semibold text-white text-xs sm:text-sm uppercase tracking-tight leading-tight line-clamp-1 drop-shadow-sm">{hotelName}</h4>
+                            <h3 className="font-bold text-white text-base sm:text-lg leading-tight line-clamp-2 drop-shadow-md" title={hotelName}>
+                                {hotelName}
+                            </h3>
+                            {Boolean(hotelAddress || hotel?.location) && (
+                                <p className="text-white/80 text-[11px] font-medium flex items-center gap-1 mt-1 drop-shadow-xs truncate">
+                                    <span className="material-symbols-outlined text-[13px] text-white/90 shrink-0">location_on</span>
+                                    <span className="truncate">{hotelAddress || hotel?.location}</span>
+                                </p>
+                            )}
                         </div>
                     </div>
-                    <div className="p-3 bg-[#f8f9fa] dark:bg-[#303134] space-y-2 border-t border-[#dadce0] dark:border-slate-700 text-xs">
-                        {hotelAddress && (
-                            <div className="flex items-center gap-1.5">
-                                <span className="material-symbols-outlined text-xs text-[#1a73e8] shrink-0">location_on</span>
-                                <p className="text-[11px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{hotelAddress}</p>
+
+                    {/* 3. Check-in & Check-out Times */}
+                    <div className="flex items-center justify-between text-xs px-1 text-slate-600 dark:text-slate-300" lang={currentLang}>
+                        <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">login</span>
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                {t('in')}: <span className="font-semibold text-slate-800 dark:text-slate-200">{hotel?.checkIn || '15:00'}</span>
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">logout</span>
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                {t('out')}: <span className="font-semibold text-slate-800 dark:text-slate-200">{hotel?.checkOut || '11:00'}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* 4. Dates & Room Stay Box */}
+                    <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 p-4 space-y-3">
+                        <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/80">
+                            <div className="pr-3">
+                                <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
+                                    {t('checkIn')}
+                                </span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block mt-0.5">
+                                    {checkInFormatted.dateStr || startDate}
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                                    {checkInFormatted.dayStr ? `${checkInFormatted.dayStr} • ` : ''}{hotel?.checkIn || '15:00'}
+                                </span>
+                            </div>
+                            <div className="pl-3">
+                                <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
+                                    {t('checkOut')}
+                                </span>
+                                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block mt-0.5">
+                                    {checkOutFormatted.dateStr || endDate}
+                                </span>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                                    {checkOutFormatted.dayStr ? `${checkOutFormatted.dayStr} • ` : ''}{hotel?.checkOut || '11:00'}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
+                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">hotel</span>
+                                <span>{nights} {nights > 1 ? t('nights') : t('night')} • {getGuestsSummaryText()}</span>
+                            </div>
+                            {onChangeRoom && (
+                                <button
+                                    type="button"
+                                    onClick={onChangeRoom}
+                                    className="text-xs font-semibold text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
+                                >
+                                    {t('changeRoom')}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 5. Guaranteed Benefits Checklist */}
+                    <div className="space-y-2 py-1">
+                        {primaryBoardLabel && (
+                            <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                                <span className="size-4.5 rounded-full bg-blue-100 text-[#1a73e8] dark:bg-blue-900/50 dark:text-blue-300 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[13px] font-bold">check</span>
+                                </span>
+                                <span>{primaryBoardLabel}</span>
                             </div>
                         )}
-                        <div className="flex gap-4" lang={currentLang}>
-                            <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[12px] text-[#1a73e8]">login</span>
-                                <span className="text-[10px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                    {t('in')}: {hotel?.checkIn || '15:00'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[12px] text-[#1a73e8]">logout</span>
-                                <span className="text-[10px] font-medium text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                    {t('out')}: {hotel?.checkOut || '11:00'}
-                                </span>
-                            </div>
+                        <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                            <span className={`size-4.5 rounded-full flex items-center justify-center shrink-0 ${
+                                primaryRefundable ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                            }`}>
+                                <span className="material-symbols-outlined text-[13px] font-bold">check</span>
+                            </span>
+                            <span>{primaryRefundable ? t('freeCancellationGuarantee') : t('nonRefundable')}</span>
                         </div>
                     </div>
-                </div>
 
-                {/* Dates & Guests Stay Box */}
-                <div className="grid grid-cols-2 gap-2 mb-3.5">
-                    <div className="p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkIn')}</p>
-                        <p className="text-xs sm:text-sm font-semibold text-[#1a73e8] dark:text-blue-400 leading-tight">{startDate}</p>
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>{t('checkOut')}</p>
-                        <p className="text-xs sm:text-sm font-semibold text-[#1a73e8] dark:text-blue-400 leading-tight">{endDate}</p>
-                    </div>
-                    <div className="col-span-2 p-2.5 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700 flex justify-between items-center text-xs font-medium text-[#5f6368] dark:text-slate-300">
-                        <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">nights_stay</span>
-                            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider" lang={currentLang}>
-                                {`${nights} ${nights > 1 ? t('nights') : t('night')} ${t('stay')}`}
+                    {/* 6. Selected Rooms Breakdown (All existing detailed features preserved) */}
+                    <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between">
+                            <p className="text-[10.5px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
+                                {t('selectedRooms')}
+                            </p>
+                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300">
+                                {selectedRooms.length} / {totalRoomsCount} {t('room')}
                             </span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-sm text-[#1a73e8]">group</span>
-                            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider" lang={currentLang}>
-                                {getGuestsSummaryText()}
-                            </span>
-                        </div>
-                    </div>
-                </div>
+                        {selectedRooms && selectedRooms.length > 0 ? (
+                            selectedRooms.map((room, idx) => {
+                                const hubRate = room.hubRateModel || {};
+                                const checkRatesRoom = checkRatesData?.rooms?.[idx];
+                                const checkRatesRate = checkRatesRoom?.rates?.[0];
 
-                {/* Selected Rooms Breakdown */}
-                <div className="space-y-2 mb-3.5">
-                    <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
-                        {t('selectedRooms')}
-                    </p>
-                    {selectedRooms && selectedRooms.length > 0 ? (
-                        selectedRooms.map((room, idx) => {
-                            const hubRate = room.hubRateModel || {};
-                            const checkRatesRoom = checkRatesData?.rooms?.[idx];
-                            const checkRatesRate = checkRatesRoom?.rates?.[0];
+                                const rawBoard = checkRatesRate?.boardName || hubRate.boardCode || room.boardName || room.boardCode || 'Room Only';
+                                const boardLabel = getBoardLabel(rawBoard, t, currentLang);
 
-                            // Board name
-                            const rawBoard = checkRatesRate?.boardName || hubRate.boardCode || room.boardName || room.boardCode || 'Room Only';
-                            const boardLabel = getBoardLabel(rawBoard, t, currentLang);
+                                const refundable = checkRatesRate?.refundable !== undefined 
+                                    ? checkRatesRate.refundable 
+                                    : (hubRate.refundable ?? (room.isRefundable ?? true));
 
-                            // Refundable & Cancellation
-                            const refundable = checkRatesRate?.refundable !== undefined 
-                                ? checkRatesRate.refundable 
-                                : (hubRate.refundable ?? (room.isRefundable ?? true));
+                                const policies = checkRatesRate?.price?.cancellationPolicies 
+                                    || hubRate.price?.cancellationPolicies 
+                                    || room.cancellationPolicies 
+                                    || [];
 
-                            const policies = checkRatesRate?.price?.cancellationPolicies 
-                                || hubRate.price?.cancellationPolicies 
-                                || room.cancellationPolicies 
-                                || [];
+                                const roomPrice = Number(
+                                    checkRatesRate?.price?.calculatedAmount 
+                                    || checkRatesRate?.price?.totalPaymentAmount 
+                                    || hubRate.price?.calculatedAmount 
+                                    || hubRate.price?.netTotal 
+                                    || hubRate.price?.grossTotal 
+                                    || room.rate 
+                                    || 0
+                                ) || 0;
 
-                            // Price
-                            const roomPrice = Number(
-                                checkRatesRate?.price?.calculatedAmount 
-                                || checkRatesRate?.price?.totalPaymentAmount 
-                                || hubRate.price?.calculatedAmount 
-                                || hubRate.price?.netTotal 
-                                || hubRate.price?.grossTotal 
-                                || room.rate 
-                                || 0
-                            ) || 0;
+                                const roomCurr = checkRatesRate?.price?.currency 
+                                    || hubRate.price?.currency 
+                                    || room.currency 
+                                    || displayCurrency;
 
-                            const roomCurr = checkRatesRate?.price?.currency 
-                                || hubRate.price?.currency 
-                                || room.currency 
-                                || displayCurrency;
+                                const roomName = decodeHTMLEntities(room.name || `Room ${idx + 1}`);
 
-                            const roomName = decodeHTMLEntities(room.name || `Room ${idx + 1}`);
-
-                            return (
-                                <div key={idx} className="relative p-3 sm:p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                    {onRemoveRoom && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onRemoveRoom(idx);
-                                            }}
-                                            className="absolute top-2.5 right-2.5 size-6 text-[#5f6368] hover:text-[#d93025] flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
-                                            title={t('remove')}
-                                        >
-                                            <span className="material-symbols-outlined text-[16px]">close</span>
-                                        </button>
-                                    )}
-                                    <div className={`${onRemoveRoom ? 'pr-6' : 'pr-2'} mb-1.5`}>
-                                        <div className="flex items-start gap-1.5">
-                                            <div className="size-5 rounded-md bg-[#e8f0fe] text-[#1a73e8] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
-                                                {idx + 1}
+                                return (
+                                    <div key={idx} className="relative p-3 sm:p-3.5 rounded-2xl bg-[#f8f9fa] dark:bg-[#303134]/70 border border-[#dadce0] dark:border-slate-700 shadow-2xs">
+                                        {onRemoveRoom && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onRemoveRoom(idx);
+                                                }}
+                                                className="absolute top-2.5 right-2.5 size-6 text-[#5f6368] hover:text-[#d93025] flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors cursor-pointer"
+                                                title={t('remove')}
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                            </button>
+                                        )}
+                                        <div className={`${onRemoveRoom ? 'pr-6' : 'pr-2'} mb-1.5`}>
+                                            <div className="flex items-start gap-1.5">
+                                                <div className="size-5 rounded-md bg-[#e8f0fe] text-[#1a73e8] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                    {idx + 1}
+                                                </div>
+                                                <span className="font-semibold text-[#202124] dark:text-white text-xs sm:text-sm line-clamp-2">
+                                                    {roomName}
+                                                </span>
                                             </div>
-                                            <span className="font-semibold text-[#202124] dark:text-white text-xs sm:text-sm line-clamp-2">
-                                                {roomName}
-                                            </span>
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#dadce0] dark:border-slate-700">
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                            <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-xs px-2 py-0.5 rounded-md font-medium">
-                                                {boardLabel}
-                                            </span>
-                                            {refundable !== undefined && (
-                                                <RefundPolicyTooltip
-                                                    isRefundable={refundable}
-                                                    textOverride={refundable ? t('freeCancel') : t('nonRefundable')}
-                                                    className={`text-xs font-medium px-2 py-0.5 rounded-md ${refundable ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'}`}
-                                                />
+                                        <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#dadce0] dark:border-slate-700">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-xs px-2 py-0.5 rounded-md font-medium">
+                                                    {boardLabel}
+                                                </span>
+                                                {refundable !== undefined && (
+                                                    <RefundPolicyTooltip
+                                                        isRefundable={refundable}
+                                                        textOverride={refundable ? t('freeCancel') : t('nonRefundable')}
+                                                        className={`text-xs font-medium px-2 py-0.5 rounded-md ${refundable ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'}`}
+                                                    />
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs sm:text-sm font-bold text-[#202124] dark:text-white tabular-nums">
+                                                    {getCurrencySymbol(roomCurr, authCurrencyMap)} {roomPrice.toFixed(2)}
+                                                </span>
+                                                <p className="text-[10px] text-[#70757a]">
+                                                    {nights} {nights > 1 ? t('nights') : t('night')}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Cancellation Policy Details */}
+                                        <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
+                                            {policies && policies.length > 0 ? (
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
+                                                        {t('cancellationPolicy')}
+                                                    </p>
+                                                    {policies.map((policy, pIdx) => {
+                                                        const rawAmt = policy?.calculatedAmount ?? policy?.amount;
+                                                        const policyAmount = rawAmt != null && !isNaN(Number(rawAmt)) ? Number(rawAmt) : null;
+                                                        const isFree = policyAmount === 0;
+
+                                                        return (
+                                                            <div key={pIdx} className="flex justify-between items-center text-[11px]">
+                                                                <span className="text-[#5f6368] dark:text-slate-400">
+                                                                    {policy?.fromDate 
+                                                                        ? (policy.fromDate.includes('[') 
+                                                                            ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
+                                                                            : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
+                                                                        : (isFree ? t('flexible') : t('cancellationPenalty'))
+                                                                    }
+                                                                </span>
+                                                                <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
+                                                                    isFree ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
+                                                                }`}>
+                                                                    {isFree 
+                                                                        ? t('freeCancel') 
+                                                                        : (policyAmount != null 
+                                                                            ? `${getCurrencySymbol(policy?.currency || roomCurr, authCurrencyMap)} ${policyAmount.toFixed(2)}` 
+                                                                            : t('cancellationPenalty'))}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
+                                                    <span className="material-symbols-outlined text-[13px]">info</span>
+                                                    {t('standardCancellation')}
+                                                </span>
                                             )}
                                         </div>
-                                        <div className="text-right">
-                                            <span className="text-xs sm:text-sm font-bold text-[#202124] dark:text-white">
-                                                {getCurrencySymbol(roomCurr, authCurrencyMap)} {roomPrice.toFixed(2)}
-                                            </span>
-                                            <p className="text-[10px] text-[#70757a]">
-                                                {nights} {nights > 1 ? t('nights') : t('night')}
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="p-5 rounded-2xl bg-[#f8f9fa] dark:bg-[#303134] border border-dashed border-[#dadce0] dark:border-slate-700 text-center">
+                                <span className="material-symbols-outlined text-2xl text-[#70757a] mb-1">bed</span>
+                                <p className="text-xs text-[#5f6368] dark:text-slate-400 font-medium">
+                                    {t('pleaseSelectARoom')}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 7. Daily Prices Breakdown (If Available) */}
+                    {selectedRooms && selectedRooms.length > 0 && selectedRooms.some(r => (r.dailyPrices && r.dailyPrices.length > 0) || (r.hubRateModel?.price?.dailyPrices && r.hubRateModel?.price?.dailyPrices.length > 0)) && (
+                        <div className="p-3 rounded-2xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
+                            <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" lang={currentLang}>
+                                <span className="material-symbols-outlined text-xs text-[#1a73e8]">calendar_month</span>
+                                {t('dailyRates')}
+                            </p>
+                            {selectedRooms.map((room, idx) => {
+                                const dpList = room.dailyPrices || room.hubRateModel?.price?.dailyPrices || [];
+                                if (dpList.length === 0) return null;
+                                const roomCurr = room.hubRateModel?.price?.currency || room.currency || displayCurrency;
+
+                                return (
+                                    <div key={idx} className="mb-2 last:mb-0">
+                                        {selectedRooms.length > 1 && (
+                                            <p className="text-[9px] font-semibold text-[#70757a] uppercase tracking-wider mb-1" lang={currentLang}>
+                                                {t('room')} {idx + 1}
                                             </p>
+                                        )}
+                                        <div className="space-y-1">
+                                            {dpList.map((dp, dpIdx) => (
+                                                <div key={dpIdx} className="flex justify-between items-center text-xs">
+                                                    <span className="text-[#5f6368] dark:text-slate-400">
+                                                        {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </span>
+                                                    <span className="font-semibold text-[#202124] dark:text-white tabular-nums">
+                                                        {getCurrencySymbol(roomCurr, authCurrencyMap)} {Number(dp.calculatedAmount || dp.amount || 0).toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
-
-                                    {/* Cancellation Policy Details */}
-                                    <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
-                                        {policies && policies.length > 0 ? (
-                                            <div className="space-y-1">
-                                                <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
-                                                    {t('cancellationPolicy')}
-                                                </p>
-                                                {policies.map((policy, pIdx) => {
-                                                    const rawAmt = policy?.calculatedAmount ?? policy?.amount;
-                                                    const policyAmount = rawAmt != null && !isNaN(Number(rawAmt)) ? Number(rawAmt) : null;
-                                                    const isFree = policyAmount === 0;
-
-                                                    return (
-                                                        <div key={pIdx} className="flex justify-between items-center text-[11px]">
-                                                            <span className="text-[#5f6368] dark:text-slate-400">
-                                                                {policy?.fromDate 
-                                                                    ? (policy.fromDate.includes('[') 
-                                                                        ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
-                                                                        : new Date(policy.fromDate).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' }))
-                                                                    : (isFree ? t('flexible') : t('cancellationPenalty'))
-                                                                }
-                                                            </span>
-                                                            <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
-                                                                isFree ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
-                                                            }`}>
-                                                                {isFree 
-                                                                    ? t('freeCancel') 
-                                                                    : (policyAmount != null 
-                                                                        ? `${getCurrencySymbol(policy?.currency || roomCurr, authCurrencyMap)} ${policyAmount.toFixed(2)}` 
-                                                                        : t('cancellationPenalty'))}
-                                                            </span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
-                                                <span className="material-symbols-outlined text-[13px]">info</span>
-                                                {t('standardCancellation')}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="p-5 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-dashed border-[#dadce0] dark:border-slate-700 text-center">
-                            <span className="material-symbols-outlined text-2xl text-[#70757a] mb-1">bed</span>
-                            <p className="text-xs text-[#5f6368] dark:text-slate-400 font-medium">
-                                {t('pleaseSelectARoom')}
-                            </p>
+                                );
+                            })}
                         </div>
                     )}
-                </div>
 
-                {/* Daily Prices Breakdown (If Available) */}
-                {selectedRooms && selectedRooms.length > 0 && selectedRooms.some(r => (r.dailyPrices && r.dailyPrices.length > 0) || (r.hubRateModel?.price?.dailyPrices && r.hubRateModel?.price?.dailyPrices.length > 0)) && (
-                    <div className="mb-3.5 p-3 rounded-xl bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                        <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5" lang={currentLang}>
-                            <span className="material-symbols-outlined text-xs text-[#1a73e8]">calendar_month</span>
-                            {t('dailyRates')}
-                        </p>
-                        {selectedRooms.map((room, idx) => {
-                            const dpList = room.dailyPrices || room.hubRateModel?.price?.dailyPrices || [];
-                            if (dpList.length === 0) return null;
-                            const roomCurr = room.hubRateModel?.price?.currency || room.currency || displayCurrency;
-
-                            return (
-                                <div key={idx} className="mb-2 last:mb-0">
-                                    {selectedRooms.length > 1 && (
-                                        <p className="text-[9px] font-semibold text-[#70757a] uppercase tracking-wider mb-1" lang={currentLang}>
-                                            {t('room')} {idx + 1}
-                                        </p>
-                                    )}
-                                    <div className="space-y-1">
-                                        {dpList.map((dp, dpIdx) => (
-                                            <div key={dpIdx} className="flex justify-between items-center text-xs">
-                                                <span className="text-[#5f6368] dark:text-slate-400">
-                                                    {new Date(dp.date).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })}
-                                                </span>
-                                                <span className="font-semibold text-[#202124] dark:text-white">
-                                                    {getCurrencySymbol(roomCurr, authCurrencyMap)} {Number(dp.calculatedAmount || dp.amount || 0).toFixed(2)}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {/* Grand Total */}
-                <div className="pt-3.5 border-t border-[#dadce0] dark:border-slate-700 mb-3.5" lang={currentLang}>
-                    <div className="flex items-baseline justify-between mb-1">
-                        <div>
-                            <span className="text-xs text-[#5f6368] dark:text-slate-400 font-medium block">{t('totalStayPrice')}</span>
-                            <span className="text-[11px] text-[#70757a]">{displayCurrency} · {t('taxesIncl')}</span>
+                    {/* 8. Price Breakdown Summary (Mockup style) */}
+                    <div className="border-t border-slate-200/80 dark:border-slate-700/80 pt-3.5 space-y-2 text-xs">
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                            <span>{t('roomStayPrice')} ({nights} {nights > 1 ? t('nights') : t('night')})</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                                {getCurrencySymbol(displayCurrency, authCurrencyMap)} {Number(grandTotal).toFixed(2)}
+                            </span>
                         </div>
-                        <span className="text-xl sm:text-2xl font-bold text-[#1a73e8] dark:text-blue-400 tracking-tight">
+                        <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                            <span>{t('taxesAndFees')}</span>
+                            <span className="text-slate-500 dark:text-slate-400 font-medium">{t('taxesIncl')}</span>
+                        </div>
+                    </div>
+
+                    {/* 9. Grand Total (Mockup style - large bold blue) */}
+                    <div className="border-t border-slate-200/80 dark:border-slate-700/80 pt-3.5 flex items-baseline justify-between" lang={currentLang}>
+                        <div>
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">
+                                {t('totalAmount')}
+                            </span>
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                {t('allTaxesIncluded')}
+                            </span>
+                        </div>
+                        <span className="text-2xl sm:text-3xl font-extrabold text-[#1a73e8] dark:text-blue-400 tracking-tight tabular-nums">
                             {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : (Number(grandTotal) || 0).toFixed(2)}
                         </span>
                     </div>
+
+                    {/* 10. Rate Notes (Preserved) */}
+                    {rateNotesList && rateNotesList.length > 0 && (
+                        <div className="p-3 rounded-2xl bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang}>
+                            <p className="text-[10px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                <span className="material-symbols-outlined text-[13px]">info</span>
+                                {t('rateNotes')}
+                            </p>
+                            <div 
+                                className="text-xs font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
+                                dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(rateNotesList.join('<br/>')) }}
+                            />
+                        </div>
+                    )}
+
+                    {/* 11. Optional Custom Action Button / Config */}
+                    {actionButton}
+                    {actionConfig && (
+                        <button
+                            onClick={actionConfig.onClick}
+                            disabled={actionConfig.disabled}
+                            className={`w-full h-11 font-medium rounded-xl transition-all text-xs sm:text-sm shadow-xs hover:shadow flex items-center justify-center gap-2 active:scale-[0.98] mb-2 cursor-pointer ${
+                                !actionConfig.disabled
+                                    ? 'bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer'
+                                    : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed opacity-60'
+                            } ${actionConfig.loading ? 'animate-pulse' : ''}`}
+                            lang={currentLang}
+                        >
+                            {actionConfig.loading ? (
+                                <>
+                                    <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
+                                    <span>{actionConfig.loadingText || t('processing')}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{actionConfig.text}</span>
+                                    {actionConfig.icon && (
+                                        <span className="material-symbols-outlined text-[18px]">{actionConfig.icon}</span>
+                                    )}
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
-
-                {/* Rate Notes */}
-                {rateNotesList && rateNotesList.length > 0 && (
-                    <div className="mb-3.5 p-3 rounded-xl bg-[#fef7e0] dark:bg-amber-950/30 border border-[#fce8e6] dark:border-amber-900/50" lang={currentLang}>
-                        <p className="text-[10px] font-semibold text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[13px]">info</span>
-                            {t('rateNotes')}
-                        </p>
-                        <div 
-                            className="text-xs font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
-                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(rateNotesList.join('<br/>')) }}
-                        />
-                    </div>
-                )}
-
-                {/* Optional Custom Action Button / Config */}
-                {actionButton}
-                {actionConfig && (
-                    <button
-                        onClick={actionConfig.onClick}
-                        disabled={actionConfig.disabled}
-                        className={`w-full h-11 font-medium rounded-lg transition-all text-xs sm:text-sm shadow-xs hover:shadow flex items-center justify-center gap-2 active:scale-[0.98] mb-2 cursor-pointer ${
-                            !actionConfig.disabled
-                                ? 'bg-[#1a73e8] hover:bg-[#1557b0] text-white cursor-pointer'
-                                : 'bg-[#f1f3f4] dark:bg-slate-800 text-[#70757a] cursor-not-allowed opacity-60'
-                        } ${actionConfig.loading ? 'animate-pulse' : ''}`}
-                        lang={currentLang}
-                    >
-                        {actionConfig.loading ? (
-                            <>
-                                <span className="size-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
-                                <span>{actionConfig.loadingText || t('processing')}</span>
-                            </>
-                        ) : (
-                            <>
-                                <span>{actionConfig.text}</span>
-                                {actionConfig.icon && (
-                                    <span className="material-symbols-outlined text-[18px]">{actionConfig.icon}</span>
-                                )}
-                            </>
-                        )}
-                    </button>
-                )}
-
-                <p className="text-[10px] sm:text-[11px] text-center text-[#70757a] dark:text-slate-500 font-medium" lang={currentLang}>
-                    {t('b2bRates')}
-                </p>
             </div>
-
-            {/* Security Badge */}
-            {showSecurityBadge && (
-                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-3.5 flex items-center gap-3 shadow-xs" lang={currentLang}>
-                    <div className="size-9 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 flex items-center justify-center text-[#1a73e8] shrink-0">
-                        <span className="material-symbols-outlined text-lg">verified_user</span>
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-medium text-[#70757a] uppercase tracking-wider leading-none mb-0.5">{t('securePayment')}</p>
-                        <p className="text-xs font-semibold text-[#202124] dark:text-white">{t('protectedBooking')}</p>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

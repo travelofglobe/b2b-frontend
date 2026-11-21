@@ -3009,15 +3009,15 @@ const HotelDetail = () => {
                                                             <div className="flex flex-col md:flex-row">
                                                                 {/* Image Section */}
                                                                 <div
-                                                                    className="md:w-72 h-52 sm:h-56 md:h-auto relative overflow-hidden shrink-0 cursor-pointer group/room"
+                                                                    className="w-full md:w-72 lg:w-80 h-52 sm:h-56 md:h-52 lg:h-56 relative overflow-hidden shrink-0 cursor-pointer group/room bg-slate-100 dark:bg-slate-800"
                                                                     onClick={() => {
                                                                         setSelectedRoomGroup(roomGroup);
                                                                         setIsRoomGalleryOpen(true);
                                                                     }}
                                                                 >
-                                                                    <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src={roomGroup.thumbImage || (typeof roomGroup.images?.[0] === 'string' ? roomGroup.images[0] : roomGroup.images?.[0]?.url) || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
+                                                                    <img className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105" src={roomGroup.thumbImage || (typeof roomGroup.images?.[0] === 'string' ? roomGroup.images[0] : roomGroup.images?.[0]?.url) || images[roomIndex % images.length]} alt="" loading="lazy" decoding="async" />
                                                                     {roomGroup.images?.length > 0 && (
-                                                                        <div className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs">
+                                                                        <div className="absolute bottom-3 left-3 bg-black/65 backdrop-blur-md text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs z-10">
                                                                             <span className="material-symbols-outlined text-[14px]">photo_library</span> {roomGroup.images.length} {tLocal('photos')}
                                                                         </div>
                                                                     )}

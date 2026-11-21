@@ -33,74 +33,290 @@ const confirmLocales = {
         title: "Are you sure?",
         message: "If you return to room selection, all entered guest details will be lost.",
         cancel: "Cancel",
-        confirm: "Yes, Continue"
-    },
+        confirm: "Yes, Continue",
+        backToRoomSelection: "Back to Room Selection",
+        step2ReservationDetails: "Step 2 / 3: Reservation Details",
+        autoFillAssistant: "Auto-Fill Assistant",
+        autoFillDesc: "Complete the form with 1-click using your CRM or previous booking data.",
+        autoFillAction: "Auto-Fill Details",
+        enterGuestDetailsTitle: "Enter Guest Details",
+        enterGuestDetailsNotice: "Please enter official information that exactly matches identity documents or passport upon hotel check-in.",
+        leadGuestBadge: "LEAD GUEST",
+        leadGuestTitle: "1. Guest (Lead Contact & Reservation Holder)",
+        leadGuestNotice: "Reservation confirmation voucher and check-in details will be sent instantly to these contact channels.",
+        selectFromCrm: "Select from Contacts",
+        preferencesAndSpecialServices: "Personalized Preferences & Special Services",
+        preferencesSubtitle: "Customize your stay according to your wishes, any extra fees will be detailed.",
+        specialNotesLabel: "Special Notes to Hotel",
+        specialNotesPlaceholder: "e.g. Flight arrives at 16:30, expected hotel check-in around 18:00...",
+        unspecified: "Unspecified",
+        proceedToPayment: "Proceed to Payment Step",
+        securePaymentNote: "Secure payment with card or Google Pay in the next step."
+        },
     tr: {
         title: "Emin misiniz?",
         message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir.",
         cancel: "İptal",
-        confirm: "Evet, Devam Et"
-    },
+        confirm: "Evet, Devam Et",
+        backToRoomSelection: "Oda Seçimine Dön",
+        step2ReservationDetails: "Adım 2 / 3: Rezervasyon Detayları",
+        autoFillAssistant: "Hızlı Doldurma Asistanı",
+        autoFillDesc: "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın.",
+        autoFillAction: "Bilgileri Otomatik Doldur",
+        enterGuestDetailsTitle: "Misafir Bilgilerini Girin",
+        enterGuestDetailsNotice: "Otele giriş esnasında kimlik belgesi veya pasaportla tam eşleşecek resmi bilgileri eksiksiz belirtiniz.",
+        leadGuestBadge: "ASIL MİSAFİR",
+        leadGuestTitle: "1. Misafir (Ana İletişim & Rezervasyon Sahibi)",
+        leadGuestNotice: "Rezervasyon onay belgesi ve giriş bilgileri bu iletişim kanallarına anında gönderilir.",
+        selectFromCrm: "Kayıtlı Kişilerden Seç",
+        preferencesAndSpecialServices: "Kişiselleştirilmiş Tercihler & Özel Hizmetler",
+        preferencesSubtitle: "İsteğinize göre konaklamanızı özelleştirin, ek ücretler ayrıntılandırılır.",
+        specialNotesLabel: "Otele İletmek İstediğiniz Özel Notlar",
+        specialNotesPlaceholder: "Varsa otele iletmek istediğiniz özel isteklerinizi veya tahmini varış saatinizi belirtebilirsiniz...",
+        unspecified: "Belirtme",
+        proceedToPayment: "Ödeme Adımına İlerle",
+        securePaymentNote: "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır."
+        },
     ar: {
         title: "هل أنت متأكد؟",
         message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها.",
         cancel: "إلغاء",
-        confirm: "نعم، استمر"
-    },
+        confirm: "نعم، استمر",
+        backToRoomSelection: "العودة إلى اختيار الغرفة",
+        step2ReservationDetails: "الخطوة 2 / 3: تفاصيل الحجز",
+        autoFillAssistant: "مساعد التعبئة التلقائية",
+        autoFillDesc: "أكمل النموذج بنقرة واحدة باستخدام ملفك الشخصي أو بيانات الحجوزات السابقة.",
+        autoFillAction: "تعبئة البيانات تلقائياً",
+        enterGuestDetailsTitle: "أدخل بيانات النزلاء",
+        enterGuestDetailsNotice: "يرجى إدخال البيانات الرسمية المطابقة تماماً لوثيقة الهوية أو جواز السفر عند تسجيل الوصول.",
+        leadGuestBadge: "النزيل الرئيسي",
+        leadGuestTitle: "1. النزيل (جهة الاتصال الرئيسية وصاحب الحجز)",
+        leadGuestNotice: "سيتم إرسال قسيمة تأكيد الحجز وتفاصيل الدخول فوراً عبر قنوات الاتصال هذه.",
+        selectFromCrm: "اختر من جهات الاتصال",
+        preferencesAndSpecialServices: "التفضيلات والخدمات الخاصة",
+        preferencesSubtitle: "خصص إقامتك حسب رغبتك.",
+        specialNotesLabel: "ملاحظات خاصة للفندق",
+        specialNotesPlaceholder: "مثال: رحلتنا تصل في 16:30، وتسجيل الوصول حوالي 18:00...",
+        unspecified: "غير محدد",
+        proceedToPayment: "الانتقال إلى خطوة الدفع",
+        securePaymentNote: "دفع آمن بالبطاقة أو Google Pay في الخطوة التالية."
+        },
     es: {
         title: "¿Está seguro?",
         message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes.",
         cancel: "Cancelar",
-        confirm: "Sí, continuar"
-    },
+        confirm: "Sí, continuar",
+        backToRoomSelection: "Volver a la selección de habitación",
+        step2ReservationDetails: "Paso 2 / 3: Detalles de la reserva",
+        autoFillAssistant: "Asistente de Autocompletado",
+        autoFillDesc: "Complete el formulario con un clic usando su perfil o reservas anteriores.",
+        autoFillAction: "Autocompletar datos",
+        enterGuestDetailsTitle: "Introducir los datos de los huéspedes",
+        enterGuestDetailsNotice: "Introduzca los datos oficiales que coincidan con el documento de identidad o pasaporte al registrarse.",
+        leadGuestBadge: "HUÉSPED PRINCIPAL",
+        leadGuestTitle: "1. Huésped (Contacto principal y Titular)",
+        leadGuestNotice: "El bono de reserva y los detalles de acceso se enviarán al instante a estos canales de contacto.",
+        selectFromCrm: "Elegir de contactos guardados",
+        preferencesAndSpecialServices: "Preferencias Personalizadas y Servicios Especiales",
+        preferencesSubtitle: "Personalice su estancia según sus deseos.",
+        specialNotesLabel: "Notas especiales para el hotel",
+        specialNotesPlaceholder: "ej. El vuelo llega a las 16:30, llegada estimada al hotel hacia las 18:00...",
+        unspecified: "No especificado",
+        proceedToPayment: "Continuar al paso de pago",
+        securePaymentNote: "Pago seguro con tarjeta o Google Pay en el siguiente paso."
+        },
     ru: {
         title: "Вы уверены?",
         message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны.",
         cancel: "Отмена",
-        confirm: "Да, продолжить"
-    },
+        confirm: "Да, продолжить",
+        backToRoomSelection: "Вернуться к выбору номера",
+        step2ReservationDetails: "Шаг 2 / 3: Данные бронирования",
+        autoFillAssistant: "Ассистент автозаполнения",
+        autoFillDesc: "Заполните форму в один клик данными из профиля или прошлых бронирований.",
+        autoFillAction: "Заполнить автоматически",
+        enterGuestDetailsTitle: "Введите данные гостей",
+        enterGuestDetailsNotice: "Укажите официальные данные, в точности совпадающие с паспортом при заселении.",
+        leadGuestBadge: "ОСНОВНОЙ ГОСТЬ",
+        leadGuestTitle: "1. Гость (Основной контакт и держатель брони)",
+        leadGuestNotice: "Ваучер бронирования и данные для заселения будут отправлены на эти контакты.",
+        selectFromCrm: "Выбрать из контактов",
+        preferencesAndSpecialServices: "Индивидуальные предпочтения и услуги",
+        preferencesSubtitle: "Настройте проживание по вашему желанию.",
+        specialNotesLabel: "Особые пожелания для отеля",
+        specialNotesPlaceholder: "например: Прилет в 16:30, заезд в отель ориентировочно в 18:00...",
+        unspecified: "Не указано",
+        proceedToPayment: "Перейти к оплате",
+        securePaymentNote: "Безопасная оплата картой или Google Pay на следующем шаге."
+        },
     zh: {
         title: "您确定吗？",
         message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。",
         cancel: "取消",
-        confirm: "是的，继续"
-    },
+        confirm: "是的，继续",
+        backToRoomSelection: "返回选择客房",
+        step2ReservationDetails: "步骤 2 / 3: 预订详情",
+        autoFillAssistant: "快速自动填充助手",
+        autoFillDesc: "一键使用您的个人资料或历史预订快速完成表单填写。",
+        autoFillAction: "自动填充信息",
+        enterGuestDetailsTitle: "填写住客信息",
+        enterGuestDetailsNotice: "请准确填写与入住时出示的身份证件或护照完全一致的官方信息。",
+        leadGuestBadge: "主要住客",
+        leadGuestTitle: "1. 住客（主要联系人及预订人）",
+        leadGuestNotice: "预订确认凭证及入住信息将即时发送至此联系渠道。",
+        selectFromCrm: "从联系人中选择",
+        preferencesAndSpecialServices: "个性化偏好与特别服务",
+        preferencesSubtitle: "根据您的需要定制住宿体验。",
+        specialNotesLabel: "给酒店的特别要求",
+        specialNotesPlaceholder: "例如：航班于 16:30 抵达，预计于 18:00 左右办理入住...",
+        unspecified: "不透露",
+        proceedToPayment: "前往支付步骤",
+        securePaymentNote: "下一步将通过信用卡或 Google Pay 进行安全支付。"
+        },
     ja: {
         title: "よろしいですか？",
         message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。",
         cancel: "キャンセル",
-        confirm: "はい、続行します"
-    },
+        confirm: "はい、続行します",
+        backToRoomSelection: "客室選択に戻る",
+        step2ReservationDetails: "ステップ 2 / 3: 予約詳細",
+        autoFillAssistant: "自動入力アシスタント",
+        autoFillDesc: "プロフィールや過去の予約データからワンクリックでフォームを入力できます。",
+        autoFillAction: "情報を自動入力",
+        enterGuestDetailsTitle: "宿泊者情報の入力",
+        enterGuestDetailsNotice: "チェックイン時の身分証明書やパスポートと完全に一致する正式な情報を入力してください。",
+        leadGuestBadge: "代表宿泊者",
+        leadGuestTitle: "1. 宿泊者（メイン連絡先・予約代表者）",
+        leadGuestNotice: "予約確認バウチャーとチェックイン詳細はこれらの連絡先に即座に送信されます。",
+        selectFromCrm: "連絡先から選択",
+        preferencesAndSpecialServices: "カスタマイズ・特別リクエスト",
+        preferencesSubtitle: "ご要望に応じて滞在をカスタマイズいただけます。",
+        specialNotesLabel: "ホテルへの特別リクエスト",
+        specialNotesPlaceholder: "例：フライトが16:30に到着予定のため、ホテルへのチェックインは18:00頃になります...",
+        unspecified: "指定なし",
+        proceedToPayment: "お支払いへ進む",
+        securePaymentNote: "次のステップでカードまたはGoogle Payによる安全な決済が行われます。"
+        },
     fa: {
         title: "آیا مطمئن هستید؟",
         message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد.",
         cancel: "لغو",
-        confirm: "بله، ادامه دهید"
-    },
+        confirm: "بله، ادامه دهید",
+        backToRoomSelection: "بازگشت به انتخاب اتاق",
+        step2ReservationDetails: "مرحله ۲ / ۳: جزئیات رزرو",
+        autoFillAssistant: "دستیار تکمیل سریع فرم",
+        autoFillDesc: "با یک کلیک از طریق اطلاعات ذخیره شده فرم را تکمیل کنید.",
+        autoFillAction: "تکمیل خودکار اطلاعات",
+        enterGuestDetailsTitle: "وارد کردن اطلاعات مهمانان",
+        enterGuestDetailsNotice: "لطفاً اطلاعات رسمی مطابق با مدارک هویتی یا پاسپورت را دقیق وارد نمایید.",
+        leadGuestBadge: "مهمان اصلی",
+        leadGuestTitle: "۱. مهمان (مخاطب اصلی و صاحب رزرو)",
+        leadGuestNotice: "ووچر تأیید رزرو و اطلاعات پذیرش به این اطلاعات تماس ارسال خواهد شد.",
+        selectFromCrm: "انتخاب از مخاطبین",
+        preferencesAndSpecialServices: "ترجیحات اختصاصی و خدمات ویژه",
+        preferencesSubtitle: "اقامت خود را سفارشی‌سازی کنید.",
+        specialNotesLabel: "یادداشت‌های ویژه به هتل",
+        specialNotesPlaceholder: "مثال: پرواز ما ساعت ۱۶:۳۰ می‌نشیند و ورود ما حدود ساعت ۱۸:۰۰ خواهد بود...",
+        unspecified: "عدم ذکر",
+        proceedToPayment: "ادامه به مرحله پرداخت",
+        securePaymentNote: "پرداخت امن در مرحله بعد انجام می‌شود."
+        },
     fr: {
         title: "Êtes-vous sûr ?",
         message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues.",
         cancel: "Annuler",
-        confirm: "Oui, continuer"
-    },
+        confirm: "Oui, continuer",
+        backToRoomSelection: "Retour au choix de chambre",
+        step2ReservationDetails: "Étape 2 / 3 : Détails de la réservation",
+        autoFillAssistant: "Assistant de remplissage rapide",
+        autoFillDesc: "Complétez le formulaire en 1 clic grâce à votre profil ou réservations passées.",
+        autoFillAction: "Remplir automatiquement",
+        enterGuestDetailsTitle: "Saisir les informations des voyageurs",
+        enterGuestDetailsNotice: "Veuillez renseigner les informations officielles correspondant exactement à la pièce d'identité ou au passeport.",
+        leadGuestBadge: "VOYAGEUR PRINCIPAL",
+        leadGuestTitle: "1. Voyageur (Contact principal & Responsable)",
+        leadGuestNotice: "Le bon de réservation et les détails d'accès seront envoyés immédiatement à ces coordonnées.",
+        selectFromCrm: "Choisir parmi les contacts",
+        preferencesAndSpecialServices: "Préférences personnalisées & Services spéciaux",
+        preferencesSubtitle: "Personnalisez votre séjour selon vos souhaits.",
+        specialNotesLabel: "Demandes particulières pour l'hôtel",
+        specialNotesPlaceholder: "ex. Vol arrivant à 16h30, arrivée prévue à l'hôtel vers 18h00...",
+        unspecified: "Non spécifié",
+        proceedToPayment: "Passer à l'étape du paiement",
+        securePaymentNote: "Paiement sécurisé par carte bancaire ou Google Pay à l'étape suivante."
+        },
     it: {
         title: "Sei sicuro?",
         message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi.",
         cancel: "Annulla",
-        confirm: "Sì, continua"
-    },
+        confirm: "Sì, continua",
+        backToRoomSelection: "Torna alla scelta camera",
+        step2ReservationDetails: "Passo 2 / 3: Dettagli prenotazione",
+        autoFillAssistant: "Assistente compilazione rapida",
+        autoFillDesc: "Completa il modulo in 1 clic con il tuo profilo o i dati salvati.",
+        autoFillAction: "Compila automaticamente",
+        enterGuestDetailsTitle: "Inserisci i dati degli ospiti",
+        enterGuestDetailsNotice: "Inserisci le informazioni ufficiali corrispondenti esattamente al documento di identità o passaporto.",
+        leadGuestBadge: "OSPITE PRINCIPALE",
+        leadGuestTitle: "1. Ospite (Contatto principale e Titolare prenotazione)",
+        leadGuestNotice: "Il voucher di conferma e i dettagli di accesso verranno inviati immediatamente a questi recapiti.",
+        selectFromCrm: "Seleziona da contatti",
+        preferencesAndSpecialServices: "Preferenze personalizzate & Servizi speciali",
+        preferencesSubtitle: "Personalizza il tuo soggiorno secondo i tuoi desideri.",
+        specialNotesLabel: "Note speciali per l'hotel",
+        specialNotesPlaceholder: "es. Volo in arrivo alle 16:30, check-in previsto in hotel verso le 18:00...",
+        unspecified: "Non specificato",
+        proceedToPayment: "Procedi al pagamento",
+        securePaymentNote: "Pagamento sicuro con carta o Google Pay al passaggio successivo."
+        },
     el: {
         title: "Είστε σίγουροι;",
         message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν.",
         cancel: "Ακύρωση",
-        confirm: "Ναι, συνέχεια"
-    },
+        confirm: "Ναι, συνέχεια",
+        backToRoomSelection: "Επιστροφή στην επιλογή δωματίου",
+        step2ReservationDetails: "Βήμα 2 / 3: Στοιχεία κράτησης",
+        autoFillAssistant: "Βοηθός γρήγορης συμπλήρωσης",
+        autoFillDesc: "Συμπληρώστε τη φόρμα με 1 κλικ από το προφίλ ή τα αποθηκευμένα στοιχεία σας.",
+        autoFillAction: "Αυτόματη συμπλήρωση",
+        enterGuestDetailsTitle: "Εισαγωγή στοιχείων επισκεπτών",
+        enterGuestDetailsNotice: "Παρακαλούμε καταχωρίστε τα επίσημα στοιχεία που ταυτίζονται με την ταυτότητα ή το διαβατήριο κατά το check-in.",
+        leadGuestBadge: "ΚΥΡΙΟΣ ΕΠΙΣΚΕΠΤΗΣ",
+        leadGuestTitle: "1. Επισκέπτης (Κύρια επικοινωνία & Κάτοχος κράτησης)",
+        leadGuestNotice: "Το κουπόνι επιβεβαίωσης θα αποσταλεί άμεσα σε αυτά τα στοιχεία επικοινωνίας.",
+        selectFromCrm: "Επιλογή από επαφές",
+        preferencesAndSpecialServices: "Εξατομικευμένες προτιμήσεις & Ειδικές υπηρεσίες",
+        preferencesSubtitle: "Προσαρμόστε τη διαμονή σας.",
+        specialNotesLabel: "Ειδικές σημειώσεις για το ξενοδοχείο",
+        specialNotesPlaceholder: "π.χ. Άφιξη πτήσης στις 16:30, αναμενόμενο check-in στις 18:00...",
+        unspecified: "Δεν δηλώνεται",
+        proceedToPayment: "Συνέχεια στο βήμα πληρωμής",
+        securePaymentNote: "Ασφαλής πληρωμή με κάρτα ή Google Pay στο επόμενο βήμα."
+        },
     pt: {
         title: "Tem certeza?",
         message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos.",
         cancel: "Cancelar",
-        confirm: "Sim, continuar"
-    }
+        confirm: "Sim, continuar",
+        backToRoomSelection: "Voltar à seleção de quarto",
+        step2ReservationDetails: "Passo 2 / 3: Detalhes da reserva",
+        autoFillAssistant: "Assistente de Preenchimento Rápido",
+        autoFillDesc: "Complete o formulário em 1 clique usando seu perfil ou reservas anteriores.",
+        autoFillAction: "Preencher dados automaticamente",
+        enterGuestDetailsTitle: "Inserir dados dos hóspedes",
+        enterGuestDetailsNotice: "Insira as informações oficiais que coincidam exatamente com o documento de identidade ou passaporte no check-in.",
+        leadGuestBadge: "HÓSPEDE PRINCIPAL",
+        leadGuestTitle: "1. Hóspede (Contato principal e Titular da reserva)",
+        leadGuestNotice: "O voucher de confirmação e detalhes de acesso serão enviados imediatamente para esses contatos.",
+        selectFromCrm: "Selecionar dos contatos",
+        preferencesAndSpecialServices: "Preferências Personalizadas e Serviços Especiais",
+        preferencesSubtitle: "Personalize sua estadia de acordo com suas preferências.",
+        specialNotesLabel: "Observações especiais para o hotel",
+        specialNotesPlaceholder: "ex: Voo chega às 16:30, check-in previsto por volta das 18:00...",
+        unspecified: "Não especificado",
+        proceedToPayment: "Avançar para a etapa de pagamento",
+        securePaymentNote: "Pagamento seguro com cartão ou Google Pay na próxima etapa."
+        }
 };
 
 const CHECKOUT_SUMMARY_LOCALES = {
@@ -860,6 +1076,14 @@ const tSummary = (key, lang = 'tr') => {
     return CHECKOUT_SUMMARY_LOCALES[baseLang]?.[key] || CHECKOUT_SUMMARY_LOCALES['en']?.[key] || key;
 };
 
+const PREFERENCE_OPTIONS = [
+    { id: 'quiet_room', labelTr: 'Sessiz Oda Talebi', labelEn: 'Quiet Room Request' },
+    { id: 'non_smoking', labelTr: 'Sigara İçilmeyen Oda Talebi', labelEn: 'Non-Smoking Room Request' },
+    { id: 'high_floor', labelTr: 'Yüksek Kat Talebi', labelEn: 'High Floor Request' },
+    { id: 'early_checkin', labelTr: 'Erken Giriş Talebi', labelEn: 'Early Check-in Request' },
+    { id: 'late_checkout', labelTr: 'Geç Çıkış Talebi', labelEn: 'Late Check-out Request' }
+];
+
 const CheckoutGuestDetails = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -901,6 +1125,22 @@ const CheckoutGuestDetails = () => {
     const [clientReferenceId, setClientReferenceId] = useState('');
     const [remark, setRemark] = useState('');
     const [expireAt, setExpireAt] = useState(null);
+    const [selectedPreferences, setSelectedPreferences] = useState([]);
+
+    const togglePreference = (pref) => {
+        const isSelected = selectedPreferences.includes(pref.id);
+        const updated = isSelected 
+            ? selectedPreferences.filter(id => id !== pref.id)
+            : [...selectedPreferences, pref.id];
+        setSelectedPreferences(updated);
+
+        const prefLabel = currentLang === 'tr' ? pref.labelTr : pref.labelEn;
+        if (!isSelected) {
+            setRemark(prev => prev ? `${prev}\n• ${prefLabel}` : `• ${prefLabel}`);
+        } else {
+            setRemark(prev => prev.replace(new RegExp(`\\n?• ${prefLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), '').trim());
+        }
+    };
     
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
@@ -1428,7 +1668,7 @@ const CheckoutGuestDetails = () => {
         );
     }
 
-    const currentRoom = roomsData[activeRoomIdx];
+    const currentRoom = roomsData[activeRoomIdx] || { guests: [], roomName: '' };
 
     const hotelName = decodeHTMLEntities(hotel?.names?.[currentLang] || hotel?.names?.tr || hotel?.names?.en || hotel?.name || 'Hotel');
     const hotelStars = hotel?.starRating || (hotel?.propertyRating ? parseFloat(hotel.propertyRating) : (hotel?.stars || hotel?.hotelStar?.star || 5));
@@ -1441,8 +1681,27 @@ const CheckoutGuestDetails = () => {
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
-        <div className="flex-1 min-h-screen bg-white dark:bg-[#202124] text-[#202124] dark:text-white font-roboto">
-            <main className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-6 lg:py-8">
+        <div className="flex-1 min-h-screen bg-slate-50/50 dark:bg-[#18191b] text-slate-900 dark:text-white font-roboto">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
+                {/* Top Action & Step Bar */}
+                <div className="flex items-center justify-between gap-4 mb-4">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setPendingStepId(1);
+                            setShowConfirmBack(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#1a73e8] hover:text-[#1557b0] transition-colors cursor-pointer"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span>{cl.backToRoomSelection || "← Oda Seçimine Dön"}</span>
+                    </button>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-blue-200/60 dark:border-slate-700">
+                        <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">lock</span>
+                        <span>{cl.step2ReservationDetails || "Adım 2 / 3: Rezervasyon Detayları"}</span>
+                    </div>
+                </div>
+
                 <div className="mb-6">
                     <CheckoutStepper 
                         currentStep={2} 
@@ -1481,11 +1740,49 @@ const CheckoutGuestDetails = () => {
                     onSelect={handleCrmGuestSelect}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
                     <div className="lg:col-span-8 space-y-5">
+                        {/* Hızlı Doldurma Asistanı Banner */}
+                        <div className="rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/80 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                            <div className="flex items-center gap-3.5">
+                                <div className="size-10 rounded-2xl bg-[#1a73e8] text-white flex items-center justify-center shadow-sm shrink-0">
+                                    <span className="material-symbols-outlined text-xl">auto_awesome</span>
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                        {cl.autoFillAssistant || "Hızlı Doldurma Asistanı"}
+                                    </h3>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                        {cl.autoFillDesc || "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın."}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTargetGuestIndex({ roomIdx: 0, guestIdx: 0 });
+                                    setIsCrmModalOpen(true);
+                                }}
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 font-bold text-xs border border-blue-200/80 dark:border-blue-800 shadow-xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">magic_button</span>
+                                <span>{cl.autoFillAction || "Bilgileri Otomatik Doldur"}</span>
+                            </button>
+                        </div>
+
+                        {/* Title & Subtitle */}
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                                {cl.enterGuestDetailsTitle || "Misafir Bilgilerini Girin"}
+                            </h1>
+                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                {cl.enterGuestDetailsNotice || "Otele giriş esnasında kimlik belgesi veya pasaportla tam eşleşecek resmi bilgileri eksiksiz belirtiniz."}
+                            </p>
+                        </div>
+
                         {/* Multiple Rooms Tab Navigation (Only shown when there are 2+ rooms) */}
                         {roomsData.length > 1 && (
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-0.5" lang={currentLang}>
+                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" lang={currentLang}>
                                 {roomsData.map((room, idx) => {
                                     const isCurrent = idx === activeRoomIdx;
                                     const isDone = idx < activeRoomIdx;
@@ -1497,20 +1794,20 @@ const CheckoutGuestDetails = () => {
                                             key={idx}
                                             type="button"
                                             onClick={() => isDone && setActiveRoomIdx(idx)}
-                                            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                                                 isCurrent
                                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs cursor-default'
                                                     : isDone
-                                                        ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-[#ceead6]/70'
-                                                        : 'bg-white dark:bg-[#202124] border-[#dadce0] dark:border-slate-700 text-[#70757a] dark:text-slate-400 cursor-not-allowed opacity-60'
+                                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-100/70'
+                                                        : 'bg-white dark:bg-[#202124] border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60'
                                             }`}
                                         >
                                             <span className="material-symbols-outlined text-[16px]">
                                                 {isDone ? 'check_circle' : 'bed'}
                                             </span>
                                             <span>{tSummary('room', currentLang)} {idx + 1}</span>
-                                            <span className={`text-[10px] font-normal px-1.5 py-0.5 rounded-md ${
-                                                isCurrent ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-slate-800 text-current'
+                                            <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${
+                                                isCurrent ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-current'
                                             }`}>
                                                 {adultCount} {tSummary('adult', currentLang)}
                                                 {childCount > 0 ? `, ${childCount} ${tSummary('child', currentLang)}` : ''}
@@ -1522,93 +1819,111 @@ const CheckoutGuestDetails = () => {
                         )}
 
                         {/* Room Title Header */}
-                        <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl px-4 py-3 shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
+                        <div className="bg-white dark:bg-[#202124] border border-slate-200/90 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
                             <div className="min-w-0 flex items-center gap-2.5">
-                                <span className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                                <span className="size-8 rounded-xl bg-blue-50 dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
                                     {activeRoomIdx + 1}
                                 </span>
-                                <h2 className="text-xs sm:text-sm font-semibold text-[#202124] dark:text-white truncate">
+                                <h2 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">
                                     {currentRoom.roomName}
                                 </h2>
                             </div>
-                            <span className="px-2.5 py-1 rounded-lg bg-[#f1f3f4] dark:bg-slate-800 text-[#3c4043] dark:text-slate-300 border border-[#dadce0] dark:border-slate-700 text-xs font-medium shrink-0">
+                            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-medium shrink-0">
                                 {currentRoom.guests.filter(g => g.type === 'Adult').length} {tSummary('adult', currentLang)}
                                 {currentRoom.guests.filter(g => g.type === 'Child').length > 0 && `, ${currentRoom.guests.filter(g => g.type === 'Child').length} ${tSummary('child', currentLang)}`}
                             </span>
                         </div>
 
-                        <div className="space-y-4" key={activeRoomIdx}>
+                        {/* Guest Cards */}
+                        <div className="space-y-5" key={activeRoomIdx}>
                             {currentRoom.guests.map((guest, gIdx) => (
-                                <div key={gIdx} className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs" lang={currentLang}>
-                                    <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#dadce0] dark:border-slate-700">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`size-8 rounded-lg flex items-center justify-center ${guest.type === 'Adult' ? 'bg-[#e8f0fe] text-[#1a73e8]' : 'bg-[#e6f4ea] text-[#137333]'}`}>
-                                                <span className="material-symbols-outlined text-lg">{guest.type === 'Adult' ? 'person' : 'child_care'}</span>
-                                            </div>
-                                            <div>
-                                                <h3 className="text-sm font-semibold text-[#202124] dark:text-white">
-                                                    {gIdx === 0 && guest.type === 'Adult' 
-                                                        ? tSummary('leadGuest', currentLang) 
-                                                        : `${guest.type === 'Adult' ? tSummary('adult', currentLang) : tSummary('child', currentLang)} ${tSummary('traveler', currentLang)} ${gIdx + 1}`}
-                                                </h3>
-                                                <p className="text-[11px] text-[#5f6368] dark:text-slate-400">
-                                                    {guest.type === 'Adult' 
-                                                        ? tSummary('standardPolicy', currentLang) 
-                                                        : `${tSummary('childPassenger', currentLang)} • ${tSummary('age', currentLang)} ${guest.age}`}
-                                                </p>
-                                            </div>
+                                <div
+                                    key={gIdx}
+                                    className="bg-white dark:bg-[#202124] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs relative space-y-4"
+                                    lang={currentLang}
+                                >
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="size-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                                                {gIdx + 1}
+                                            </span>
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                                {gIdx === 0 && guest.type === 'Adult'
+                                                    ? (cl.leadGuestTitle || "1. Misafir (Ana İletişim & Rezervasyon Sahibi)")
+                                                    : `${gIdx + 1}. Misafir (${guest.type === 'Adult' ? tSummary('adult', currentLang) : `${tSummary('child', currentLang)} (${tSummary('age', currentLang)} ${guest.age})`})`}
+                                            </h3>
                                         </div>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => {
-                                                setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
-                                                setIsCrmModalOpen(true);
-                                            }}
-                                            className="h-8 flex items-center gap-1.5 px-3 text-[#1a73e8] dark:text-blue-300 bg-[#e8f0fe] hover:bg-[#d2e3fc] dark:bg-blue-900/30 dark:border-blue-800 border border-[#d2e3fc] rounded-lg text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">contact_page</span>
-                                            <span className="hidden sm:inline">{crmText}</span>
-                                            <span className="sm:hidden">CRM</span>
-                                        </button>
+                                        {gIdx === 0 && guest.type === 'Adult' ? (
+                                            <span className="px-3 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800 text-[10px] font-bold text-[#1a73e8] tracking-wider uppercase">
+                                                {cl.leadGuestBadge || "ASIL MİSAFİR"}
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
+                                                    setIsCrmModalOpen(true);
+                                                }}
+                                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 transition-colors cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[15px]">contact_page</span>
+                                                <span>{cl.selectFromCrm || "Kayıtlı Kişilerden Seç"}</span>
+                                            </button>
+                                        )}
                                     </div>
 
+                                    {/* Form Inputs Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* First Name */}
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('firstName', currentLang)}</label>
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                                {tSummary('firstName', currentLang)}
+                                            </label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-firstName`}
                                                 required
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
+                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
+                                                    errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
+                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
                                                 placeholder={tSummary('enterFirstName', currentLang)}
                                                 value={guest.firstName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
                                             />
                                         </div>
+
+                                        {/* Last Name */}
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('lastName', currentLang)}</label>
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                                {tSummary('lastName', currentLang)}
+                                            </label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-lastName`}
                                                 required
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
+                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
+                                                    errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
+                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
                                                 placeholder={tSummary('enterLastName', currentLang)}
                                                 value={guest.lastName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
                                             />
                                         </div>
 
-                                        {/* Birth Date and Gender */}
+                                        {/* Birth Date */}
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('birthDate', currentLang)}</label>
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                                {tSummary('birthDate', currentLang)}
+                                            </label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
                                                 type="date"
-                                                className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white`}
+                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
+                                                    errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
+                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white`}
                                                 value={guest.birthDate}
                                                 min="1900-01-01"
                                                 max={new Date().toISOString().split('T')[0]}
-                                                onChange={(e) => {
-                                                    handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value);
-                                                }}
+                                                onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value)}
                                                 onBlur={(e) => {
                                                     const val = e.target.value;
                                                     if (val) {
@@ -1620,145 +1935,223 @@ const CheckoutGuestDetails = () => {
                                                 }}
                                             />
                                             {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                <p className="text-[#d93025] text-[10px] font-medium mt-1">{tSummary('invalidBirthDate', currentLang)}</p>
+                                                <p className="text-[#d93025] text-xs font-medium mt-1">{tSummary('invalidBirthDate', currentLang)}</p>
                                             )}
                                             {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                <p className="text-[#d93025] text-[10px] font-medium mt-1">
+                                                <p className="text-[#d93025] text-xs font-medium mt-1">
                                                     {tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}
                                                 </p>
                                             )}
                                         </div>
 
+                                        {/* Gender 2-Way Segmented Switch (Male / Female only) */}
                                         <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('gender', currentLang)}</label>
+                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                                {tSummary('gender', currentLang)}
+                                            </label>
                                             <div
                                                 data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                className={`p-1 rounded-lg h-10 flex items-center gap-1 border ${
-                                                    errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'
-                                                } bg-[#f1f3f4] dark:bg-slate-800/80`}
+                                                className={`h-11 p-1 bg-slate-100/90 dark:bg-slate-800 rounded-2xl flex items-center gap-1 border ${
+                                                    errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-slate-200/80 dark:border-slate-700'
+                                                }`}
                                             >
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                                    className={`flex-1 h-full flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                                         guest.gender === 'male'
-                                                            ? 'bg-[#1a73e8] text-white shadow-xs font-semibold'
-                                                            : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
+                                                            ? 'bg-white dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400 shadow-xs'
+                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                                                     }`}
                                                 >
-                                                    <span className="material-symbols-outlined text-[16px]">male</span>
-                                                    <span>{tSummary('male', currentLang)}</span>
+                                                    {tSummary('male', currentLang)}
                                                 </button>
-
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                    className={`flex-1 h-full flex items-center justify-center gap-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                                                    className={`flex-1 h-full flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                                                         guest.gender === 'female'
-                                                            ? 'bg-[#1a73e8] text-white shadow-xs font-semibold'
-                                                            : 'text-[#5f6368] dark:text-slate-400 hover:text-[#202124]'
+                                                            ? 'bg-white dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400 shadow-xs'
+                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                                                     }`}
                                                 >
-                                                    <span className="material-symbols-outlined text-[16px]">female</span>
-                                                    <span>{tSummary('female', currentLang)}</span>
+                                                    {tSummary('female', currentLang)}
                                                 </button>
                                             </div>
                                         </div>
 
+                                        {/* Lead Guest Email & Phone */}
                                         {gIdx === 0 && guest.type === 'Adult' && (
                                             <>
                                                 <div>
-                                                    <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block">{tSummary('emailAddress', currentLang)}</label>
-                                                    <input
-                                                        data-field={`${activeRoomIdx}-${gIdx}-email`}
-                                                        required
-                                                        type="email"
-                                                        className={`w-full h-10 bg-white dark:bg-[#303134] border ${errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-600'} px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400`}
-                                                        placeholder={tSummary('enterEmail', currentLang)}
-                                                        value={guest.email}
-                                                        onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
-                                                    />
+                                                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                                        {tSummary('emailAddress', currentLang)}
+                                                    </label>
+                                                    <div className="relative">
+                                                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">
+                                                            mail
+                                                        </span>
+                                                        <input
+                                                            data-field={`${activeRoomIdx}-${gIdx}-email`}
+                                                            required
+                                                            type="email"
+                                                            className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
+                                                                errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
+                                                            } pl-10 pr-10 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
+                                                            placeholder={tSummary('enterEmail', currentLang)}
+                                                            value={guest.email}
+                                                            onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
+                                                        />
+                                                        {validateEmail(guest.email) && (
+                                                            <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 text-lg">
+                                                                check_circle
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
+
                                                 <div>
                                                     <PhoneInput 
                                                         label={tSummary('phoneNumber', currentLang)}
                                                         value={guest.phone}
                                                         onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
                                                         error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
+                                                        className="h-11 rounded-2xl bg-slate-50/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
                                                     />
                                                 </div>
                                             </>
                                         )}
                                     </div>
+
+                                    {/* Lead Guest Notice Banner */}
+                                    {gIdx === 0 && guest.type === 'Adult' && (
+                                        <div className="flex items-center gap-2 p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300 font-medium">
+                                            <span className="material-symbols-outlined text-[17px] text-[#1a73e8] shrink-0">verified_user</span>
+                                            <span>{cl.leadGuestNotice || "Rezervasyon onay belgesi ve giriş bilgileri bu iletişim kanallarına anında gönderilir."}</span>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
 
-                            {/* Booking Reference & Remark Section */}
+                            {/* Preferences & Special Services Card */}
                             {activeRoomIdx === roomsData.length - 1 && (
-                                <div className="bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-slate-700 rounded-xl p-4 sm:p-5 shadow-xs">
-                                    <div className="flex items-center gap-2 mb-3 pb-2.5 border-b border-[#dadce0] dark:border-slate-700">
-                                        <div className="size-7 rounded-lg bg-[#e8f0fe] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] dark:text-blue-400">
-                                            <span className="material-symbols-outlined text-base">receipt_long</span>
-                                        </div>
+                                <div className="bg-white dark:bg-[#202124] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+                                    <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
                                         <div>
-                                            <h3 className="text-xs font-semibold text-[#202124] dark:text-white" lang={currentLang}>{tSummary('bookingReferences', currentLang)}</h3>
-                                            <p className="text-[10px] text-[#5f6368] dark:text-slate-400" lang={currentLang}>{tSummary('internalIdentifiers', currentLang)}</p>
+                                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                                {cl.preferencesAndSpecialServices || "Kişiselleştirilmiş Tercihler & Özel Hizmetler"}
+                                            </h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {cl.preferencesSubtitle || "İsteğinize göre konaklamanızı özelleştirin, ek ücretler ayrıntılandırılır."}
+                                            </p>
+                                        </div>
+                                        <div className="size-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                            <span className="material-symbols-outlined text-lg">hotel_class</span>
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block" lang={currentLang}>{tSummary('clientReferenceId', currentLang)}</label>
-                                            <input
-                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400"
-                                                placeholder={tSummary('internalReferenceNumber', currentLang)}
-                                                value={clientReferenceId}
-                                                onChange={(e) => setClientReferenceId(e.target.value)}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1.5 block" lang={currentLang}>{tSummary('specialRemarks', currentLang)}</label>
-                                            <input
-                                                className="w-full h-10 bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-slate-600 px-3.5 rounded-lg outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] transition-all text-xs sm:text-sm text-[#202124] dark:text-white placeholder-[#70757a] dark:placeholder-slate-400"
-                                                placeholder={tSummary('enterRemarks', currentLang)}
-                                                value={remark}
-                                                onChange={(e) => setRemark(e.target.value)}
-                                            />
-                                        </div>
+                                    {/* Interactive Chip Tags */}
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        {PREFERENCE_OPTIONS.map((pref) => {
+                                            const isSelected = selectedPreferences.includes(pref.id);
+                                            const label = currentLang === 'tr' ? pref.labelTr : pref.labelEn;
+                                            return (
+                                                <button
+                                                    key={pref.id}
+                                                    type="button"
+                                                    onClick={() => togglePreference(pref)}
+                                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
+                                                        isSelected
+                                                            ? 'bg-blue-50 dark:bg-blue-950/60 border border-blue-400 text-[#1a73e8] dark:text-blue-300 shadow-2xs'
+                                                            : 'bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-700/80'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-[15px]">
+                                                        {isSelected ? 'check' : 'add'}
+                                                    </span>
+                                                    <span>{label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Special Requests Textarea */}
+                                    <div className="pt-2">
+                                        <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                            {cl.specialNotesLabel || "Otele İletmek İstediğiniz Özel Notlar"}
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            className="w-full bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 resize-none"
+                                            placeholder={cl.specialNotesPlaceholder || tSummary('enterRemarks', currentLang)}
+                                            value={remark}
+                                            onChange={(e) => setRemark(e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Client Reference ID (Retained B2B Feature) */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                                        <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                            {tSummary('clientReferenceId', currentLang)}
+                                        </label>
+                                        <input
+                                            className="w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400"
+                                            placeholder={tSummary('internalReferenceNumber', currentLang)}
+                                            value={clientReferenceId}
+                                            onChange={(e) => setClientReferenceId(e.target.value)}
+                                        />
                                     </div>
                                 </div>
                             )}
 
                             {/* Stepper Buttons */}
-                            <div className="pt-4 flex items-center justify-between">
+                            <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <button
                                     type="button"
-                                    onClick={() => activeRoomIdx > 0 ? setActiveRoomIdx(prev => prev - 1) : navigate(-1)}
-                                    className="h-10 px-5 rounded-lg border border-[#dadce0] dark:border-slate-700 bg-white dark:bg-[#303134] font-medium text-xs sm:text-sm text-[#1a73e8] dark:text-blue-400 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors flex items-center gap-2 cursor-pointer shadow-2xs"
-                                    lang={currentLang}
+                                    onClick={() => {
+                                        if (activeRoomIdx > 0) {
+                                            setActiveRoomIdx(prev => prev - 1);
+                                        } else {
+                                            setPendingStepId(1);
+                                            setShowConfirmBack(true);
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
-                                    {activeRoomIdx > 0 ? `${tSummary('backToRoom', currentLang)} ${activeRoomIdx}` : tSummary('backToSelection', currentLang)}
+                                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                                    <span>
+                                        {activeRoomIdx > 0 
+                                            ? `${tSummary('backToRoom', currentLang)} ${activeRoomIdx}`
+                                            : (cl.backToRoomSelection || "← Oda Seçimine Geri Dön")}
+                                    </span>
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={handleNext}
-                                    className="h-10 px-6 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-lg font-medium text-xs sm:text-sm shadow-xs hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-[0.98]"
-                                    lang={currentLang}
-                                >
-                                    {activeRoomIdx < roomsData.length - 1 ? (
-                                        <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2} <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
-                                    ) : (
-                                        <>{tSummary('reviewAndPay', currentLang)} <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
-                                    )}
-                                </button>
+
+                                <div className="flex flex-col items-end gap-1.5">
+                                    <button
+                                        type="button"
+                                        onClick={handleNext}
+                                        className="w-full sm:w-auto px-8 py-3.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-2xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98]"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">lock</span>
+                                        <span>
+                                            {activeRoomIdx < roomsData.length - 1 ? (
+                                                <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2}</>
+                                            ) : (
+                                                cl.proceedToPayment || "Ödeme Adımına İlerle"
+                                            )}
+                                        </span>
+                                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                    </button>
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 text-right">
+                                        {cl.securePaymentNote || "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır."}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Google Travel Sticky Reservation Summary Sidebar */}
                     <div className="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
-                        {expireAt && <CheckoutTimer expireAt={expireAt} />}
                         <HotelReservationSummaryCard
                             hotel={{
                                 ...hotel,
@@ -1768,6 +2161,8 @@ const CheckoutGuestDetails = () => {
                                 address: hotelAddress
                             }}
                             formattedDates={formattedDates}
+                            checkInDate={checkInDate}
+                            checkOutDate={checkOutDate}
                             nights={nights}
                             roomState={roomState}
                             selectedRooms={selectedRooms}
@@ -1777,6 +2172,11 @@ const CheckoutGuestDetails = () => {
                             isLoadingRates={isLoadingRates}
                             showSecurityBadge={true}
                             lang={currentLang}
+                            expireAt={expireAt}
+                            onChangeRoom={() => {
+                                setPendingStepId(1);
+                                setShowConfirmBack(true);
+                            }}
                         />
                     </div>
                 </div>

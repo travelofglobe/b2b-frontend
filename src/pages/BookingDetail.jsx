@@ -814,15 +814,15 @@ const BookingDetail = () => {
                         <button
                             onClick={() => window.print()}
                             className="h-9 px-3.5 rounded-full flex items-center gap-1.5 font-medium text-xs transition-all bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] shadow-2xs active:scale-95 cursor-pointer"
-                            title="Yazdır"
+                            title={currentLang === 'tr' ? 'Yazdır' : 'Print'}
                         >
                             <span className="material-symbols-outlined text-[18px]">print</span>
-                            <span className="hidden sm:inline">Yazdır</span>
+                            <span className="hidden sm:inline">{currentLang === 'tr' ? 'Yazdır' : 'Print'}</span>
                         </button>
                         <button
-                            onClick={() => handleCopy(window.location.href, 'Sayfa bağlantısı')}
+                            onClick={() => handleCopy(window.location.href, currentLang === 'tr' ? 'Sayfa bağlantısı' : 'Page link')}
                             className="size-9 rounded-full flex items-center justify-center transition-all bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[#3c4043] dark:text-slate-200 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043] shadow-2xs active:scale-95 cursor-pointer"
-                            title="Bağlantıyı Paylaş"
+                            title={currentLang === 'tr' ? 'Bağlantıyı Paylaş' : 'Share Link'}
                         >
                             <span className="material-symbols-outlined text-[18px]">share</span>
                         </button>

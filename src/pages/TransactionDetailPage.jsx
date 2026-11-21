@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as XLSX from 'xlsx';
 import { financeService } from '../services/financeService';
 import { downloadXlsxWorkbook } from '../utils/fileDownloadHelper';
@@ -21,41 +22,52 @@ const defaultStartDate = () => {
 
 const fmt = (num) => {
     if (num === null || num === undefined) return '-';
-    return Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 const fmtDate = (str) => {
     if (!str) return '-';
     const d = new Date(str);
-    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
 const fmtDateTime = (str) => {
     if (!str) return '-';
     const d = new Date(str);
-    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-        + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 };
 
 const CURRENCY_FLAGS = { EUR: '🇪🇺', USD: '🇺🇸', TRY: '🇹🇷', GBP: '🇬🇧' };
 
-const TRANSACTION_TYPE_LABELS = {
-    HOTEL_SALE: 'Otel Satış',
-    HOTEL_CANCELLATION: 'Otel İptal',
-    AMENDMENT_CREDIT_REFUND: 'Düzeltme / Kredi İadesi',
+const getTransactionTypeLabel = (type, currentLang) => {
+    const labels = {
+        HOTEL_SALE: currentLang === 'tr' ? 'Otel Satış' : 'Hotel Sale',
+        HOTEL_CANCELLATION: currentLang === 'tr' ? 'Otel İptal' : 'Hotel Cancellation',
+        AMENDMENT_CREDIT_REFUND: currentLang === 'tr' ? 'Düzeltme / Kredi İadesi' : 'Amendment / Credit Refund',
+    };
+    return labels[type] || type || '-';
 };
 
-const ORDER_STATUS_LABELS = {
-    NEW: 'Yeni',
-    CONFIRMED: 'Onaylandı',
-    ERROR: 'Hata',
-    CANCELLED: 'İptal',
-    CANCELLED_WITH_PENALTY: 'Cezalı İptal',
+const getOrderStatusLabel = (status, currentLang) => {
+    const labels = {
+        NEW: currentLang === 'tr' ? 'Yeni' : 'New',
+        CONFIRMED: currentLang === 'tr' ? 'Onaylandı' : 'Confirmed',
+        CANCELLED: currentLang === 'tr' ? 'İptal' : 'Cancelled',
+        FAILED: currentLang === 'tr' ? 'Başarısız' : 'Failed',
+        PENDING_PAYMENT: currentLang === 'tr' ? 'Ödeme Bekleniyor' : 'Pending Payment',
+    };
+    return labels[status] || status || '-';
 };
+
+const TRANSACTION_TYPES = ['HOTEL_SALE', 'HOTEL_CANCELLATION', 'AMENDMENT_CREDIT_REFUND'];
+const ORDER_STATUSES = ['NEW', 'CONFIRMED', 'CANCELLED', 'FAILED', 'PENDING_PAYMENT'];
 
 // ─── TransactionDetailPage ────────────────────────────────────────────────────
 
 const TransactionDetailPage = () => {
+    const { t, i18n } = useTranslation();
+    const currentLang = i18n?.language?.split('-')[0] || 'en';
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
@@ -212,28 +224,30 @@ const TransactionDetailPage = () => {
                             type="button"
                             onClick={() => navigate('/finance?tab=transactions')}
                             className="size-10 rounded-xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-all shadow-xs cursor-pointer shrink-0"
-                            title="Hesap Listesine Dön"
+                            title={currentLang === 'tr' ? 'Hesap Listesine Dön' : 'Back to Account List'}
                         >
                             <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                         </button>
                         <div>
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="text-xl font-bold text-[#202124] dark:text-[#e8eaed] tracking-tight">
-                                    {accountName && accountName !== 'null' ? accountName : (accountId && accountId !== 'null' ? `Hesap #${accountId}` : 'İşlem Detayları')}
+                                    {accountName && accountName !== 'null' ? accountName : (accountId && accountId !== 'null' ? (currentLang === 'tr' ? `Hesap #${accountId}` : `Account #${accountId}`) : (currentLang === 'tr' ? 'İşlem Detayları' : 'Transaction Details'))}
                                 </h1>
                                 {txId && txId !== 'null' && (
                                     <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] dark:bg-[#1a73e8]/20 dark:text-[#8ab4f8]">
-                                        İşlem #{txId}
+                                        {currentLang === 'tr' ? `İşlem #${txId}` : `Tx #${txId}`}
                                     </span>
                                 )}
                                 {accountId && accountId !== 'null' && (
                                     <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                                        Hesap ID: {accountId}
+                                        {currentLang === 'tr' ? `Hesap ID: ${accountId}` : `Account ID: ${accountId}`}
                                     </span>
                                 )}
                             </div>
                             <p className="text-xs text-[#5f6368] dark:text-[#9aa0a6] mt-0.5">
-                                Hesaba ait detaylı finansal hareketler, rezervasyon ve voucher kayıtları
+                                {currentLang === 'tr'
+                                    ? 'Hesaba ait detaylı finansal hareketler, rezervasyon ve voucher kayıtları'
+                                    : 'Detailed financial transactions, reservation and voucher records for the account'}
                             </p>
                         </div>
                     </div>
@@ -244,10 +258,10 @@ const TransactionDetailPage = () => {
                             onClick={handleExportExcel}
                             disabled={details.length === 0}
                             className="flex items-center gap-1.5 h-10 px-4 bg-white dark:bg-[#202124] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
-                            title="Excel'e Aktar"
+                            title={currentLang === 'tr' ? "Excel'e Aktar" : 'Export to Excel'}
                         >
                             <span className="material-symbols-outlined text-[18px]">table_view</span>
-                            <span>Excel İndir</span>
+                            <span>{currentLang === 'tr' ? 'Excel İndir' : 'Export Excel'}</span>
                         </button>
 
                         <button
@@ -255,7 +269,7 @@ const TransactionDetailPage = () => {
                             onClick={() => fetchDetails()}
                             disabled={loading}
                             className="size-10 rounded-xl bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] hover:bg-[#f1f3f4] dark:hover:bg-[#303134] flex items-center justify-center text-[#5f6368] dark:text-[#9aa0a6] transition-all cursor-pointer disabled:opacity-50 shadow-2xs"
-                            title="Yenile"
+                            title={currentLang === 'tr' ? 'Yenile' : 'Refresh'}
                         >
                             <span className={`material-symbols-outlined text-[18px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
                         </button>
@@ -270,7 +284,9 @@ const TransactionDetailPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">Detay Kaydı</span>
+                            <span className="text-xs font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider">
+                                {currentLang === 'tr' ? 'Detay Kaydı' : 'Detail Records'}
+                            </span>
                             <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
                                 <span className="material-symbols-outlined text-[22px]">receipt_long</span>
                             </div>
@@ -279,13 +295,17 @@ const TransactionDetailPage = () => {
                             <div className="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-white leading-none tabular-nums tracking-tight">
                                 {loading && details.length === 0 ? '...' : metrics.count}
                             </div>
-                            <span className="text-xs font-medium text-[#70757a]">hareket</span>
+                            <span className="text-xs font-medium text-[#70757a]">
+                                {currentLang === 'tr' ? 'hareket' : 'records'}
+                            </span>
                         </div>
                     </div>
 
                     <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Sayfa Toplam Borç</span>
+                            <span className="text-xs font-semibold text-rose-700 dark:text-rose-400 uppercase tracking-wider">
+                                {currentLang === 'tr' ? 'Sayfa Toplam Borç' : 'Page Total Debit'}
+                            </span>
                             <div className="size-10 bg-rose-50 dark:bg-rose-950/40 rounded-xl flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
                                 <span className="material-symbols-outlined text-[22px]">arrow_downward</span>
                             </div>
@@ -300,7 +320,9 @@ const TransactionDetailPage = () => {
 
                     <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Sayfa Toplam Alacak</span>
+                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                                {currentLang === 'tr' ? 'Sayfa Toplam Alacak' : 'Page Total Credit'}
+                            </span>
                             <div className="size-10 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                                 <span className="material-symbols-outlined text-[22px]">arrow_upward</span>
                             </div>
@@ -315,7 +337,9 @@ const TransactionDetailPage = () => {
 
                     <div className="bg-white dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs hover:shadow-sm transition-all duration-200 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-3">
-                            <span className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] uppercase tracking-wider">Net Hareket</span>
+                            <span className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] uppercase tracking-wider">
+                                {currentLang === 'tr' ? 'Net Hareket' : 'Net Movement'}
+                            </span>
                             <div className="size-10 bg-[#e8f0fe] dark:bg-[#1a73e8]/20 rounded-xl flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8] shrink-0">
                                 <span className="material-symbols-outlined text-[22px]">account_balance</span>
                             </div>
@@ -338,7 +362,7 @@ const TransactionDetailPage = () => {
                             {/* Start Date */}
                             <div className="flex-1 min-w-[150px]">
                                 <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
-                                    Başlangıç Tarihi
+                                    {currentLang === 'tr' ? 'Başlangıç Tarihi' : 'Start Date'}
                                 </label>
                                 <input
                                     type="date"
@@ -351,7 +375,7 @@ const TransactionDetailPage = () => {
                             {/* End Date */}
                             <div className="flex-1 min-w-[150px]">
                                 <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
-                                    Bitiş Tarihi
+                                    {currentLang === 'tr' ? 'Bitiş Tarihi' : 'End Date'}
                                 </label>
                                 <input
                                     type="date"
@@ -364,16 +388,16 @@ const TransactionDetailPage = () => {
                             {/* Transaction Type */}
                             <div className="flex-1 min-w-[160px]">
                                 <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
-                                    İşlem Türü
+                                    {currentLang === 'tr' ? 'İşlem Türü' : 'Transaction Type'}
                                 </label>
                                 <select
                                     value={transactionType}
                                     onChange={(e) => setTransactionType(e.target.value)}
                                     className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 >
-                                    <option value="">Tümü</option>
-                                    {Object.entries(TRANSACTION_TYPE_LABELS).map(([key, label]) => (
-                                        <option key={key} value={key}>{label}</option>
+                                    <option value="">{currentLang === 'tr' ? 'Tümü' : 'All'}</option>
+                                    {TRANSACTION_TYPES.map((typeKey) => (
+                                        <option key={typeKey} value={typeKey}>{getTransactionTypeLabel(typeKey, currentLang)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -381,16 +405,16 @@ const TransactionDetailPage = () => {
                             {/* Order Status */}
                             <div className="flex-1 min-w-[160px]">
                                 <label className="text-[11px] font-semibold text-[#5f6368] dark:text-[#9aa0a6] uppercase tracking-wider block mb-1">
-                                    Sipariş Durumu
+                                    {currentLang === 'tr' ? 'Sipariş Durumu' : 'Order Status'}
                                 </label>
                                 <select
                                     value={orderStatus}
                                     onChange={(e) => setOrderStatus(e.target.value)}
                                     className="w-full h-10 px-3 bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] rounded-xl text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8] focus:bg-white transition-all cursor-pointer"
                                 >
-                                    <option value="">Tümü</option>
-                                    {Object.entries(ORDER_STATUS_LABELS).map(([key, label]) => (
-                                        <option key={key} value={key}>{label}</option>
+                                    <option value="">{currentLang === 'tr' ? 'Tümü' : 'All'}</option>
+                                    {ORDER_STATUSES.map((statusKey) => (
+                                        <option key={statusKey} value={statusKey}>{getOrderStatusLabel(statusKey, currentLang)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -403,14 +427,14 @@ const TransactionDetailPage = () => {
                                     className="h-10 px-5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">search</span>
-                                    <span>Ara</span>
+                                    <span>{currentLang === 'tr' ? 'Ara' : 'Search'}</span>
                                 </button>
                                 <button
                                     type="button"
                                     onClick={handleClear}
                                     className="h-10 px-4 rounded-xl border border-[#dadce0] dark:border-[#5f6368] text-xs font-medium text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-[#303134] transition-all cursor-pointer"
                                 >
-                                    Temizle
+                                    {currentLang === 'tr' ? 'Temizle' : 'Clear'}
                                 </button>
                             </div>
                         </div>
@@ -422,49 +446,49 @@ const TransactionDetailPage = () => {
                             <thead>
                                 <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        İşlem ID
+                                        {currentLang === 'tr' ? 'İşlem ID' : 'Tx ID'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Sipariş ID
+                                        {currentLang === 'tr' ? 'Sipariş ID' : 'Order ID'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none min-w-[170px]">
                                         Voucher
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Hesap Adı
+                                        {currentLang === 'tr' ? 'Hesap Adı' : 'Account Name'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Misafir Adı
+                                        {currentLang === 'tr' ? 'Misafir Adı' : 'Guest Name'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Sipariş Durumu
+                                        {currentLang === 'tr' ? 'Sipariş Durumu' : 'Order Status'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        İşlem Türü
+                                        {currentLang === 'tr' ? 'İşlem Türü' : 'Transaction Type'}
                                     </th>
                                     <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Borç
+                                        {currentLang === 'tr' ? 'Borç' : 'Debit'}
                                     </th>
                                     <th className="px-4 py-3 text-right text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Alacak
+                                        {currentLang === 'tr' ? 'Alacak' : 'Credit'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Para Birimi
+                                        {currentLang === 'tr' ? 'Para Birimi' : 'Currency'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        İşlem Tarihi
+                                        {currentLang === 'tr' ? 'İşlem Tarihi' : 'Transaction Date'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Giriş Tarihi
+                                        {currentLang === 'tr' ? 'Giriş Tarihi' : 'Check-in'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Çıkış Tarihi
+                                        {currentLang === 'tr' ? 'Çıkış Tarihi' : 'Check-out'}
                                     </th>
                                     <th className="px-4 py-3 text-left text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Otel Adı
+                                        {currentLang === 'tr' ? 'Otel Adı' : 'Hotel Name'}
                                     </th>
                                     <th className="px-4 py-3 text-center text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider whitespace-nowrap select-none">
-                                        Kayıt Durumu
+                                        {currentLang === 'tr' ? 'Kayıt Durumu' : 'Record Status'}
                                     </th>
                                 </tr>
                             </thead>
@@ -476,7 +500,7 @@ const TransactionDetailPage = () => {
                                                 <span className="material-symbols-outlined text-[44px] text-red-400">error</span>
                                                 <p className="text-sm font-medium text-red-500">{error}</p>
                                                 <button onClick={handleSearch} className="text-xs text-[#1a73e8] hover:underline cursor-pointer">
-                                                    Tekrar Dene
+                                                    {currentLang === 'tr' ? 'Tekrar Dene' : 'Try Again'}
                                                 </button>
                                             </div>
                                         </td>
@@ -498,13 +522,15 @@ const TransactionDetailPage = () => {
                                         <td colSpan={15} className="px-4 py-14 text-center text-[#70757a] dark:text-slate-400">
                                             <div className="flex flex-col items-center justify-center gap-2">
                                                 <span className="material-symbols-outlined text-[44px] text-slate-300 dark:text-slate-600">receipt_long</span>
-                                                <p className="text-sm font-medium">İşlem detay kaydı bulunamadı</p>
+                                                <p className="text-sm font-medium">
+                                                    {currentLang === 'tr' ? 'İşlem detay kaydı bulunamadı' : 'No transaction records found'}
+                                                </p>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : (
                                     details.map((row, idx) => (
-                                        <DetailRow key={`${row.id}-${idx}`} row={row} />
+                                        <DetailRow key={`${row.id}-${idx}`} row={row} currentLang={currentLang} />
                                     ))
                                 )}
                             </tbody>
@@ -530,10 +556,10 @@ const TransactionDetailPage = () => {
 
 // ─── DetailRow ─────────────────────────────────────────────────────────────────
 
-const DetailRow = ({ row }) => {
+const DetailRow = ({ row, currentLang }) => {
     const currencyFlag = CURRENCY_FLAGS[row.currency] || '💱';
     const isActive = row.status === 'ACTIVE';
-    const txTypeLabel = TRANSACTION_TYPE_LABELS[row.transactionType] || row.transactionType || '-';
+    const txTypeLabel = getTransactionTypeLabel(row.transactionType, currentLang);
 
     return (
         <tr className="border-b border-[#dadce0]/60 dark:border-[#3c4043]/60 last:border-0 hover:bg-[#f1f3f4] dark:hover:bg-[#3c4043]/50 even:bg-[#f8f9fa]/50 dark:even:bg-[#202124]/30 transition-colors">
@@ -550,7 +576,7 @@ const DetailRow = ({ row }) => {
                         target="_blank"
                         rel="noreferrer"
                         className="font-semibold text-[13px] text-[#1a73e8] dark:text-[#8ab4f8] hover:underline"
-                        title="Rezervasyon Detayını Aç"
+                        title={currentLang === 'tr' ? 'Rezervasyon Detayını Aç' : 'Open Booking Details'}
                     >
                         #{row.orderId}
                     </a>
@@ -567,7 +593,7 @@ const DetailRow = ({ row }) => {
                         target="_blank"
                         rel="noreferrer"
                         className="font-mono text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8] bg-[#e8f0fe] dark:bg-[#1a73e8]/15 px-2 py-0.5 rounded-md hover:underline inline-block"
-                        title={`${row.voucher} - Kuponu Aç`}
+                        title={currentLang === 'tr' ? `${row.voucher} - Kuponu Aç` : `${row.voucher} - Open Voucher`}
                     >
                         {row.voucher}
                     </a>

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { authService } from '../services/authService';
 import PlaneLoading from '../components/PlaneLoading';
 import PublicHeader from '../components/PublicHeader';
 
 const ResetPasswordPage = () => {
+    const { t } = useTranslation();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -39,17 +41,17 @@ const ResetPasswordPage = () => {
         setError('');
 
         if (!token) {
-            setError('Geçersiz veya süresi dolmuş bağlantı. Lütfen yeni bir şifre sıfırlama talebi oluşturun.');
+            setError(t('resetPassword.invalidLinkDesc'));
             return;
         }
 
         if (!allRulesMet) {
-            setError('Lütfen tüm şifre kurallarını karşıladığınızdan emin olun.');
+            setError(t('resetPassword.allRulesMustBeMet'));
             return;
         }
 
         if (newPassword !== newPasswordAgain) {
-            setError('Şifreler eşleşmiyor.');
+            setError(t('resetPassword.passwordsDoNotMatch'));
             return;
         }
 
@@ -59,7 +61,7 @@ const ResetPasswordPage = () => {
             await authService.changePassword(token, newPassword, newPasswordAgain);
             setSuccess(true);
         } catch (err) {
-            setError(err.message || 'Şifre değiştirme işlemi gerçekleştirilemedi.');
+            setError(err.message || t('common.error', 'An error occurred'));
         } finally {
             setIsLoading(false);
         }
@@ -92,16 +94,16 @@ const ResetPasswordPage = () => {
                             <span className="material-icons-round text-3xl">link_off</span>
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Geçersiz Bağlantı</h2>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('resetPassword.invalidLinkTitle')}</h2>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-                                Şifre sıfırlama bağlantısı eksik veya geçersiz. Lütfen giriş sayfasından tekrar şifre sıfırlama isteği gönderin.
+                                {t('resetPassword.invalidLinkDesc')}
                             </p>
                         </div>
                         <button
                             onClick={() => navigate('/login')}
                             className="w-full bg-primary text-white p-3.5 rounded-2xl font-bold text-xs tracking-wider uppercase hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all"
                         >
-                            Giriş Sayfasına Git
+                            {t('resetPassword.backToLogin')}
                         </button>
                     </div>
                 ) : success ? (
@@ -110,32 +112,32 @@ const ResetPasswordPage = () => {
                             <span className="material-icons-round text-3xl">task_alt</span>
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Şifre Değiştirildi</h2>
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('resetPassword.successTitle')}</h2>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-                                Şifreniz başarıyla güncellenmiştir. Artık yeni şifrenizle giriş yapabilirsiniz.
+                                {t('resetPassword.successDesc')}
                             </p>
                         </div>
                         <button
                             onClick={() => navigate('/login')}
                             className="w-full bg-primary text-white p-3.5 rounded-2xl font-bold text-xs tracking-wider uppercase hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                         >
-                            Giriş Yap
+                            {t('resetPassword.backToLogin')}
                             <span className="material-icons-round text-sm">arrow_forward</span>
                         </button>
                     </div>
                 ) : (
                     <div className="space-y-6">
                         <div className="text-center">
-                            <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2">Change Your Password</h1>
+                            <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{t('resetPassword.title')}</h1>
                             <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400">
-                                Enter a new password below to change your password.
+                                {t('resetPassword.subtitle')}
                             </p>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* New Password Input */}
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">New password*</label>
+                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">{t('resetPassword.newPassword')}*</label>
                                 <div className="relative">
                                     <input
                                         type={showNewPassword ? "text" : "password"}
@@ -158,7 +160,7 @@ const ResetPasswordPage = () => {
 
                             {/* Re-enter New Password Input */}
                             <div className="space-y-1">
-                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Re-enter new password*</label>
+                                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">{t('resetPassword.confirmPassword')}*</label>
                                 <div className="relative">
                                     <input
                                         type={showConfirmPassword ? "text" : "password"}
@@ -181,14 +183,14 @@ const ResetPasswordPage = () => {
 
                             {/* Password Rules Box */}
                             <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-700/50 space-y-2">
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Your password must contain:</p>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t('resetPassword.rulesTitle')}:</p>
                                 <div className="grid grid-cols-1 gap-1.5">
                                     {[
-                                        { key: 'length', label: 'Minimum 12 - Maksimum 16 karakter' },
-                                        { key: 'uppercase', label: 'En az 1 büyük harf (A-Z)' },
-                                        { key: 'lowercase', label: 'En az 1 küçük harf (a-z)' },
-                                        { key: 'number', label: 'En az 1 rakam (0-9)' },
-                                        { key: 'special', label: 'En az 1 özel karakter (!@#$%^&*)' },
+                                        { key: 'length', label: t('resetPassword.ruleLength') },
+                                        { key: 'uppercase', label: t('resetPassword.ruleUpper') },
+                                        { key: 'lowercase', label: t('resetPassword.ruleLower') },
+                                        { key: 'number', label: t('resetPassword.ruleNumber') },
+                                        { key: 'special', label: t('resetPassword.ruleSpecial') },
                                     ].map(rule => {
                                         const isValid = validation[rule.key];
                                         return (
@@ -217,7 +219,7 @@ const ResetPasswordPage = () => {
                                 disabled={isLoading || !allRulesMet || !passwordsMatch}
                                 className="w-full bg-primary text-white p-3.5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:shadow-none mt-2"
                             >
-                                Reset password
+                                {t('resetPassword.updatePassword')}
                             </button>
                         </form>
                     </div>

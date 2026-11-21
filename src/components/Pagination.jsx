@@ -109,7 +109,7 @@ const Pagination = ({
                     onClick={() => handleChangePage(0)}
                     disabled={currentPage === 0}
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
-                    title="İlk Sayfa"
+                    title={t('pagination.firstPage', 'İlk Sayfa')}
                 >
                     <span className="material-icons-round text-sm">first_page</span>
                 </button>
@@ -120,7 +120,7 @@ const Pagination = ({
                     onClick={() => handleChangePage(currentPage - 1)}
                     disabled={currentPage === 0}
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
-                    title="Önceki Sayfa"
+                    title={t('pagination.previousPage', 'Önceki Sayfa')}
                 >
                     <span className="material-icons-round text-sm">chevron_left</span>
                 </button>
@@ -158,7 +158,7 @@ const Pagination = ({
                     onClick={() => handleChangePage(currentPage + 1)}
                     disabled={currentPage >= totalPages - 1}
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
-                    title="Sonraki Sayfa"
+                    title={t('pagination.nextPage', 'Sonraki Sayfa')}
                 >
                     <span className="material-icons-round text-sm">chevron_right</span>
                 </button>
@@ -169,7 +169,7 @@ const Pagination = ({
                     onClick={() => handleChangePage(totalPages - 1)}
                     disabled={currentPage >= totalPages - 1}
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
-                    title="Son Sayfa"
+                    title={t('pagination.lastPage', 'Son Sayfa')}
                 >
                     <span className="material-icons-round text-sm">last_page</span>
                 </button>

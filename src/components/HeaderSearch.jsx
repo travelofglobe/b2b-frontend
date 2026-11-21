@@ -805,7 +805,7 @@ const HeaderSearch = () => {
                                                     <button
                                                         onClick={(e) => handleDeleteHistoryItem(e, item.id)}
                                                         className="opacity-0 group-hover:opacity-100 p-1.5 text-[#70757a] hover:text-[#d93025] dark:hover:text-red-400 rounded-full transition-all shrink-0 ml-2"
-                                                        title="Bu aramayı sil"
+                                                        title={currentLang === 'tr' ? 'Bu aramayı sil' : 'Delete this search'}
                                                     >
                                                         <span className="material-symbols-outlined text-[18px] leading-none block">close</span>
                                                     </button>
@@ -891,7 +891,7 @@ const HeaderSearch = () => {
                                                                     toggleExpand(parentNodeId);
                                                                 }}
                                                                 className="p-1 sm:p-1.5 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-[#5f6368] dark:text-[#9aa0a6] transition-colors ml-2 shrink-0 cursor-pointer flex items-center gap-1.5"
-                                                                title={isExpanded ? 'POI\'leri Gizle' : 'POI\'leri Göster'}
+                                                                title={isExpanded ? (currentLang === 'tr' ? "POI'leri Gizle" : 'Hide POIs') : (currentLang === 'tr' ? "POI'leri Göster" : 'Show POIs')}
                                                             >
                                                                 <span className="text-[10px] font-semibold tracking-wider px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/60 uppercase">
                                                                     {region.children.length} POI
@@ -1019,7 +1019,7 @@ const HeaderSearch = () => {
                             {loading && (
                                 <div className="flex items-center justify-center py-4 text-[#70757a] gap-2">
                                     <div className="size-4 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="text-xs font-normal">Aranıyor...</span>
+                                    <span className="text-xs font-normal">{currentLang === 'tr' ? 'Aranıyor...' : 'Searching...'}</span>
                                 </div>
                             )}
                         </div>

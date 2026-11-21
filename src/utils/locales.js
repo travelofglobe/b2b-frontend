@@ -179,7 +179,11 @@ export const resources = {
       "pagination": {
         "show": "Show:",
         "page": "Page:",
-        "go": "Go"
+        "go": "Go",
+        "firstPage": "First Page",
+        "previousPage": "Previous Page",
+        "nextPage": "Next Page",
+        "lastPage": "Last Page"
       },
       "finance": {
         "title": "Finance Management",
@@ -489,7 +493,11 @@ export const resources = {
       "pagination": {
         "show": "Göster:",
         "page": "Sayfa:",
-        "go": "Git"
+        "go": "Git",
+        "firstPage": "İlk Sayfa",
+        "previousPage": "Önceki Sayfa",
+        "nextPage": "Sonraki Sayfa",
+        "lastPage": "Son Sayfa"
       },
       "finance": {
         "title": "Finans Yönetimi",

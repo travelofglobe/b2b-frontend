@@ -44,10 +44,11 @@ const isImageAttachment = (att) => {
 };
 
 const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounded-[18px]', onPreview }) => {
+    const { t } = useTranslation();
     const [blobUrl, setBlobUrl] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const fileName = attachment.fileOriginalName || attachment.fileName || 'Görsel';
+    const fileName = attachment.fileOriginalName || attachment.fileName || t('common.image', 'Görsel');
 
     useEffect(() => {
         let active = true;
@@ -97,7 +98,7 @@ const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounde
                 </div>
                 <div className="flex-1 min-w-0">
                     <span className="block truncate font-semibold leading-tight text-[12px]">{fileName}</span>
-                    <span className="text-[10px] opacity-75 block mt-0.5">Görsel yüklenemedi. İndirmek için tıklayın</span>
+                    <span className="text-[10px] opacity-75 block mt-0.5">{t('taskManagement.drawer.imageLoadError', 'Görsel yüklenemedi. İndirmek için tıklayın')}</span>
                 </div>
                 <span className="material-symbols-outlined text-[16px] opacity-80 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all shrink-0">download</span>
             </button>
@@ -109,7 +110,7 @@ const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounde
             {loading ? (
                 <div className={`w-full aspect-[4/3] max-h-[300px] bg-slate-100 dark:bg-slate-800 ${radiusClass} flex flex-col items-center justify-center gap-2 text-slate-400 text-xs animate-pulse`}>
                     <span className="material-symbols-outlined text-[24px] animate-spin text-blue-500">progress_activity</span>
-                    <span className="text-[11px] font-medium">Görsel yükleniyor...</span>
+                    <span className="text-[11px] font-medium">{t('taskManagement.drawer.imageLoading', 'Görsel yükleniyor...')}</span>
                 </div>
             ) : (
                 <div 
@@ -137,7 +138,7 @@ const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounde
                             taskManagementService.downloadAttachment(attachment.id, fileName);
                         }}
                         className="absolute top-2 right-2 size-8 rounded-full bg-black/50 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all cursor-pointer shadow-md hover:scale-105"
-                        title={`${fileName} - İndir`}
+                        title={`${fileName} - ${t('common.download', 'İndir')}`}
                     >
                         <span className="material-symbols-outlined text-[17px]">download</span>
                     </button>
@@ -148,10 +149,11 @@ const WhatsAppImageItem = ({ attachment, isFromMe = false, radiusClass = 'rounde
 };
 
 const AttachmentSquareCard = ({ attachment, onPreview }) => {
+    const { t } = useTranslation();
     const [blobUrl, setBlobUrl] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const fileName = attachment.fileOriginalName || attachment.fileName || 'Görsel';
+    const fileName = attachment.fileOriginalName || attachment.fileName || t('common.image', 'Görsel');
 
     useEffect(() => {
         let active = true;
@@ -227,7 +229,7 @@ const AttachmentSquareCard = ({ attachment, onPreview }) => {
                     className="w-full py-1 px-2 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-bold text-[10.5px] transition-all flex items-center justify-center gap-1 cursor-pointer"
                 >
                     <span className="material-symbols-outlined text-[14px]">download</span>
-                    <span>İndir</span>
+                    <span>{t('common.download', 'İndir')}</span>
                 </button>
             </div>
         </div>
@@ -588,17 +590,17 @@ const B2BTaskDetail = () => {
                                     {productIcon}
                                 </span>
                                 <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    Talep #{task.taskNumber || task.id}
+                                    {t('taskManagement.table.taskNo', 'Talep')} #{task.taskNumber || task.id}
                                 </h1>
                                 <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${status.bg}`}>
-                                    {status.label}
+                                    {t(`taskManagement.statuses.${task.taskStatus}`, status.label)}
                                 </span>
                                 <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${priority.color}`}>
-                                    {priority.label}
+                                    {t(`taskManagement.priorities.${task.priority}`, priority.label)}
                                 </span>
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                Oluşturulma: {task.createdAt ? new Date(task.createdAt).toLocaleString('tr-TR') : '-'}
+                                {t('taskManagement.created', 'Oluşturulma')}: {task.createdAt ? new Date(task.createdAt).toLocaleString(i18n.language || 'tr-TR') : '-'}
                             </p>
                         </div>
                     </div>
@@ -892,16 +894,16 @@ const B2BTaskDetail = () => {
                                                 <div key={msg.id} className="flex flex-col items-center justify-center my-3 gap-1.5">
                                                     <div className="px-3.5 py-1.5 rounded-full bg-slate-50 dark:bg-[#28292c] text-slate-600 dark:text-slate-300 text-[11px] font-medium flex flex-wrap items-center justify-center gap-1.5 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
                                                         <span className="material-symbols-outlined text-[15px] text-blue-500">sync_alt</span>
-                                                        <span className="font-semibold text-slate-500 dark:text-slate-400">Durum Güncellendi:</span>
+                                                        <span className="font-semibold text-slate-500 dark:text-slate-400">{t('taskManagement.drawer.statusUpdated', 'Durum Güncellendi:')}</span>
                                                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${oldConf.bg}`}>
-                                                            {oldConf.label}
+                                                            {t(`taskManagement.statuses.${oldStatus}`, oldConf.label || oldStatus)}
                                                         </span>
                                                         <span className="text-slate-400 font-bold text-[11px]">➔</span>
                                                         <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${newConf.bg}`}>
-                                                            {newConf.label}
+                                                            {t(`taskManagement.statuses.${newStatus}`, newConf.label || newStatus)}
                                                         </span>
                                                         <span className="text-[10px] text-slate-400 ml-1">
-                                                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                                                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(i18n.language || 'tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}
                                                         </span>
                                                     </div>
                                                     {note && (
@@ -1157,7 +1159,7 @@ const B2BTaskDetail = () => {
                                         </div>
                                         <div>
                                             <h4 className="text-xs font-bold text-slate-900 dark:text-white">
-                                                {t('taskManagement.drawer.closedNoticeTitle', 'Bu talep kapatılmıştır')} ({status.label})
+                                                {t('taskManagement.drawer.closedNoticeTitle', 'Bu talep kapatılmıştır')} ({t(`taskManagement.statuses.${task.taskStatus}`, status.label)})
                                             </h4>
                                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
                                                 {t('taskManagement.drawer.closedNoticeDesc', 'Tamamlandı, İptal Edildi veya Reddedildi statüsündeki bir talebe tekrar mesaj yazılamaz. Yeni bir işlem için lütfen yeni talep oluşturunuz.')}

@@ -3530,14 +3530,14 @@ const HotelListing = () => {
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
 
-        // Compact header trigger: minimize when scrolled down > 70px, restore when near top <= 25px
-        if (scrollTop > 70 && !isScrolledRef.current) {
-            isScrolledRef.current = true;
-            setIsScrolled(true);
-        } else if (scrollTop <= 25 && isScrolledRef.current) {
-            isScrolledRef.current = false;
-            setIsScrolled(false);
-            setIsHeaderSearchExpanded(false);
+        // Compact header trigger: when search bar scrolls past view (~65px)
+        const isPastTop = scrollTop > 65;
+        if (isPastTop !== isScrolledRef.current) {
+            isScrolledRef.current = isPastTop;
+            setIsScrolled(isPastTop);
+            if (!isPastTop) {
+                setIsHeaderSearchExpanded(false);
+            }
         }
 
         const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
@@ -4340,21 +4340,20 @@ const HotelListing = () => {
                     currentLang={currentLang}
                 />
 
-                {/* Search Context Bar - Smooth slide & collapse */}
+                {/* ── Scrollable Container (Encompasses Search, Sticky Filter Bar & Hotel List) ── */}
                 <div
-                    className={`grid shrink-0 bg-white dark:bg-[#303134] w-full relative z-50 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
-                        isScrolled
-                            ? 'grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none'
-                            : 'grid-rows-[1fr] opacity-100 translate-y-0 pl-6 pr-4 pt-4 pb-2'
-                    }`}
+                    ref={listScrollRef}
+                    className="flex-1 overflow-y-auto relative"
+                    style={{ overflowAnchor: 'none' }}
+                    onScroll={handleListScroll}
                 >
-                    <div className="overflow-hidden min-h-0 flex items-center w-full">
+                    {/* Search Context Bar at natural scroll top */}
+                    <div className="pl-6 pr-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134]">
                         <ListingSearch isCompact={isMapExpanded} />
                     </div>
-                </div>
 
-                {/* Filter Chips Row */}
-                <div className={`relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-[40] transition-shadow duration-300 ${isScrolled ? 'shadow-sm' : ''}`}>
+                    {/* Filter Chips Row (Sticky at top-0 with zero glitch) */}
+                    <div className={`sticky top-0 z-[40] border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] transition-shadow duration-200 ${isScrolled ? 'shadow-sm' : ''}`}>
                     <div className="flex items-center gap-2 pl-6 pr-4 py-2 overflow-x-auto scrollbar-hide">
                         {/* Compact Search Capsule (Smooth horizontal slide & expand on scroll) */}
                         <div
@@ -5033,64 +5032,49 @@ const HotelListing = () => {
                     )}
                 </div>
 
-                {/* Results count + Sort row - Smooth slide & collapse */}
-                <div
-                    className={`grid shrink-0 bg-white dark:bg-[#303134] w-full transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
-                        isScrolled
-                            ? 'grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none'
-                            : 'grid-rows-[1fr] opacity-100 translate-y-0 pl-6 pr-4 py-2.5'
-                    }`}
-                >
-                    <div className="overflow-hidden min-h-0 flex items-center justify-between">
-                        <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
-                            {resultsText}
-                        </p>
-                        <div className="flex items-center gap-2 shrink-0">
-                            {/* Sort dropdown */}
-                            <div className="relative shrink-0" ref={sortDropdownRef}>
-                                <button
-                                    onClick={() => setIsSortOpen(!isSortOpen)}
-                                    className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
-                                >
-                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                    <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
-                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
-                                </button>
-                                {isSortOpen && (
-                                    <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                                        {sortOptions.map(opt => {
-                                            const isSelected = opt.value === currentSortValue;
-                                            return (
-                                                <button
-                                                    key={opt.value}
-                                                    onClick={() => handleSortSelect(opt.value)}
-                                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                                                >
-                                                    <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
-                                                    <span className="flex-1">{opt.label}</span>
-                                                    {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                            <span
-                                className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
-                                title="Sonuç bilgisi"
+                {/* Results count + Sort row (Scrolls smoothly under the sticky filter bar) */}
+                <div className="flex items-center justify-between pl-6 pr-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
+                    <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
+                        {resultsText}
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
+                        {/* Sort dropdown */}
+                        <div className="relative shrink-0" ref={sortDropdownRef}>
+                            <button
+                                onClick={() => setIsSortOpen(!isSortOpen)}
+                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
                             >
-                                info
-                            </span>
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
+                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                            </button>
+                            {isSortOpen && (
+                                <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                    {sortOptions.map(opt => {
+                                        const isSelected = opt.value === currentSortValue;
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => handleSortSelect(opt.value)}
+                                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                            >
+                                                <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                <span className="flex-1">{opt.label}</span>
+                                                {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
+                        <span
+                            className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
+                            title="Sonuç bilgisi"
+                        >
+                            info
+                        </span>
                     </div>
                 </div>
-                {/* ── Scrollable Hotel List ── */}
-                <div
-                    ref={listScrollRef}
-                    className="flex-1 overflow-y-auto"
-                    style={{ overflowAnchor: 'none' }}
-                    onScroll={handleListScroll}
-                >
                     {/* Initial skeleton */}
                     {isLoading && hotels.length === 0 && (
                         <>{[...Array(6)].map((_, i) => <GoogleCardSkeleton key={i} isCompact={isMapExpanded} />)}</>

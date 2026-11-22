@@ -1383,228 +1383,226 @@ const BookingDetail = () => {
 
                         {/* Rooms & Travelers Experience */}
                         {booking.hotel?.rooms && booking.hotel.rooms.length > 0 && booking.hotel.rooms.map((room, roomIndex) => (
-                            <div key={roomIndex} className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 shadow-xs space-y-6">
+                            <div key={roomIndex} className="rounded-3xl bg-white dark:bg-[#28292c] border border-slate-200/90 dark:border-[#3c4043] shadow-sm overflow-hidden">
                                 {/* Room Header Bar */}
-                                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#dadce0] dark:border-[#3c4043]">
+                                <div className="px-6 py-4 bg-slate-50/70 dark:bg-[#202124]/70 border-b border-slate-100 dark:border-[#3c4043] flex flex-wrap items-center justify-between gap-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="size-11 rounded-2xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                            <span className="material-symbols-outlined text-[24px]">bed</span>
+                                        <div className="size-10 rounded-xl bg-[#137fec]/10 dark:bg-[#137fec]/20 flex items-center justify-center text-[#137fec] dark:text-[#42a5f5] shrink-0">
+                                            <span className="material-symbols-outlined text-[22px]">bed</span>
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-[#202124] dark:text-white tracking-tight">
+                                            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                                                 {room.roomName || `${L('room')} ${roomIndex + 1}`}
                                             </h3>
-                                            <div className="flex items-center gap-2 text-xs text-[#5f6368] dark:text-slate-400 mt-0.5">
-                                                <span>{L('roomId')}: {room.roomId || 'N/A'}</span>
+                                            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                <span className="font-mono text-[11px] bg-white dark:bg-[#303134] px-1.5 py-0.5 rounded border border-slate-200/70 dark:border-[#3c4043]">
+                                                    ID: {room.roomId || 'N/A'}
+                                                </span>
+                                                {booking.hotel.rooms.length > 1 && (
+                                                    <span className="text-[11px] font-semibold text-[#137fec] dark:text-[#42a5f5]">
+                                                        ({roomIndex + 1} / {booking.hotel.rooms.length})
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {room.roomConfirmationCode && (
-                                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#e6f4ea] dark:bg-emerald-950/30 text-[#137333] dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800">
-                                            {L('confCode')}: {room.roomConfirmationCode}
-                                        </span>
-                                    )}
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        {room.roomConfirmationCode && (
+                                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold font-mono bg-white dark:bg-[#303134] text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 shadow-2xs">
+                                                Conf: {room.roomConfirmationCode}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* Travelers / Guests: Google Passenger Cards */}
-                                {room.occupancies && room.occupancies.length > 0 && (
-                                    <div className="space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8]">group</span>
-                                                <h4 className="text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
-                                                    {L('guestsLabel')} ({room.occupancies.length})
-                                                </h4>
+                                {/* Room Body: Divided by hairline dividers */}
+                                <div className="divide-y divide-slate-100 dark:divide-[#3c4043]">
+                                    {/* 1. Travelers / Guests Row */}
+                                    {room.occupancies && room.occupancies.length > 0 && (
+                                        <div className="p-5 sm:p-6 space-y-3.5">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                    <span className="material-symbols-outlined text-[16px] text-[#137fec] dark:text-[#42a5f5]">group</span>
+                                                    <span>{L('guestsLabel')} ({room.occupancies.length})</span>
+                                                </span>
                                             </div>
-                                        </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {room.occupancies.map((guest, gIdx) => (
-                                                <div 
-                                                    key={gIdx}
-                                                    className="p-4 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] flex items-start gap-3 hover:border-[#1a73e8]/40 transition-all"
-                                                >
-                                                    <div className="size-10 rounded-full bg-[#e8f0fe] dark:bg-[#1a73e8]/20 text-[#1a73e8] dark:text-[#8ab4f8] font-bold text-sm flex items-center justify-center shrink-0">
-                                                        {guest.name?.charAt(0) || 'G'}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0 space-y-1">
-                                                        <div className="flex items-center justify-between gap-1">
-                                                            <p className="text-sm font-bold text-[#202124] dark:text-white truncate">
-                                                                {guest.name} {guest.surname}
-                                                            </p>
-                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-[#303134] text-[#1a73e8] dark:text-[#8ab4f8] border border-[#dadce0] dark:border-[#5f6368] shrink-0">
-                                                                {getGuestTypeLabel(guest.guestType)}
-                                                            </span>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                {room.occupancies.map((guest, gIdx) => (
+                                                    <div 
+                                                        key={gIdx}
+                                                        className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-[#202124]/50 border border-slate-200/70 dark:border-[#3c4043]/70 flex items-center gap-3 hover:border-[#137fec]/40 transition-colors"
+                                                    >
+                                                        <div className="size-9 rounded-full bg-[#137fec]/10 dark:bg-[#137fec]/20 text-[#137fec] dark:text-[#42a5f5] font-bold text-xs flex items-center justify-center shrink-0">
+                                                            {guest.name?.charAt(0) || 'G'}
                                                         </div>
-
-                                                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#5f6368] dark:text-slate-400">
-                                                            {guest.nationality && (
-                                                                <span className="flex items-center gap-1 font-medium text-[#3c4043] dark:text-slate-300">
-                                                                    <span className="material-symbols-outlined text-[14px]">public</span>
-                                                                    {guest.nationality}
+                                                        <div className="flex-1 min-w-0 space-y-1">
+                                                            <div className="flex items-center justify-between gap-1">
+                                                                <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                                    {guest.name} {guest.surname}
+                                                                </p>
+                                                                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-white dark:bg-[#303134] text-[#137fec] dark:text-[#42a5f5] border border-slate-200 dark:border-[#3c4043] shrink-0">
+                                                                    {getGuestTypeLabel(guest.guestType)}
                                                                 </span>
-                                                            )}
-                                                            {guest.gender && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[14px]">{getGenderIcon(guest.gender)}</span>
-                                                                    {getGenderLabel(guest.gender)}
-                                                                </span>
-                                                            )}
-                                                            {guest.birthDate && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <span className="material-symbols-outlined text-[14px]">cake</span>
-                                                                    {formatDate(guest.birthDate)}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                                            </div>
 
-                                {/* Rate & Board Details */}
-                                {room.rates && room.rates.length > 0 && room.rates.map((rate, rIdx) => (
-                                    <div key={rIdx} className="pt-5 border-t border-[#dadce0] dark:border-[#3c4043] space-y-5">
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-[20px] text-[#1a73e8]">payments</span>
-                                                <h4 className="text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
-                                                    {L('rateDetails')} {room.rates.length > 1 ? `#${rIdx + 1}` : ''}
-                                                </h4>
-                                            </div>
-                                            <div className="text-xs font-semibold text-[#1a73e8] dark:text-[#8ab4f8]">
-                                                {rate.totalAmount != null ? Number(rate.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} {rate.currency}
-                                            </div>
-                                        </div>
-
-                                        {/* Rate Highlights Grid */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043]">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase tracking-wider">{L('boardType')}</p>
-                                                <p className="text-xs font-bold text-[#202124] dark:text-white mt-1">
-                                                    {formatBoardType(rate.boardType)}
-                                                </p>
-                                            </div>
-
-                                            <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043]">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase tracking-wider">{L('refundable')}</p>
-                                                <div className="mt-1">
-                                                    <RefundPolicyTooltip
-                                                        isRefundable={rate.refundable}
-                                                        textOverride={rate.refundable ? L('yes') : L('no')}
-                                                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                                                            rate.refundable 
-                                                                ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] dark:bg-emerald-950/40 dark:text-emerald-300' 
-                                                                : 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] dark:bg-rose-950/40 dark:text-rose-300'
-                                                        }`}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] col-span-2 sm:col-span-1">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase tracking-wider">{L('rateCategory')}</p>
-                                                <p className="text-xs font-semibold text-[#202124] dark:text-white mt-1">
-                                                    {rate.rateCategoryId || 'Standart'}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Daily Prices Horizontal Track */}
-                                        {rate.dailyPrices && rate.dailyPrices.length > 0 && (
-                                            <div className="space-y-2">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                                        {L('dailyPrices')} ({rate.dailyPrices.length} {rate.dailyPrices.length > 1 ? L('nights') : L('night')})
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                                                    {rate.dailyPrices.map((dp, dpIdx) => (
-                                                        <div key={dpIdx} className="min-w-[120px] p-3 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] text-center shrink-0">
-                                                            <div className="text-[11px] font-medium text-[#70757a]">{formatDate(dp.date)}</div>
-                                                            <div className="text-xs font-bold text-[#1a73e8] dark:text-[#8ab4f8] mt-1">
-                                                                {Number(dp.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {rate.currency}
+                                                            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                                                {guest.nationality && (
+                                                                    <span className="flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                                                                        <span className="material-symbols-outlined text-[13px]">public</span>
+                                                                        {guest.nationality}
+                                                                    </span>
+                                                                )}
+                                                                {guest.gender && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="material-symbols-outlined text-[13px]">{getGenderIcon(guest.gender)}</span>
+                                                                        {getGenderLabel(guest.gender)}
+                                                                    </span>
+                                                                )}
+                                                                {guest.birthDate && (
+                                                                    <span className="flex items-center gap-1">
+                                                                        <span className="material-symbols-outlined text-[13px]">cake</span>
+                                                                        {formatDate(guest.birthDate)}
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Cancellation Policy Timeline Card */}
-                                        {(() => {
-                                            const policies =
-                                                (rate.cancellationPolicies?.length > 0 ? rate.cancellationPolicies : null) ||
-                                                (rate.prices?.[0]?.cancellationPolicies?.length > 0 ? rate.prices[0].cancellationPolicies : null) ||
-                                                (room.cancellationPolicies?.length > 0 ? room.cancellationPolicies : null);
-                                            if (!policies) return null;
-                                            return (
-                                                <div className="space-y-2.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="material-symbols-outlined text-[18px] text-[#70757a]">policy</span>
-                                                        <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                                            {L('cancelPolicies')}
-                                                        </span>
                                                     </div>
-                                                    <div className="rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] overflow-hidden">
-                                                        {policies.map((p, pIdx) => (
-                                                            <div
-                                                                key={pIdx}
-                                                                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-2.5
-                                                                    ${pIdx < policies.length - 1 ? 'border-b border-[#dadce0]/60 dark:border-[#3c4043]' : ''}
-                                                                `}
-                                                            >
-                                                                <div className="flex items-center gap-2.5">
-                                                                    <span className={`size-2 shrink-0 rounded-full ${p.amount === 0 ? 'bg-[#188038]' : 'bg-[#d93025]'}`}></span>
-                                                                    <div className="text-xs text-[#3c4043] dark:text-slate-300">
-                                                                        <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.fromDate)}</span>
-                                                                        <span className="text-[#70757a] mx-1.5">→</span>
-                                                                        <span className="font-semibold text-[#202124] dark:text-white">{formatDateTime(p.toDate)}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 2. Rate & Board Metrics Strip */}
+                                    {room.rates && room.rates.length > 0 && room.rates.map((rate, rIdx) => {
+                                        const policies =
+                                            (rate.cancellationPolicies?.length > 0 ? rate.cancellationPolicies : null) ||
+                                            (rate.prices?.[0]?.cancellationPolicies?.length > 0 ? rate.prices[0].cancellationPolicies : null) ||
+                                            (room.cancellationPolicies?.length > 0 ? room.cancellationPolicies : null);
+
+                                        return (
+                                            <div key={rIdx} className="divide-y divide-slate-100 dark:divide-[#3c4043]">
+                                                {/* Rate Metric Strip (3 Columns) */}
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-[#3c4043] bg-slate-50/30 dark:bg-[#202124]/30">
+                                                    <div className="p-4 sm:p-5 flex flex-col justify-between gap-1.5">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[15px] text-[#137fec]">restaurant</span>
+                                                            <span>{L('boardType')}</span>
+                                                        </span>
+                                                        <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                                                            {formatBoardType(rate.boardType)}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 sm:p-5 flex flex-col justify-between gap-1.5">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[15px] text-emerald-500">verified</span>
+                                                            <span>{L('refundable')}</span>
+                                                        </span>
+                                                        <div>
+                                                            <RefundPolicyTooltip
+                                                                isRefundable={rate.refundable}
+                                                                textOverride={rate.refundable ? (currentLang === 'tr' ? 'İade Edilebilir' : 'Refundable') : (currentLang === 'tr' ? 'İade Edilemez' : 'Non-Refundable')}
+                                                                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                                                                    rate.refundable 
+                                                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50' 
+                                                                        : 'bg-rose-50 text-rose-700 border border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/50'
+                                                                }`}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-4 sm:p-5 flex flex-col justify-between gap-1.5">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[15px] text-indigo-500">payments</span>
+                                                            <span>{L('rateDetails')}</span>
+                                                        </span>
+                                                        <div className="text-xs sm:text-sm font-bold tabular-nums text-[#137fec] dark:text-[#42a5f5]">
+                                                            {rate.totalAmount != null ? Number(rate.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '0.00'} {rate.currency}
+                                                            <span className="text-[11px] font-normal text-slate-400 ml-1.5">({rate.rateCategoryId || 'Standart'})</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Daily Prices Track */}
+                                                {rate.dailyPrices && rate.dailyPrices.length > 0 && (
+                                                    <div className="p-5 sm:p-6 space-y-2.5">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[15px] text-[#137fec]">calendar_view_day</span>
+                                                            <span>{L('dailyPrices')} ({rate.dailyPrices.length} {rate.dailyPrices.length > 1 ? L('nights') : L('night')})</span>
+                                                        </span>
+                                                        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                                                            {rate.dailyPrices.map((dp, dpIdx) => (
+                                                                <div key={dpIdx} className="min-w-[110px] px-3.5 py-2.5 rounded-xl bg-slate-50/70 dark:bg-[#202124]/50 border border-slate-200/70 dark:border-[#3c4043]/70 text-center shrink-0">
+                                                                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{formatDate(dp.date)}</div>
+                                                                    <div className="text-xs font-bold tabular-nums text-slate-900 dark:text-white mt-1">
+                                                                        {Number(dp.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {rate.currency}
                                                                     </div>
                                                                 </div>
-                                                                <div className={`text-xs font-bold shrink-0 self-end sm:self-auto ${p.amount === 0 ? 'text-[#188038] dark:text-emerald-400' : 'text-[#d93025] dark:text-rose-400'}`}>
-                                                                    {p.amount === 0
-                                                                        ? (L('freeCancel') || 'Ücretsiz İptal')
-                                                                        : `${L('penaltyAmount')}: ${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} ${p.currency}`
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                        ))}
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-                                ))}
+                                                )}
+
+                                                {/* Cancellation Policy Timeline Strip */}
+                                                {policies && policies.length > 0 && (
+                                                    <div className="p-5 sm:p-6 space-y-2.5">
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                                            <span className="material-symbols-outlined text-[15px] text-rose-500">policy</span>
+                                                            <span>{L('cancelPolicies')}</span>
+                                                        </span>
+                                                        <div className="rounded-2xl border border-slate-200/80 dark:border-[#3c4043] divide-y divide-slate-100 dark:divide-[#3c4043] overflow-hidden">
+                                                            {policies.map((p, pIdx) => (
+                                                                <div
+                                                                    key={pIdx}
+                                                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 bg-white dark:bg-[#28292c]"
+                                                                >
+                                                                    <div className="flex items-center gap-2.5">
+                                                                        <span className={`size-2 shrink-0 rounded-full ${p.amount === 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                                                                        <div className="text-xs text-slate-700 dark:text-slate-300">
+                                                                            <span className="font-semibold text-slate-900 dark:text-white">{formatDateTime(p.fromDate)}</span>
+                                                                            <span className="text-slate-400 mx-2">→</span>
+                                                                            <span className="font-semibold text-slate-900 dark:text-white">{formatDateTime(p.toDate)}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className={`text-xs font-bold tabular-nums shrink-0 self-end sm:self-auto ${p.amount === 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                                                                        {p.amount === 0
+                                                                            ? (L('freeCancel') || 'Ücretsiz İptal')
+                                                                            : `${L('penaltyAmount')}: ${Number(p.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })} ${p.currency}`
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         ))}
 
                         {/* Hotel Direct Contact Information */}
                         {booking.hotel?.contact && (
-                            <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 shadow-xs space-y-4">
-                                <div className="flex items-center gap-2.5 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                    <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                        <span className="material-symbols-outlined text-[20px]">contact_phone</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-sm font-bold text-[#202124] dark:text-white">
-                                            {L('contactInfo')}
-                                        </h3>
-                                        <p className="text-xs text-[#5f6368] dark:text-slate-400">
-                                            {booking.hotel.hotelName}
-                                        </p>
-                                    </div>
+                            <div className="rounded-3xl bg-white dark:bg-[#28292c] border border-slate-200/90 dark:border-[#3c4043] shadow-sm overflow-hidden">
+                                <div className="px-6 py-4 bg-slate-50/70 dark:bg-[#202124]/70 border-b border-slate-100 dark:border-[#3c4043] flex items-center justify-between">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[16px] text-[#137fec]">contact_phone</span>
+                                        <span>{L('contactInfo')} ({booking.hotel.hotelName})</span>
+                                    </span>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-[#3c4043]">
                                     {(booking.hotel.contact.name || booking.hotel.contact.surname) && (
-                                        <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-[#70757a] text-[20px]">person</span>
+                                        <div className="p-4 sm:p-5 flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 flex items-center justify-center shrink-0">
+                                                <span className="material-symbols-outlined text-[18px]">person</span>
+                                            </div>
                                             <div className="truncate">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase">{L('name')}</p>
-                                                <p className="text-xs font-semibold text-[#202124] dark:text-white truncate">
+                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{L('name')}</p>
+                                                <p className="text-xs font-bold text-slate-900 dark:text-white truncate mt-0.5">
                                                     {booking.hotel.contact.name} {booking.hotel.contact.surname}
                                                 </p>
                                             </div>
@@ -1614,12 +1612,14 @@ const BookingDetail = () => {
                                     {booking.hotel.contact.phoneNumber && (
                                         <a 
                                             href={`tel:${booking.hotel.contact.phoneCountryCode || ''}${booking.hotel.contact.phoneNumber}`}
-                                            className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] flex items-center gap-3 hover:border-[#1a73e8] transition-colors group cursor-pointer"
+                                            className="p-4 sm:p-5 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-[#202124]/40 transition-colors group cursor-pointer"
                                         >
-                                            <span className="material-symbols-outlined text-[#70757a] group-hover:text-[#1a73e8] text-[20px]">call</span>
+                                            <div className="size-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 group-hover:bg-emerald-100 flex items-center justify-center shrink-0 transition-colors">
+                                                <span className="material-symbols-outlined text-[18px]">call</span>
+                                            </div>
                                             <div className="truncate">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase">{L('phone')}</p>
-                                                <p className="text-xs font-semibold text-[#202124] dark:text-white group-hover:text-[#1a73e8] truncate">
+                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{L('phone')}</p>
+                                                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#137fec] truncate mt-0.5">
                                                     {booking.hotel.contact.phoneCountryCode} {booking.hotel.contact.phoneNumber}
                                                 </p>
                                             </div>
@@ -1629,12 +1629,14 @@ const BookingDetail = () => {
                                     {booking.hotel.contact.email && (
                                         <a 
                                             href={`mailto:${booking.hotel.contact.email}`}
-                                            className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] flex items-center gap-3 hover:border-[#1a73e8] transition-colors group cursor-pointer"
+                                            className="p-4 sm:p-5 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-[#202124]/40 transition-colors group cursor-pointer"
                                         >
-                                            <span className="material-symbols-outlined text-[#70757a] group-hover:text-[#1a73e8] text-[20px]">mail</span>
+                                            <div className="size-8 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 group-hover:bg-blue-100 flex items-center justify-center shrink-0 transition-colors">
+                                                <span className="material-symbols-outlined text-[18px]">mail</span>
+                                            </div>
                                             <div className="truncate">
-                                                <p className="text-[10px] font-bold text-[#70757a] uppercase">{L('email')}</p>
-                                                <p className="text-xs font-semibold text-[#202124] dark:text-white group-hover:text-[#1a73e8] truncate">
+                                                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{L('email')}</p>
+                                                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#137fec] truncate mt-0.5">
                                                     {booking.hotel.contact.email}
                                                 </p>
                                             </div>
@@ -1645,145 +1647,151 @@ const BookingDetail = () => {
                         )}
                     </div>
 
-                    {/* Right Column (4 cols): Financials, Remark, Audit */}
+                    {/* Right Column (4 cols): Financials, Remark */}
                     <div className="lg:col-span-4 space-y-6">
 
                         {/* Google Checkout / Financial Receipt Card */}
-                        <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 shadow-xs space-y-5">
-                            <div className="flex items-center gap-2.5 pb-3 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                <div className="size-9 rounded-xl bg-[#e8f0fe] dark:bg-[#1a73e8]/20 flex items-center justify-center text-[#1a73e8] dark:text-[#8ab4f8]">
-                                    <span className="material-symbols-outlined text-[20px]">receipt</span>
+                        <div className="rounded-3xl bg-white dark:bg-[#28292c] border border-slate-200/90 dark:border-[#3c4043] shadow-sm overflow-hidden">
+                            {/* Header */}
+                            <div className="px-6 py-4 bg-slate-50/70 dark:bg-[#202124]/70 border-b border-slate-100 dark:border-[#3c4043] flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                    <div className="size-8 rounded-xl bg-[#137fec]/10 dark:bg-[#137fec]/20 flex items-center justify-center text-[#137fec] dark:text-[#42a5f5]">
+                                        <span className="material-symbols-outlined text-[18px]">receipt</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                                            {L('pricePaymentSummary')}
+                                        </h3>
+                                    </div>
                                 </div>
+                                <span className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-[#303134] text-slate-700 dark:text-slate-300 font-bold text-[10px]">
+                                    {booking.currency || 'GBP'}
+                                </span>
+                            </div>
+
+                            {/* Primary Total Sale Box */}
+                            <div className="px-6 py-4 bg-gradient-to-br from-slate-50/40 via-blue-50/20 to-slate-50/40 dark:from-[#202124]/50 dark:to-[#137fec]/10 border-b border-slate-100 dark:border-[#3c4043] flex items-baseline justify-between gap-3">
                                 <div>
-                                    <h3 className="text-sm font-bold text-[#202124] dark:text-white">
-                                        {L('pricePaymentSummary')}
-                                    </h3>
-                                    <p className="text-xs text-[#5f6368] dark:text-slate-400">
-                                        {L('officialOrderReceipt')}
-                                    </p>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                                        {L('totalPrice')}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                        {L('taxesIncluded')}
+                                    </span>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-xl sm:text-2xl font-black tabular-nums text-[#137fec] dark:text-[#42a5f5]">
+                                        {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}{' '}
+                                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{booking.currency || ''}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Itemized Breakdown */}
-                            <div className="space-y-3 text-xs">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[#5f6368] dark:text-slate-400">{L('roomStayRate')}</span>
-                                    <span className="font-semibold text-[#202124] dark:text-white">
+                            {/* Itemized Ledger Rows */}
+                            <div className="divide-y divide-slate-100 dark:divide-[#3c4043] text-xs">
+                                <div className="px-6 py-3 flex items-center justify-between">
+                                    <span className="text-slate-500 dark:text-slate-400">{L('roomStayRate')}</span>
+                                    <span className="font-bold tabular-nums text-slate-900 dark:text-white">
                                         {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} {booking.currency}
                                     </span>
                                 </div>
 
                                 {booking.totalTaxAmount != null && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[#5f6368] dark:text-slate-400">{L('taxAmount')}</span>
-                                        <span className="font-medium text-[#202124] dark:text-white">
+                                    <div className="px-6 py-3 flex items-center justify-between">
+                                        <span className="text-slate-500 dark:text-slate-400">{L('taxAmount')}</span>
+                                        <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
                                             {Number(booking.totalTaxAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}
                                         </span>
                                     </div>
                                 )}
 
                                 {booking.totalOnSpotAmount != null && (
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[#5f6368] dark:text-slate-400">{L('onSpotAmount')}</span>
-                                        <span className="font-medium text-[#202124] dark:text-white">
+                                    <div className="px-6 py-3 flex items-center justify-between">
+                                        <span className="text-slate-500 dark:text-slate-400">{L('onSpotAmount')}</span>
+                                        <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
                                             {Number(booking.totalOnSpotAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}
                                         </span>
                                     </div>
                                 )}
 
                                 {Number(booking.totalPenaltyAmount || 0) > 0 && (
-                                    <div className="flex items-center justify-between text-[#d93025] dark:text-rose-400">
-                                        <span>{L('penaltyAmount')}</span>
-                                        <span className="font-bold">
+                                    <div className="px-6 py-3 flex items-center justify-between text-rose-600 dark:text-rose-400 bg-rose-50/30 dark:bg-rose-950/20">
+                                        <span className="font-semibold">{L('penaltyAmount')}</span>
+                                        <span className="font-bold tabular-nums">
                                             {Number(booking.totalPenaltyAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}
                                         </span>
                                     </div>
                                 )}
 
                                 {Number(booking.totalRefundAmount || 0) > 0 && (
-                                    <div className="flex items-center justify-between text-[#137333] dark:text-emerald-400">
-                                        <span>{L('refundAmount')}</span>
-                                        <span className="font-bold">
+                                    <div className="px-6 py-3 flex items-center justify-between text-emerald-600 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-950/20">
+                                        <span className="font-semibold">{L('refundAmount')}</span>
+                                        <span className="font-bold tabular-nums">
                                             {Number(booking.totalRefundAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}
                                         </span>
                                     </div>
                                 )}
-
-                                {/* Total Divider */}
-                                <div className="pt-3 border-t border-[#dadce0] dark:border-[#3c4043] flex items-baseline justify-between">
-                                    <span className="text-sm font-bold text-[#202124] dark:text-white">
-                                        {L('totalPrice')}
-                                    </span>
-                                    <div className="text-right">
-                                        <div className="text-xl font-black text-[#1a73e8] dark:text-[#8ab4f8]">
-                                            {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} {booking.currency}
-                                        </div>
-                                        <span className="text-[10px] text-[#70757a]">
-                                            {L('taxesIncluded')}
-                                        </span>
-                                    </div>
-                                </div>
                             </div>
 
-                            {/* Bulk Price Breakdown */}
+                            {/* Bulk Price Breakdown (Clean Flat Sub-Ledger) */}
                             {booking.bulkPrice && (
-                                <div className="rounded-xl border border-[#dadce0] dark:border-[#3c4043] overflow-hidden">
-                                    <div className="flex items-center gap-2 px-3.5 py-2.5 bg-[#f1f3f4] dark:bg-[#303134] border-b border-[#dadce0] dark:border-[#3c4043]">
-                                        <span className="material-symbols-outlined text-[15px] text-[#5f6368] dark:text-slate-400">monitoring</span>
-                                        <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                            {L('bulkPriceSection')}
+                                <div className="border-t border-slate-100 dark:border-[#3c4043] divide-y divide-slate-100 dark:divide-[#3c4043] text-xs">
+                                    <div className="px-6 py-2.5 bg-slate-50/70 dark:bg-[#202124]/70 flex items-center justify-between">
+                                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[14px]">monitoring</span>
+                                            <span>{L('bulkPriceSection')}</span>
                                         </span>
-                                        <span className="ml-auto text-[10px] text-[#70757a] dark:text-slate-500">
+                                        <span className="text-[10px] text-slate-400">
                                             {L('bulkPriceSectionSub')}
                                         </span>
                                     </div>
-                                    <div className="divide-y divide-[#dadce0]/60 dark:divide-[#3c4043]/60">
-                                        {booking.bulkPrice.supplierPrice != null && (
-                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs">
-                                                <span className="text-[#5f6368] dark:text-slate-400">{L('supplierPrice')}</span>
-                                                <span className="font-semibold text-[#202124] dark:text-white tabular-nums">
-                                                    {Number(booking.bulkPrice.supplierPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    {' '}{booking.bulkPrice.supplierPrice.currency}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {booking.bulkPrice.markupPrice != null && (
-                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs">
-                                                <span className="text-[#5f6368] dark:text-slate-400">{L('markupPrice')}</span>
-                                                <span className={`font-semibold tabular-nums ${Number(booking.bulkPrice.markupPrice.amount) > 0 ? 'text-[#137333] dark:text-emerald-400' : 'text-[#5f6368] dark:text-slate-400'}`}>
-                                                    {Number(booking.bulkPrice.markupPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    {' '}{booking.bulkPrice.markupPrice.currency}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {booking.bulkPrice.sellingPrice != null && (
-                                            <div className="flex items-center justify-between px-3.5 py-2.5 text-xs bg-[#e8f0fe]/40 dark:bg-[#1a73e8]/10">
-                                                <span className="font-semibold text-[#202124] dark:text-white">{L('sellingPrice')}</span>
-                                                <span className="font-bold text-[#1a73e8] dark:text-[#8ab4f8] tabular-nums">
-                                                    {Number(booking.bulkPrice.sellingPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                    {' '}{booking.bulkPrice.sellingPrice.currency}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
+                                    {booking.bulkPrice.supplierPrice != null && (
+                                        <div className="px-6 py-2.5 flex items-center justify-between">
+                                            <span className="text-slate-500 dark:text-slate-400">{L('supplierPrice')}</span>
+                                            <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                                {Number(booking.bulkPrice.supplierPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                {' '}{booking.bulkPrice.supplierPrice.currency}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {booking.bulkPrice.markupPrice != null && (
+                                        <div className="px-6 py-2.5 flex items-center justify-between">
+                                            <span className="text-slate-500 dark:text-slate-400">{L('markupPrice')}</span>
+                                            <span className={`font-semibold tabular-nums ${Number(booking.bulkPrice.markupPrice.amount) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                                                {Number(booking.bulkPrice.markupPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                {' '}{booking.bulkPrice.markupPrice.currency}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {booking.bulkPrice.sellingPrice != null && (
+                                        <div className="px-6 py-2.5 flex items-center justify-between bg-blue-50/40 dark:bg-[#137fec]/10">
+                                            <span className="font-semibold text-slate-900 dark:text-white">{L('sellingPrice')}</span>
+                                            <span className="font-bold text-[#137fec] dark:text-[#42a5f5] tabular-nums">
+                                                {Number(booking.bulkPrice.sellingPrice.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                {' '}{booking.bulkPrice.sellingPrice.currency}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
-                            {/* Payment Method & Status Card */}
-                            <div className="p-3.5 rounded-xl bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0]/70 dark:border-[#3c4043] space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[11px] font-bold text-[#70757a] uppercase tracking-wider">{L('paymentStatus')}</span>
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${paymentBadge.classes}`}>
-                                        <span className="material-symbols-outlined text-[13px]">{paymentBadge.icon}</span>
-                                        {paymentBadge.label}
+                            {/* Payment Method & Status Footer */}
+                            <div className="px-6 py-3.5 bg-slate-50/50 dark:bg-[#202124]/50 border-t border-slate-100 dark:border-[#3c4043] flex items-center justify-between">
+                                <div>
+                                    <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 block">
+                                        {L('paymentStatus')}
+                                    </span>
+                                    <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                        {String(booking.payment?.status || '').includes('ACCOUNT') ? (currentLang === 'tr' ? 'Cari Hesap' : 'Account Balance') : (currentLang === 'tr' ? 'Kredi Kartı' : 'Credit Card')}
+                                        {booking.transactionUser && (
+                                            <span className="text-slate-400 font-normal ml-1">({booking.transactionUser})</span>
+                                        )}
                                     </span>
                                 </div>
-                                {booking.transactionUser && (
-                                    <div className="text-xs text-[#5f6368] dark:text-slate-400 pt-1 border-t border-[#dadce0]/50 dark:border-[#3c4043]/50 flex items-center justify-between">
-                                        <span>{L('transactionUser')}:</span>
-                                        <span className="font-semibold text-[#202124] dark:text-white">{booking.transactionUser}</span>
-                                    </div>
-                                )}
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${paymentBadge.classes}`}>
+                                    <span className="material-symbols-outlined text-[13px]">{paymentBadge.icon}</span>
+                                    <span>{paymentBadge.label}</span>
+                                </span>
                             </div>
                         </div>
 

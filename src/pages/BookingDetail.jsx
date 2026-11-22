@@ -833,110 +833,192 @@ const BookingDetail = () => {
             {/* Bounded Content Canvas */}
             <main className="max-w-[1440px] w-full mx-auto px-6 sm:px-10 lg:px-12 py-6 space-y-6">
 
-                {/* 1. Google Travel Stay / Flight Hero Itinerary Banner */}
-                <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-6 sm:p-7 shadow-xs space-y-6">
-
-                    {/* ── Cancellation / Status Banner ─────────────────────────── */}
+                {/* 1. Hero Reservation Dossier Card */}
+                <div className="rounded-3xl bg-white dark:bg-[#28292c] border border-slate-200/90 dark:border-[#3c4043] shadow-sm overflow-hidden">
+                    {/* Top Status Notification Banner (Cancelled, Error, or Confirmed) */}
                     {(() => {
-                        const status = booking.hotel?.bookingStatus;
-                        const isCancelled = status === 'CANCELLED' || status === 'CANCELLED_WITH_PENALTY';
-                        const isError = status === 'ERROR';
+                        const statusRaw = (booking.hotel?.bookingStatus || booking.status || '').toUpperCase();
+                        const isCancelled = statusRaw === 'CANCELLED' || statusRaw === 'CANCELLED_WITH_PENALTY' || Boolean(booking.hotel?.cancelReason);
+                        const isError = statusRaw === 'ERROR' || statusRaw === 'FAILED';
+                        const isConfirmed = statusRaw === 'CONFIRMED' || statusRaw === 'ACTIVE' || statusRaw === 'SUCCESS';
 
-                        if (!isCancelled && !isError && status !== 'NEW') return null;
+                        if (isError) {
+                            const errorReasonText = booking.errorMessage
+                                || booking.remark
+                                || booking.hotel?.cancelNote
+                                || booking.hotel?.cancelReason
+                                || (currentLang === 'tr' ? 'Rezervasyon oluşturulurken bir hata meydana geldi.' : 'An error occurred during booking confirmation.');
+                            const errorTime = booking.hotel?.cancelDateTime || booking.audit?.updateDateTime || booking.audit?.createDateTime;
 
-                        // Format cancel datetime
-                        const cancelDT = booking.hotel?.cancelDateTime;
-                        const cancelDateFormatted = cancelDT
-                            ? new Date(cancelDT).toLocaleString('tr-TR', {
-                                year: 'numeric', month: '2-digit', day: '2-digit',
-                                hour: '2-digit', minute: '2-digit'
-                              })
-                            : null;
+                            return (
+                                <div className="px-6 py-4 bg-gradient-to-r from-red-50 via-rose-50 to-red-50/60 dark:from-red-950/50 dark:via-rose-950/40 dark:to-red-950/30 border-b border-red-200/90 dark:border-red-900/70 flex flex-wrap items-center justify-between gap-4 text-xs">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-8 h-8 rounded-xl bg-red-100 dark:bg-red-900/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0 shadow-2xs">
+                                            <span className="material-symbols-outlined text-[18px]">error</span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="font-bold text-red-950 dark:text-red-200">
+                                                {currentLang === 'tr' ? 'Hata / İşlem Başarısız:' : 'Error / Operation Failed:'}
+                                            </span>{' '}
+                                            <span className="text-red-800 dark:text-red-300 font-semibold break-words">
+                                                {errorReasonText}
+                                            </span>
+                                            {booking.hotel?.cancelNote && booking.hotel.cancelNote !== errorReasonText && (
+                                                <span className="text-red-700/80 dark:text-red-400/80 ml-2 italic">
+                                                    ({booking.hotel.cancelNote})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 text-xs tabular-nums">
+                                        {booking.clientReferenceId && (
+                                            <span className="text-slate-600 dark:text-slate-400">
+                                                Ref: <strong className="text-slate-900 dark:text-white font-mono">{booking.clientReferenceId}</strong>
+                                            </span>
+                                        )}
+                                        {errorTime && (
+                                            <span className="text-slate-600 dark:text-slate-400">
+                                                {currentLang === 'tr' ? 'Hata Zamanı:' : 'Error Time:'} <strong className="text-slate-900 dark:text-white">{formatDateTime(errorTime)}</strong>
+                                            </span>
+                                        )}
+                                        <span className="px-2.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/60 text-red-700 dark:text-red-300 font-bold text-[10px] tracking-wider">
+                                            {statusRaw}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        }
 
-                        // Map cancelReason to human-readable text
-                        const CANCEL_REASON_LABELS = {
-                            GUEST_REQUEST:          currentLang === 'tr' ? 'Misafir iptal talebinde bulundu'                              : 'Guest requested cancellation',
-                            DUPLICATE_BOOKING:      currentLang === 'tr' ? 'Mükerrer rezervasyon'                                         : 'Duplicate booking',
-                            PAYMENT_FAILED:         currentLang === 'tr' ? 'Ödeme başarısız oldu veya ödeme alınamadı'                   : 'Payment failed or not received',
-                            HOTEL_OVERBOOKED:       currentLang === 'tr' ? 'Otel fazla rezervasyon aldı (overbooking)'                   : 'Hotel overbooked',
-                            PRICE_CHANGED:          currentLang === 'tr' ? 'Rezervasyon sonrası fiyat değişikliği'                       : 'Price change after booking',
-                            INVALID_RATE:           currentLang === 'tr' ? 'Geçersiz veya süresi dolmuş fiyat'                           : 'Invalid or expired rate',
-                            INVALID_ROOM:           currentLang === 'tr' ? 'Geçersiz veya müsait olmayan oda'                            : 'Invalid or unavailable room',
-                            TECHNICAL_ERROR:        currentLang === 'tr' ? 'Sistem veya teknik hata'                                     : 'System or technical error',
-                            SUPPLIER_REJECTION:     currentLang === 'tr' ? 'Tedarikçi rezervasyonu reddetti'                             : 'Supplier rejected booking',
-                            NO_SHOW:                currentLang === 'tr' ? 'Misafir otele gelmedi (no-show)'                             : 'Guest did not arrive (no-show)',
-                            AGENT_REQUEST:          currentLang === 'tr' ? 'Acente iptal talebinde bulundu'                              : 'Agency requested cancellation',
-                            HOTEL_CLOSED:           currentLang === 'tr' ? 'Otel geçici veya kalıcı olarak kapalı'                      : 'Hotel temporarily or permanently closed',
-                            FORCE_MAJEURE:          currentLang === 'tr' ? 'Mücbir sebep (ör. doğal afet, pandemi)'                     : 'Force majeure (e.g. natural disaster, pandemic)',
-                            FRAUD_SUSPECTED:        currentLang === 'tr' ? 'Dolandırıcılık şüphesi veya güvenlik endişesi'              : 'Fraud suspected or security concern',
-                            CUSTOMER_CHANGED_DATES: currentLang === 'tr' ? 'Müşteri seyahat tarihlerini değiştirdi'                     : 'Customer changed travel dates',
-                            POLICY_VIOLATION:       currentLang === 'tr' ? 'Politika veya kural ihlali nedeniyle iptal'                 : 'Cancellation due to policy or rule violation',
-                            TIMEOUT:                currentLang === 'tr' ? 'Rezervasyon onayı sırasında tedarikçi veya sistem zaman aşımı' : 'Supplier or system timeout during confirmation',
-                            UNKNOWN:                currentLang === 'tr' ? 'Bilinmeyen neden'                                            : 'Unknown reason',
-                            // legacy values
-                            HOTEL_REQUEST:          currentLang === 'tr' ? 'Otel talebi üzerine iptal edildi'                           : 'Cancelled at hotel request',
-                            SYSTEM_ERROR:           currentLang === 'tr' ? 'Sistem hatası nedeniyle iptal edildi'                       : 'Cancelled due to system error',
-                            ADMIN_CANCELLATION:     currentLang === 'tr' ? 'Yönetici tarafından iptal edildi'                           : 'Cancelled by admin',
-                            DUPLICATE_RESERVATION:  currentLang === 'tr' ? 'Mükerrer rezervasyon nedeniyle iptal'                       : 'Duplicate reservation',
-                        };
-                        const reasonText = CANCEL_REASON_LABELS[booking.hotel?.cancelReason] || booking.hotel?.cancelReason || null;
-                        const cancelNote = booking.hotel?.cancelNote;
+                        if (isCancelled) {
+                            const CANCEL_REASON_LABELS = {
+                                GUEST_REQUEST:          currentLang === 'tr' ? 'Misafir iptal talebinde bulundu'                              : 'Guest requested cancellation',
+                                DUPLICATE_BOOKING:      currentLang === 'tr' ? 'Mükerrer rezervasyon'                                         : 'Duplicate booking',
+                                PAYMENT_FAILED:         currentLang === 'tr' ? 'Ödeme başarısız oldu veya ödeme alınamadı'                   : 'Payment failed or not received',
+                                HOTEL_OVERBOOKED:       currentLang === 'tr' ? 'Otel fazla rezervasyon aldı (overbooking)'                   : 'Hotel overbooked',
+                                PRICE_CHANGED:          currentLang === 'tr' ? 'Rezervasyon sonrası fiyat değişikliği'                       : 'Price change after booking',
+                                INVALID_RATE:           currentLang === 'tr' ? 'Geçersiz veya süresi dolmuş fiyat'                           : 'Invalid or expired rate',
+                                INVALID_ROOM:           currentLang === 'tr' ? 'Geçersiz veya müsait olmayan oda'                            : 'Invalid or unavailable room',
+                                TECHNICAL_ERROR:        currentLang === 'tr' ? 'Sistem veya teknik hata'                                     : 'System or technical error',
+                                SUPPLIER_REJECTION:     currentLang === 'tr' ? 'Tedarikçi rezervasyonu reddetti'                             : 'Supplier rejected booking',
+                                NO_SHOW:                currentLang === 'tr' ? 'Misafir otele gelmedi (no-show)'                             : 'Guest did not arrive (no-show)',
+                                AGENT_REQUEST:          currentLang === 'tr' ? 'Acente iptal talebinde bulundu'                              : 'Agency requested cancellation',
+                                HOTEL_CLOSED:           currentLang === 'tr' ? 'Otel geçici veya kalıcı olarak kapalı'                      : 'Hotel temporarily or permanently closed',
+                                FORCE_MAJEURE:          currentLang === 'tr' ? 'Mücbir sebep (ör. doğal afet, pandemi)'                     : 'Force majeure (e.g. natural disaster, pandemic)',
+                                FRAUD_SUSPECTED:        currentLang === 'tr' ? 'Dolandırıcılık şüphesi veya güvenlik endişesi'              : 'Fraud suspected or security concern',
+                                CUSTOMER_CHANGED_DATES: currentLang === 'tr' ? 'Müşteri seyahat tarihlerini değiştirdi'                     : 'Customer changed travel dates',
+                                POLICY_VIOLATION:       currentLang === 'tr' ? 'Politika veya kural ihlali nedeniyle iptal'                 : 'Cancellation due to policy or rule violation',
+                                TIMEOUT:                currentLang === 'tr' ? 'Rezervasyon onayı sırasında tedarikçi veya sistem zaman aşımı' : 'Supplier or system timeout during confirmation',
+                                UNKNOWN:                currentLang === 'tr' ? 'Bilinmeyen neden'                                            : 'Unknown reason',
+                                HOTEL_REQUEST:          currentLang === 'tr' ? 'Otel talebi üzerine iptal edildi'                           : 'Cancelled at hotel request',
+                                SYSTEM_ERROR:           currentLang === 'tr' ? 'Sistem hatası nedeniyle iptal edildi'                       : 'Cancelled due to system error',
+                                ADMIN_CANCELLATION:     currentLang === 'tr' ? 'Yönetici tarafından iptal edildi'                           : 'Cancelled by admin',
+                                DUPLICATE_RESERVATION:  currentLang === 'tr' ? 'Mükerrer rezervasyon nedeniyle iptal'                       : 'Duplicate reservation',
+                            };
+                            const reasonText = CANCEL_REASON_LABELS[booking.hotel?.cancelReason] || booking.hotel?.cancelReason || null;
+                            const cancelNote = booking.hotel?.cancelNote;
+                            const cancelDT = booking.hotel?.cancelDateTime;
+                            const cancelDateFormatted = cancelDT
+                                ? new Date(cancelDT).toLocaleString('tr-TR', {
+                                    year: 'numeric', month: '2-digit', day: '2-digit',
+                                    hour: '2-digit', minute: '2-digit'
+                                  })
+                                : null;
 
-                        // Determine banner style
-                        const bannerStyle = isError
-                            ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/50 text-rose-700 dark:text-rose-300'
-                            : status === 'CANCELLED_WITH_PENALTY'
-                            ? 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800/50 text-orange-700 dark:text-orange-300'
-                            : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300';
-
-                        const iconStyle = isError ? 'text-rose-500' : status === 'CANCELLED_WITH_PENALTY' ? 'text-orange-500' : 'text-red-500';
-                        const icon = isError ? 'error' : status === 'CANCELLED_WITH_PENALTY' ? 'money_off' : 'cancel';
-
-                        return (
-                            <div className={`flex items-start gap-3 px-4 py-3.5 rounded-xl border ${bannerStyle} mb-2`}>
-                                <span className={`material-symbols-outlined text-[22px] shrink-0 mt-0.5 ${iconStyle}`}
-                                    style={{ fontVariationSettings: "'FILL' 1" }}>
-                                    {icon}
-                                </span>
-                                <div className="flex flex-col gap-1 min-w-0">
-                                    {/* Status + datetime */}
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <BookingStatusBadge status={status} showIcon className="text-[11px]" />
+                            return (
+                                <div className="px-6 py-4 bg-gradient-to-r from-amber-50 via-orange-50/60 to-amber-50/70 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/20 border-b border-amber-200/80 dark:border-amber-900/60 flex flex-wrap items-center justify-between gap-4 text-xs">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 shadow-2xs">
+                                            <span className="material-symbols-outlined text-[18px]">warning</span>
+                                        </div>
+                                        <div>
+                                            <span className="font-bold text-amber-950 dark:text-amber-200">
+                                                {currentLang === 'tr' ? 'İptal / Ceza Bilgilendirmesi:' : 'Cancellation / Penalty Notice:'}
+                                            </span>{' '}
+                                            <span className="text-amber-800 dark:text-amber-300 font-semibold">
+                                                {reasonText || (currentLang === 'tr' ? 'Rezervasyon İptal Edildi' : 'Reservation Cancelled')}
+                                            </span>
+                                            {cancelNote && cancelNote !== reasonText && (
+                                                <span className="text-amber-700/80 dark:text-amber-400/80 ml-2 italic">
+                                                    ({cancelNote})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 text-xs tabular-nums">
                                         {cancelDateFormatted && (
-                                            <span className="text-xs font-medium opacity-80">
-                                                {currentLang === 'tr'
-                                                    ? `Bu rezervasyon ${cancelDateFormatted} tarihinde iptal edilmiştir.`
-                                                    : `This reservation was cancelled on ${cancelDateFormatted}.`}
+                                            <span className="text-slate-600 dark:text-slate-400">
+                                                {currentLang === 'tr' ? 'İptal Zamanı:' : 'Cancelled At:'} <strong className="text-slate-900 dark:text-white">{cancelDateFormatted}</strong>
+                                            </span>
+                                        )}
+                                        {booking.totalPenaltyAmount != null && Number(booking.totalPenaltyAmount) > 0 && (
+                                            <span className="text-amber-700 dark:text-amber-300">
+                                                {currentLang === 'tr' ? 'Ceza Tutarı:' : 'Penalty:'} <strong className="text-amber-800 dark:text-amber-200">{Number(booking.totalPenaltyAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}</strong>
+                                            </span>
+                                        )}
+                                        {booking.totalRefundAmount != null && Number(booking.totalRefundAmount) > 0 && (
+                                            <span className="text-emerald-700 dark:text-emerald-400">
+                                                {currentLang === 'tr' ? 'İade Tutarı:' : 'Refund:'} <strong className="text-emerald-800 dark:text-emerald-300">{Number(booking.totalRefundAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })} {booking.currency}</strong>
                                             </span>
                                         )}
                                     </div>
-                                    {/* Cancel reason */}
-                                    {reasonText && (
-                                        <p className="text-xs font-semibold">
-                                            {currentLang === 'tr' ? 'İptal Nedeni:' : 'Cancellation Reason:'}{' '}
-                                            <span className="font-normal">{reasonText}</span>
-                                        </p>
-                                    )}
-                                    {/* Cancel note */}
-                                    {cancelNote && cancelNote !== reasonText && (
-                                        <p className="text-xs opacity-75 italic">{cancelNote}</p>
-                                    )}
                                 </div>
-                            </div>
-                        );
+                            );
+                        }
+
+                        if (isConfirmed) {
+                            const confCode = booking.hotel?.rooms?.find(r => r.roomConfirmationCode)?.roomConfirmationCode || null;
+                            const confirmTime = booking.audit?.createDateTime || booking.createDate;
+
+                            return (
+                                <div className="px-6 py-4 bg-gradient-to-r from-emerald-50 via-teal-50/50 to-emerald-50/70 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/20 border-b border-emerald-200/80 dark:border-emerald-900/60 flex flex-wrap items-center justify-between gap-4 text-xs">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-2xs">
+                                            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="font-bold text-emerald-900 dark:text-emerald-200">
+                                                {currentLang === 'tr' ? 'Rezervasyon Onaylandı:' : 'Booking Confirmed:'}
+                                            </span>{' '}
+                                            <span className="text-emerald-800 dark:text-emerald-300 font-semibold">
+                                                {currentLang === 'tr' ? 'Rezervasyon başarıyla tamamlandı ve otel tarafından teyit edildi.' : 'Reservation successfully confirmed and verified by hotel.'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-4 text-xs tabular-nums">
+                                        {booking.voucher && (
+                                            <span className="text-slate-600 dark:text-slate-400">
+                                                Voucher: <strong className="text-slate-900 dark:text-white font-mono">{booking.voucher}</strong>
+                                            </span>
+                                        )}
+                                        {confCode && (
+                                            <span className="text-emerald-700 dark:text-emerald-400">
+                                                {currentLang === 'tr' ? 'Onay Kodu:' : 'Confirmation Code:'} <strong className="text-emerald-800 dark:text-emerald-200 font-mono">{confCode}</strong>
+                                            </span>
+                                        )}
+                                        {confirmTime && (
+                                            <span className="text-slate-600 dark:text-slate-400">
+                                                {currentLang === 'tr' ? 'Onay Zamanı:' : 'Confirmed At:'} <strong className="text-slate-900 dark:text-white">{formatDateTime(confirmTime)}</strong>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        return null;
                     })()}
 
-                    {/* Top Row: Hotel Media & Details Showcase */}
-                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-[#dadce0] dark:border-[#3c4043]">
+                    {/* Top Row: Hotel Media & Details Showcase + Twin Status Cards */}
+                    <div className="p-5 lg:p-6 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 border-b border-slate-100 dark:border-[#3c4043]">
                         {/* Hotel Media Showcase & Info */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 min-w-0 flex-1 w-full">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
                             {/* Hero Hotel Photo Container */}
                             <div
                                 onClick={() => {
                                     if (heroImage) setShowImageLightbox(true);
                                     else if (internalHotelId) navigate(`/travel/hotels/detail/${internalHotelId}`);
                                 }}
-                                className="relative group w-full sm:w-60 md:w-64 lg:w-72 h-44 sm:h-48 md:h-52 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#303134] border border-[#dadce0] dark:border-[#3c4043] shadow-2xs shrink-0 cursor-pointer"
+                                className="relative group w-full sm:w-44 md:w-52 h-32 sm:h-32 max-h-32 rounded-2xl overflow-hidden bg-slate-100 dark:bg-[#303134] border border-slate-200/90 dark:border-[#3c4043] shadow-2xs shrink-0 cursor-pointer"
                                 title={heroImage ? (currentLang === 'tr' ? "Fotoğrafı Büyüt" : "Zoom Photo") : (currentLang === 'tr' ? "Otel Sayfasına Git" : "Go to Hotel Page")}
                             >
                                 {heroImage ? (
@@ -946,36 +1028,36 @@ const BookingDetail = () => {
                                             alt={hotelName}
                                             className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2.5">
-                                            <span className="text-[11px] font-bold text-white flex items-center gap-1 drop-shadow">
-                                                <span className="material-symbols-outlined text-[16px]">zoom_in</span>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
+                                            <span className="text-[10px] font-semibold text-white flex items-center gap-1 drop-shadow">
+                                                <span className="material-symbols-outlined text-[14px]">zoom_in</span>
                                                 <span>{currentLang === 'tr' ? 'Büyüt' : 'Zoom'}</span>
                                             </span>
                                         </div>
                                         {imagesCount > 1 && (
-                                            <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-lg bg-black/65 backdrop-blur-md text-[11px] font-bold text-white flex items-center gap-1.5 shadow-xs border border-white/10">
-                                                <span className="material-symbols-outlined text-[14px]">photo_library</span>
+                                            <div className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-md text-[10px] font-semibold text-white flex items-center gap-1 shadow-xs border border-white/10">
+                                                <span className="material-symbols-outlined text-[13px]">photo_library</span>
                                                 <span>{imagesCount}</span>
                                             </div>
                                         )}
                                     </>
                                 ) : propertyLoading ? (
                                     <div className="w-full h-full flex flex-col items-center justify-center animate-pulse bg-slate-100 dark:bg-[#303134] text-slate-400">
-                                        <span className="material-symbols-outlined text-[24px] animate-spin text-[#137fec]">sync</span>
-                                        <span className="text-[11px] font-semibold text-slate-400 mt-2">
-                                            {currentLang === 'tr' ? 'Otel görseli yükleniyor...' : 'Loading hotel image...'}
+                                        <span className="material-symbols-outlined text-[20px] animate-spin text-[#137fec]">sync</span>
+                                        <span className="text-[10px] font-semibold text-slate-400 mt-1.5">
+                                            {currentLang === 'tr' ? 'Yükleniyor...' : 'Loading...'}
                                         </span>
                                     </div>
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#137fec] to-[#0b5baf] text-white">
-                                        <span className="material-symbols-outlined text-[36px]">hotel</span>
-                                        <span className="text-xs font-semibold mt-1">Travel Of Globe</span>
+                                        <span className="material-symbols-outlined text-[32px]">hotel</span>
+                                        <span className="text-[10px] font-semibold mt-1">Travel Of Globe</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Hotel Details & Metadata Column */}
-                            <div className="min-w-0 flex-1 flex flex-col justify-center gap-2.5 sm:gap-3 py-1">
+                            <div className="min-w-0 flex-1 flex flex-col justify-center gap-2">
                                 {/* Stars & Location & Refundable row */}
                                 <div className="flex flex-wrap items-center gap-2">
                                     {/* Star Rating */}
@@ -984,20 +1066,20 @@ const BookingDetail = () => {
                                         if (!starData) return null;
                                         return (
                                             <div
-                                                className="inline-flex items-center gap-1 text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-lg border border-amber-200/80 dark:border-amber-900/60 shadow-2xs"
+                                                className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200/80 dark:border-amber-900/60 text-[10px] font-semibold uppercase tracking-wider"
                                                 title={starData.label}
                                             >
                                                 {[...Array(starData.count)].map((_, i) => (
                                                     <span
                                                         key={i}
-                                                        className="material-symbols-outlined text-[14px] text-amber-400 select-none leading-none"
+                                                        className="material-symbols-outlined text-[13px] text-amber-400 select-none leading-none"
                                                         style={{ fontVariationSettings: "'FILL' 1" }}
                                                     >
                                                         star
                                                     </span>
                                                 ))}
-                                                <span className="text-[11px] font-bold text-amber-800 dark:text-amber-300 ml-0.5">
-                                                    {starData.count} {currentLang === 'tr' ? 'Yıldız' : 'Stars'}
+                                                <span className="font-bold ml-0.5">
+                                                    {starData.count} {currentLang === 'tr' ? 'Yıldız' : 'Star'}
                                                 </span>
                                             </div>
                                         );
@@ -1006,48 +1088,47 @@ const BookingDetail = () => {
                                     {/* Refundable Badge */}
                                     {isRefundableBooking !== null && (
                                         <span
-                                            className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border shadow-2xs ${
+                                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider border ${
                                                 isRefundableBooking
-                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200/90 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50'
-                                                    : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-[#303134] dark:text-slate-400 dark:border-slate-700'
+                                                    ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/50'
+                                                    : 'bg-slate-100/90 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                                             }`}
                                         >
-                                            <span className={`w-2 h-2 rounded-full ${isRefundableBooking ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                                            <span className={`w-1.5 h-1.5 rounded-full ${isRefundableBooking ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                                             {isRefundableBooking ? (currentLang === 'tr' ? 'İade Edilebilir' : 'Refundable') : (currentLang === 'tr' ? 'İade Edilemez' : 'Non-Refundable')}
                                         </span>
                                     )}
 
                                     {/* Recommended Badge */}
                                     {booking.hotel?.isRecommended && (
-                                        <span className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-[14px]">thumb_up</span>
+                                        <span className="bg-[#e6f4ea] text-[#137333] dark:bg-emerald-950/40 dark:text-emerald-300 border border-[#ceead6] dark:border-emerald-800 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[13px]">thumb_up</span>
                                             <span>{currentLang === 'tr' ? 'Tavsiye Edilen' : 'Recommended'}</span>
                                         </span>
                                     )}
-
-                                    {/* Address */}
-                                    {(() => {
-                                        const hotelAddress = getHotelAddress();
-                                        if (!hotelAddress) return null;
-                                        return (
-                                            <span className="inline-flex items-center gap-1 text-xs text-[#5f6368] dark:text-slate-400 max-w-md truncate" title={hotelAddress}>
-                                                <span className="material-symbols-outlined text-[16px] text-rose-500 shrink-0">location_on</span>
-                                                <span className="truncate">{hotelAddress}</span>
-                                            </span>
-                                        );
-                                    })()}
                                 </div>
 
                                 {/* Hotel Title */}
                                 <div>
-                                    <h1 className="text-2xl sm:text-3xl font-black text-[#202124] dark:text-white tracking-tight leading-tight truncate">
+                                    <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight leading-snug truncate">
                                         {hotelName}
                                     </h1>
                                 </div>
 
+                                {/* Hotel Address */}
+                                {(() => {
+                                    const hotelAddress = getHotelAddress();
+                                    if (!hotelAddress) return null;
+                                    return (
+                                        <div className="inline-flex items-center gap-1.5 text-xs font-normal text-slate-500 dark:text-slate-400 max-w-xl truncate" title={hotelAddress}>
+                                            <span className="material-symbols-outlined text-[15px] text-rose-500 shrink-0">location_on</span>
+                                            <span className="truncate">{hotelAddress}</span>
+                                        </div>
+                                    );
+                                })()}
+
                                 {/* Structured ID Ribbon */}
                                 <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                                    {/* TOG Hotel ID */}
                                     {internalHotelId && (
                                         <CopyBadge
                                             label="TOG Hotel ID"
@@ -1059,7 +1140,6 @@ const BookingDetail = () => {
                                         />
                                     )}
 
-                                    {/* Voucher */}
                                     {booking.voucher && (
                                         <CopyBadge
                                             label="Voucher"
@@ -1070,7 +1150,6 @@ const BookingDetail = () => {
                                         />
                                     )}
 
-                                    {/* Supplier / Expedia Hotel ID */}
                                     {booking.hotel?.supplierHotelId && (
                                         <CopyBadge
                                             label={`${supplierDisplayName} ID`}
@@ -1080,7 +1159,6 @@ const BookingDetail = () => {
                                         />
                                     )}
 
-                                    {/* Supplier Voucher */}
                                     {booking.hotel?.supplierVoucher && (
                                         <CopyBadge
                                             label="Supplier Voucher"
@@ -1091,7 +1169,6 @@ const BookingDetail = () => {
                                         />
                                     )}
 
-                                    {/* DB ID */}
                                     {booking.hotel?.dbId && (
                                         <CopyBadge
                                             label="DB ID"
@@ -1101,7 +1178,6 @@ const BookingDetail = () => {
                                         />
                                     )}
 
-                                    {/* Client Reference */}
                                     {booking.clientReferenceId && (
                                         <CopyBadge
                                             label="Ref"
@@ -1114,144 +1190,189 @@ const BookingDetail = () => {
                             </div>
                         </div>
 
-                        {/* Top Total Amount & Status Display (Right side) */}
-                        <div className="flex flex-row lg:flex-col items-start lg:items-end justify-between w-full lg:w-auto shrink-0 gap-3">
-                            <div className="flex flex-col lg:items-end">
-                                <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider">
-                                    {L('totalAmount')}
-                                </span>
-                                <div className="text-2xl sm:text-3xl font-black text-[#137fec] dark:text-[#42a5f5] tracking-tight">
-                                    {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
-                                    <span className="text-base font-bold ml-1.5">{booking.currency || ''}</span>
-                                </div>
-                                <span className="text-[11px] text-[#70757a] dark:text-slate-400">
-                                    {L('taxesAndFeesIncluded')}
-                                </span>
-                            </div>
+                        {/* Right: Clean Twin Status Badge Cards (Matching admin-frontend) */}
+                        {(() => {
+                            const rawStatus = (booking.hotel?.bookingStatus || booking.status || '').toUpperCase();
+                            const isCanc = rawStatus === 'CANCELLED' || rawStatus === 'CANCELLED_WITH_PENALTY' || Boolean(booking.hotel?.cancelReason);
+                            const isErr = rawStatus === 'ERROR' || rawStatus === 'FAILED';
+                            const isConf = rawStatus === 'CONFIRMED' || rawStatus === 'ACTIVE' || rawStatus === 'SUCCESS';
 
-                            {/* Dual Status Pill Badges */}
-                            <div className="flex items-center gap-2">
-                                {booking.hotel?.bookingStatus && (
-                                    <BookingStatusBadge status={booking.hotel.bookingStatus} showIcon className="text-[11px]" />
-                                )}
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold ${paymentBadge.classes}`}>
-                                    <span className="material-symbols-outlined text-[14px]">{paymentBadge.icon}</span>
-                                    <span>{paymentBadge.label}</span>
-                                </span>
-                            </div>
-                        </div>
+                            const statusPulseDot = isErr ? 'bg-red-500' : isCanc ? 'bg-amber-400' : isConf ? 'bg-emerald-400' : 'bg-slate-400';
+                            const statusSolidDot = isErr ? 'bg-red-600' : isCanc ? 'bg-amber-500' : isConf ? 'bg-emerald-500' : 'bg-slate-500';
+                            const statusTextClass = isErr ? 'text-red-600 dark:text-red-400' : isCanc ? 'text-amber-600 dark:text-amber-400' : isConf ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white';
+
+                            return (
+                                <div className="flex flex-wrap sm:flex-nowrap items-stretch gap-3 shrink-0 w-full lg:w-auto">
+                                    {/* Booking Status Card */}
+                                    <div className="flex-1 sm:w-52 bg-slate-50/80 dark:bg-[#303134]/60 rounded-2xl p-3.5 border border-slate-100 dark:border-[#3c4043] flex flex-col justify-between min-h-[92px]">
+                                        <div className="flex items-center justify-between gap-2 min-h-[22px]">
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 whitespace-nowrap">
+                                                <span className="material-symbols-outlined text-[15px] text-[#137fec] dark:text-[#42a5f5] shrink-0">verified</span>
+                                                <span>{currentLang === 'tr' ? 'Rezervasyon' : 'Booking Status'}</span>
+                                            </span>
+                                            <span className="relative flex h-2 w-2 shrink-0">
+                                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${statusPulseDot}`} />
+                                                <span className={`relative inline-flex rounded-full h-2 w-2 ${statusSolidDot}`} />
+                                            </span>
+                                        </div>
+                                        <div className="mt-2">
+                                            <div className={`text-base font-bold tracking-tight truncate ${statusTextClass}`}>
+                                                {rawStatus || 'N/A'}
+                                            </div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                                Order <strong className="tabular-nums font-semibold text-slate-700 dark:text-slate-300">#{booking.orderId}</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment Status Card */}
+                                    <div className="flex-1 sm:w-52 bg-slate-50/80 dark:bg-[#303134]/60 rounded-2xl p-3.5 border border-slate-100 dark:border-[#3c4043] flex flex-col justify-between min-h-[92px]">
+                                        <div className="flex items-center justify-between gap-2 min-h-[22px]">
+                                            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5 whitespace-nowrap">
+                                                <span className="material-symbols-outlined text-[15px] text-emerald-500 shrink-0">payments</span>
+                                                <span>{currentLang === 'tr' ? 'Ödeme Durumu' : 'Payment Status'}</span>
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider shrink-0 ${paymentBadge.classes}`}>
+                                                {String(booking.payment?.status || '').includes('ACCOUNT') ? 'ACCOUNT' : 'CARD'}
+                                            </span>
+                                        </div>
+                                        <div className="mt-2">
+                                            <div className="text-base font-bold tracking-tight text-slate-900 dark:text-white truncate">
+                                                {paymentBadge.label.replace(/\s*\(.*?\)\s*/g, '')}
+                                            </div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                                Method: <strong className="font-semibold text-slate-700 dark:text-slate-300">
+                                                    {String(booking.payment?.status || '').includes('ACCOUNT') ? (currentLang === 'tr' ? 'Cari Hesap' : 'Account') : (currentLang === 'tr' ? 'Kredi Kartı' : 'Credit Card')}
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
-                    {/* Middle Row: Google Flights / Travel Stay Route Timeline */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center bg-[#f8f9fa] dark:bg-[#202124] p-5 sm:p-6 rounded-2xl border border-[#dadce0]/80 dark:border-[#3c4043]">
-                        {/* Check-in Card (4 cols) */}
-                        <div className="md:col-span-4 space-y-1">
-                            <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider block">
-                                {L('checkIn')}
-                            </span>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-3xl font-black text-[#202124] dark:text-white tracking-tight">
-                                    {checkInDate.day}
-                                </span>
-                                <div>
-                                    <div className="text-sm font-bold text-[#202124] dark:text-slate-200">
-                                        {checkInDate.monthYear}
+                    {/* 4 Divided Dashboard Stat Panels - Clean Symmetric 4-Column Grid */}
+                    {(() => {
+                        const leadGuest = booking.hotel?.rooms?.[0]?.occupancies?.[0];
+                        const leadGuestName = leadGuest && (leadGuest.name || leadGuest.surname)
+                            ? `${leadGuest.name || ''} ${leadGuest.surname || ''}`.trim()
+                            : booking.hotel?.contact?.name
+                                ? `${booking.hotel.contact.name || ''} ${booking.hotel.contact.surname || ''}`.trim()
+                                : '—';
+                        const leadBoardType = booking.hotel?.rooms?.[0]?.rates?.[0]?.boardType
+                            ? formatBoardType(booking.hotel.rooms[0].rates[0].boardType)
+                            : null;
+
+                        return (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-[#3c4043] bg-slate-50/40 dark:bg-[#202124]/40">
+                                {/* 1. Stay Itinerary */}
+                                <div className="p-4 sm:p-5 flex flex-col justify-between gap-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[15px] text-[#137fec] dark:text-[#42a5f5]">calendar_month</span>
+                                            <span>{currentLang === 'tr' ? 'Konaklama Tarihleri' : 'Stay Dates'}</span>
+                                        </span>
+                                        {nights > 0 && (
+                                            <span className="px-2.5 py-0.5 rounded-full bg-[#137fec]/10 text-[#137fec] dark:text-[#42a5f5] font-semibold text-[10px] tabular-nums tracking-wider">
+                                                {nights} {nights === 1 ? (currentLang === 'tr' ? 'GECE' : 'NIGHT') : (currentLang === 'tr' ? 'GECE' : 'NIGHTS')}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="text-xs font-medium text-[#70757a]">
-                                        {checkInDate.weekday}
+                                    <div>
+                                        <div className="flex items-center gap-2 tabular-nums text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                                            <span>{formatDate(booking.checkIn)}</span>
+                                            <span className="text-slate-400 text-xs">→</span>
+                                            <span>{formatDate(booking.checkOut)}</span>
+                                        </div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-1">
+                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                {(booking.hotel?.rooms || []).length} {(booking.hotel?.rooms || []).length === 1 ? L('roomSingular') : L('roomPlural')}
+                                            </span>
+                                            <span>•</span>
+                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                {totalGuests} {totalGuests === 1 ? (currentLang === 'tr' ? 'Misafir' : 'Guest') : L('guestsCount')}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 2. Total Financials */}
+                                <div className="p-4 sm:p-5 flex flex-col justify-between gap-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[15px] text-emerald-500">payments</span>
+                                            <span>{L('totalAmount')}</span>
+                                        </span>
+                                        <span className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-[#303134] text-slate-700 dark:text-slate-300 font-semibold text-[10px]">
+                                            {booking.currency || 'GBP'}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <div className="text-base sm:text-lg font-bold tabular-nums text-[#137fec] dark:text-[#42a5f5] leading-none">
+                                            {booking.totalAmount != null ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}{' '}
+                                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{booking.currency || ''}</span>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                                            <span>{L('taxesAndFeesIncluded')}</span>
+                                            {booking.totalTaxAmount != null && (
+                                                <span>Tax: <strong className="tabular-nums font-semibold text-slate-700 dark:text-slate-300">{Number(booking.totalTaxAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</strong></span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 3. Supply & Distribution */}
+                                <div className="p-4 sm:p-5 flex flex-col justify-between gap-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[15px] text-indigo-500">inventory_2</span>
+                                            <span>{currentLang === 'tr' ? 'Tedarikçi & Referans' : 'Supplier & Reference'}</span>
+                                        </span>
+                                        <span className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-[#303134] text-slate-700 dark:text-slate-300 font-semibold text-[10px]">
+                                            {booking.supplier?.integrationType || 'DIRECT'}
+                                        </span>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                            {supplierDisplayName}{' '}
+                                            {booking.hotel?.supplierHotelId && (
+                                                <span className="tabular-nums font-normal text-xs text-slate-400">
+                                                    (#{booking.hotel.supplierHotelId})
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
+                                            Voucher: <strong className="font-mono text-slate-700 dark:text-slate-200 font-semibold">{booking.voucher || '—'}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. Lead Contact */}
+                                <div className="p-4 sm:p-5 flex flex-col justify-between gap-2.5">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-[15px] text-amber-500">person</span>
+                                            <span>{currentLang === 'tr' ? 'Misafir & Pansiyon' : 'Lead Guest & Board'}</span>
+                                        </span>
+                                        {leadBoardType && (
+                                            <span className="px-2 py-0.5 rounded-md bg-[#137fec]/10 text-[#137fec] dark:text-[#42a5f5] font-semibold text-[10px]">
+                                                {leadBoardType}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-semibold text-slate-900 dark:text-white truncate" title={leadGuestName}>
+                                            {leadGuestName}
+                                        </div>
+                                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate mt-1">
+                                            Ref: <strong className="font-semibold text-slate-700 dark:text-slate-300">#{booking.clientReferenceId || booking.orderId}</strong>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[11px] font-medium text-[#5f6368] dark:text-slate-300">
-                                {L('checkInFrom')}
-                            </span>
-                        </div>
-
-                        {/* Stay Connection Path (4 cols) */}
-                        <div className="md:col-span-4 flex flex-col items-center justify-center py-2 text-center">
-                            <div className="w-full flex items-center justify-center gap-2 text-[#70757a] mb-1">
-                                <span className="size-2 rounded-full bg-[#1a73e8]"></span>
-                                <div className="h-[2px] flex-1 bg-[#dadce0] dark:bg-[#5f6368] relative">
-                                    <span className="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[18px] text-[#1a73e8] bg-[#f8f9fa] dark:bg-[#202124] px-1">
-                                        nights_stay
-                                    </span>
-                                </div>
-                                <span className="size-2 rounded-full bg-[#1a73e8]"></span>
-                            </div>
-                            <span className="text-sm font-bold text-[#1a73e8] dark:text-[#8ab4f8] mt-1">
-                                {nights > 0 ? `${nights} ${nights > 1 ? L('nights') : L('night')}` : `1 ${L('night')}`}
-                            </span>
-                            <span className="text-xs text-[#5f6368] dark:text-slate-400">
-                                {booking.hotel?.rooms?.length || 1} {L('roomSingular')} • {totalGuests} {L('guestsCount')}
-                            </span>
-                        </div>
-
-                        {/* Check-out Card (4 cols) */}
-                        <div className="md:col-span-4 space-y-1 md:text-right">
-                            <span className="text-[11px] font-bold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider block">
-                                {L('checkOut')}
-                            </span>
-                            <div className="flex items-baseline gap-2 md:justify-end">
-                                <span className="text-3xl font-black text-[#202124] dark:text-white tracking-tight">
-                                    {checkOutDate.day}
-                                </span>
-                                <div className="md:text-left">
-                                    <div className="text-sm font-bold text-[#202124] dark:text-slate-200">
-                                        {checkOutDate.monthYear}
-                                    </div>
-                                    <div className="text-xs font-medium text-[#70757a]">
-                                        {checkOutDate.weekday}
-                                    </div>
-                                </div>
-                            </div>
-                            <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-white dark:bg-[#303134] border border-[#dadce0] dark:border-[#5f6368] text-[11px] font-medium text-[#5f6368] dark:text-slate-300">
-                                {L('checkOutUntil')}
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Bottom Row: Key Information Chips Bar */}
-                    <div className="flex flex-wrap items-center gap-2.5 pt-2">
-                        {booking.voucher && (
-                            <button
-                                onClick={() => handleCopy(booking.voucher, L('voucherCode'))}
-                                className="group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] hover:bg-[#e8f0fe] dark:hover:bg-[#1a73e8]/20 border border-transparent hover:border-[#1a73e8]/40 transition-all cursor-pointer text-xs"
-                                title={L('clickToCopy')}
-                            >
-                                <span className="text-[#5f6368] dark:text-slate-400 font-medium">Voucher:</span>
-                                <span className="font-mono font-bold text-[#202124] dark:text-white group-hover:text-[#1a73e8]">{booking.voucher}</span>
-                                <span className="material-symbols-outlined text-[16px] text-[#70757a] group-hover:text-[#1a73e8]">content_copy</span>
-                            </button>
-                        )}
-
-                        {booking.clientReferenceId && (
-                            <button
-                                onClick={() => handleCopy(booking.clientReferenceId, L('clientReference'))}
-                                className="group flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] hover:bg-[#e8f0fe] dark:hover:bg-[#1a73e8]/20 border border-transparent hover:border-[#1a73e8]/40 transition-all cursor-pointer text-xs"
-                                title={L('clickToCopy')}
-                            >
-                                <span className="text-[#5f6368] dark:text-slate-400 font-medium">Ref:</span>
-                                <span className="font-mono font-bold text-[#202124] dark:text-white group-hover:text-[#1a73e8]">{booking.clientReferenceId}</span>
-                                <span className="material-symbols-outlined text-[16px] text-[#70757a] group-hover:text-[#1a73e8]">content_copy</span>
-                            </button>
-                        )}
-
-                        {booking.orderId && (
-                            <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] text-xs">
-                                <span className="text-[#5f6368] dark:text-slate-400 font-medium">{L('orderId')}:</span>
-                                <span className="font-bold text-[#202124] dark:text-white">#{booking.orderId}</span>
-                            </div>
-                        )}
-
-                        {booking.hotel?.rooms?.[0]?.rates?.[0]?.boardType && (
-                            <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#f1f3f4] dark:bg-[#303134] text-xs">
-                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">restaurant</span>
-                                <span className="font-semibold text-[#202124] dark:text-white">
-                                    {formatBoardType(booking.hotel.rooms[0].rates[0].boardType)}
-                                </span>
-                            </div>
-                        )}
-                    </div>
+                        );
+                    })()}
                 </div>
 
                 {/* 2. Main 2-Column Section */}
@@ -1679,65 +1800,7 @@ const BookingDetail = () => {
                             </div>
                         )}
 
-                        {/* Google Activity Timeline Card (Audit Info) */}
-                        {booking.audit && (
-                            <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-xs space-y-4">
-                                <div className="flex items-center gap-2 pb-2.5 border-b border-[#dadce0] dark:border-[#3c4043]">
-                                    <span className="material-symbols-outlined text-[18px] text-[#70757a]">history</span>
-                                    <h4 className="text-xs font-bold text-[#202124] dark:text-white uppercase tracking-wider">
-                                        {L('auditInfo')}
-                                    </h4>
-                                </div>
 
-                                <div className="relative pl-6 space-y-4 text-xs before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[2px] before:bg-[#dadce0] dark:before:bg-[#5f6368]">
-                                    {/* Created */}
-                                    <div className="relative">
-                                        <span className="absolute -left-6 top-0.5 size-2 rounded-full bg-[#1a73e8] ring-4 ring-white dark:ring-[#28292c]"></span>
-                                        <span className="block font-bold text-[#202124] dark:text-white text-[11px] uppercase">
-                                            {L('created')}
-                                        </span>
-                                        <p className="text-xs text-[#5f6368] dark:text-slate-400">
-                                            {formatDateTime(booking.audit.createDateTime)}
-                                        </p>
-                                        {booking.audit.createdBy && (
-                                            <p className="text-[11px] text-[#70757a]">
-                                                {L('by')} {booking.audit.createdBy}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Updated */}
-                                    {booking.audit.updateDateTime && (
-                                        <div className="relative">
-                                            <span className="absolute -left-6 top-0.5 size-2 rounded-full bg-[#34a853] ring-4 ring-white dark:ring-[#28292c]"></span>
-                                            <span className="block font-bold text-[#202124] dark:text-white text-[11px] uppercase">
-                                                {L('updated')}
-                                            </span>
-                                            <p className="text-xs text-[#5f6368] dark:text-slate-400">
-                                                {formatDateTime(booking.audit.updateDateTime)}
-                                            </p>
-                                            {booking.audit.updatedBy && (
-                                                <p className="text-[11px] text-[#70757a]">
-                                                    {L('by')} {booking.audit.updatedBy}
-                                                </p>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Version */}
-                                    {booking.audit.version != null && (
-                                        <div className="pt-2 border-t border-[#dadce0]/50 dark:border-[#3c4043]/50 flex items-center justify-between">
-                                            <span className="font-medium text-[#70757a] text-[11px]">
-                                                {L('version')}
-                                            </span>
-                                            <span className="font-mono font-bold text-xs text-[#202124] dark:text-white bg-[#f1f3f4] dark:bg-[#303134] px-2 py-0.5 rounded-full">
-                                                v{booking.audit.version}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
 
                     </div>
                 </div>

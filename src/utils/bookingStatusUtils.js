@@ -57,11 +57,11 @@ export const BOOKING_STATUS_CONFIG = {
         icon: 'warning'
     },
     CANCELLED: {
-        colorClass: 'bg-slate-100/70 text-slate-500 border border-slate-200/60 dark:bg-slate-900/50 dark:text-slate-400 dark:border-slate-800/50',
+        colorClass: 'bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/50',
         icon: 'cancel'
     },
     CANCELLED_WITH_PENALTY: {
-        colorClass: 'bg-orange-50 text-orange-600 border border-orange-200/60 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800/50',
+        colorClass: 'bg-orange-50 text-orange-700 border border-orange-200/80 dark:bg-orange-950/40 dark:text-orange-400 dark:border-orange-800/50',
         icon: 'money_off'
     },
     ACTIVE: {

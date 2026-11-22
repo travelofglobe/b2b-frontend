@@ -5,7 +5,6 @@ import Footer from '../components/Footer';
 import { hotelService } from '../services/hotelService';
 import CheckoutStepper from '../components/CheckoutStepper';
 import ConfirmationModal from '../components/ConfirmationModal';
-import CheckoutTimer from '../components/CheckoutTimer';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import HotelReservationSummaryCard from '../components/HotelReservationSummaryCard';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
@@ -1101,15 +1100,15 @@ const CheckoutPayment = () => {
                         <div className="flex-1 h-12 bg-gray-200 dark:bg-slate-700/60 rounded-xl animate-pulse"></div>
                         <div className="w-32 h-12 bg-gray-200 dark:bg-slate-700/60 rounded-xl animate-pulse"></div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        <div className="lg:col-span-7 space-y-6">
+                    <div className="flex flex-col lg:flex-row gap-7 items-start">
+                        <div className="flex-1 min-w-0 space-y-6">
                             <div className="max-w-[420px] mx-auto grid grid-cols-2 gap-3">
                                 <div className="h-20 bg-gray-200 dark:bg-slate-700/60 rounded-xl animate-pulse"></div>
                                 <div className="h-20 bg-gray-200 dark:bg-slate-700/60 rounded-xl animate-pulse"></div>
                             </div>
                             <div className="h-72 bg-gray-200 dark:bg-slate-700/60 rounded-2xl border border-[#dadce0] dark:border-slate-700 animate-pulse"></div>
                         </div>
-                        <div className="lg:col-span-5">
+                        <div className="w-full lg:w-[410px] xl:w-[430px] shrink-0">
                             <div className="h-[480px] bg-gray-200 dark:bg-slate-700/60 rounded-2xl border border-[#dadce0] dark:border-slate-700 animate-pulse"></div>
                         </div>
                     </div>
@@ -1204,8 +1203,8 @@ const CheckoutPayment = () => {
                     confirmText={cl.confirm}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    <div className="lg:col-span-8 space-y-6">
+                <div className="flex flex-col lg:flex-row gap-7 items-start">
+                    <div className="flex-1 min-w-0 space-y-6">
                         {/* Unified Clean Payment Card */}
                         <div className="bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-xs overflow-hidden" lang={currentLang}>
                             {/* Payment Method Selector Header */}
@@ -1469,8 +1468,7 @@ const CheckoutPayment = () => {
                     </div>
 
                     {/* Google Style Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
-                        {expireAt && <CheckoutTimer expireAt={expireAt} />}
+                    <div className="w-full lg:w-[410px] xl:w-[430px] shrink-0 lg:sticky lg:top-4 space-y-4">
                         <HotelReservationSummaryCard
                             hotel={{
                                 ...hotel,
@@ -1489,6 +1487,7 @@ const CheckoutPayment = () => {
                             isLoadingRates={false}
                             showSecurityBadge={true}
                             lang={currentLang}
+                            expireAt={expireAt}
                             actionButton={
                                 <>
                                     <button

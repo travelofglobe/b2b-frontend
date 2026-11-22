@@ -109,23 +109,27 @@ const PhoneInput = ({ value, onChange, label, error, className }) => {
     return (
         <div>
             {label && (
-                <label className="text-xs font-medium text-[#5f6368] dark:text-slate-400 mb-1 block">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2 block">
                     {label}
                 </label>
             )}
             <div className="relative" ref={dropdownRef}>
-                <div className={`flex items-stretch ${className || 'h-10 rounded-lg'} bg-slate-50/70 dark:bg-slate-800/40 border transition-all ${
-                    error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-700 focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20 focus-within:bg-white dark:focus-within:bg-slate-800'
+                <div className={`flex items-stretch transition-all ${
+                    className 
+                        ? `${className} ${error ? '!border-[#d93025]' : ''}`
+                        : `h-10 rounded-lg bg-slate-50/70 dark:bg-slate-800/40 border ${
+                            error ? 'border-[#d93025]' : 'border-[#dadce0] dark:border-slate-700 focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20 focus-within:bg-white dark:focus-within:bg-slate-800'
+                        }`
                 }`}>
                     <button
                         type="button"
                         ref={buttonRef}
                         onClick={toggleOpen}
-                        className="flex items-center gap-1.5 px-3 border-r border-[#dadce0] dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors rounded-l-2xl shrink-0 cursor-pointer"
+                        className="flex items-center gap-1.5 pl-4 pr-2.5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-l-full shrink-0 cursor-pointer"
                     >
                         <CountryFlag code={selectedCountry.code || selectedCountry.id} name={selectedCountry.name} fallbackEmoji={selectedCountry.flag || selectedCountry.emoji} size="sm" />
-                        <span className="text-xs font-normal text-[#202124] dark:text-white">{selectedCountry.code}</span>
-                        <span className={`material-symbols-outlined text-[18px] text-[#5f6368] dark:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                        <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-white">{selectedCountry.code}</span>
+                        <span className={`material-symbols-outlined text-[18px] text-slate-500 dark:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                             expand_more
                         </span>
                     </button>
@@ -135,7 +139,7 @@ const PhoneInput = ({ value, onChange, label, error, className }) => {
                         type="text"
                         value={phoneNumber}
                         onChange={handlePhoneChange}
-                        className="flex-1 bg-transparent px-3 outline-none text-xs sm:text-sm text-[#202124] dark:text-white placeholder:text-[#70757a]"
+                        className="flex-1 bg-transparent px-3 pr-4 outline-none text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 rounded-r-full"
                         placeholder="5__ ___ __ __"
                     />
                 </div>

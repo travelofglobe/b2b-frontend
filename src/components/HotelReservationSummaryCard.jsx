@@ -767,23 +767,33 @@ const HotelReservationSummaryCard = ({
         return SUMMARY_LOCALES[currentLang]?.[key] || SUMMARY_LOCALES['en']?.[key] || key;
     };
 
-    // Holding Countdown Timer
+    // Holding Countdown Timer (Synchronized with expireAt)
     const [summaryTimeLeft, setSummaryTimeLeft] = useState(() => {
-        const target = expireAt || (Date.now() + 29 * 60 * 1000 + 45 * 1000);
-        return Math.max(0, target - Date.now());
+        if (!expireAt) return null;
+        return Math.max(0, expireAt - Date.now());
     });
 
     useEffect(() => {
-        const target = expireAt || (Date.now() + 29 * 60 * 1000 + 45 * 1000);
-        const interval = setInterval(() => {
-            const diff = Math.max(0, target - Date.now());
+        if (!expireAt) {
+            setSummaryTimeLeft(null);
+            return;
+        }
+
+        const updateTimer = () => {
+            const diff = Math.max(0, expireAt - Date.now());
             setSummaryTimeLeft(diff);
-        }, 1000);
+            if (diff <= 0) {
+                window.location.href = '/';
+            }
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
         return () => clearInterval(interval);
     }, [expireAt]);
 
-    const timerMin = Math.floor(summaryTimeLeft / 1000 / 60);
-    const timerSec = Math.floor((summaryTimeLeft / 1000) % 60);
+    const timerMin = summaryTimeLeft ? Math.floor(summaryTimeLeft / 1000 / 60) : 0;
+    const timerSec = summaryTimeLeft ? Math.floor((summaryTimeLeft / 1000) % 60) : 0;
     const formattedTimerMinutes = timerMin.toString().padStart(2, '0');
     const formattedTimerSeconds = timerSec.toString().padStart(2, '0');
 
@@ -882,76 +892,82 @@ const HotelReservationSummaryCard = ({
     const rateNotesList = checkRatesData?.notes || hotel?.rateNotes || [];
 
     return (
-        <div className="space-y-3 font-roboto">
+        <div className="font-sans antialiased">
             <div className="rounded-3xl shadow-sm border border-slate-200/90 dark:border-slate-800 overflow-hidden bg-white dark:bg-[#202124]">
-                {/* 1. Top Price & Room Holding Timer Banner (Mockup style) */}
-                <div className="bg-rose-50/90 dark:bg-rose-950/40 border-b border-rose-200/70 dark:border-rose-900/50 px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-rose-700 dark:text-rose-300">
-                    <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-[17px] text-rose-600 dark:text-rose-400">schedule</span>
-                        <span>{t('priceAndRoomHoldingActive')}</span>
+                {/* 1. Top Price & Room Holding Timer Banner (Mockup Style Header) */}
+                {summaryTimeLeft !== null && summaryTimeLeft > 0 && (
+                    <div className="bg-rose-50/75 dark:bg-rose-950/25 px-4 py-2 border-b border-rose-100/80 dark:border-rose-900/40 flex items-center justify-between transition-all">
+                        <div className="flex items-center gap-1.5 text-[#991b1b] dark:text-rose-200">
+                            <span className="material-symbols-outlined text-[16px] text-[#b91c1c] dark:text-rose-300">timer</span>
+                            <span className="text-xs font-medium text-[#991b1b] dark:text-rose-200 tracking-tight">{t('priceAndRoomHoldingActive')}</span>
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-full border border-rose-200/70 dark:border-rose-800/60 shadow-2xs">
+                            <span className="tabular-nums font-mono font-bold text-xs tracking-wide text-[#991b1b] dark:text-rose-200">
+                                {formattedTimerMinutes}:{formattedTimerSeconds}
+                            </span>
+                        </div>
                     </div>
-                    <span className="tabular-nums font-mono font-bold bg-white/90 dark:bg-slate-900/70 px-2 py-0.5 rounded-md border border-rose-200/60 dark:border-rose-800/40 text-rose-600 dark:text-rose-300 shadow-2xs">
-                        {formattedTimerMinutes}:{formattedTimerSeconds}
-                    </span>
-                </div>
+                )}
 
-                <div className="p-4 sm:p-5 space-y-4">
-                    {/* 2. Hotel Image Card with Overlaid Badges, Stars & Name */}
-                    <div className="relative h-48 sm:h-52 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-2xs group">
+                {/* 2. Hotel Image Card with Padding and Rounded Corners */}
+                <div className="p-3.5 sm:p-4">
+                    <div className="relative w-full h-52 sm:h-56 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 group shadow-xs">
                         <img
                             src={hotelImage}
                             alt={hotelName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
                             loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent rounded-2xl" />
 
                         {/* Top Overlay Badge: Board Type */}
                         {primaryBoardLabel && (
                             <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                                <span className="px-2.5 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-[#202124] dark:text-white text-[10.5px] font-semibold shadow-xs">
+                                <span className="px-3.5 py-1.5 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-[#202124] dark:text-white text-xs font-semibold shadow-xs">
                                     {primaryBoardLabel}
                                 </span>
                             </div>
                         )}
 
-                        {/* Bottom Overlay: Stars, Hotel Name & Location (Eskiden olduğu gibi) */}
-                        <div className="absolute bottom-3 left-3 right-3">
-                            <div className="flex items-center gap-1 mb-1 text-amber-400">
+                        {/* Bottom Overlay: Stars, Hotel Name & Location */}
+                        <div className="absolute bottom-3.5 left-3.5 right-3.5">
+                            <div className="flex items-center gap-1 mb-1.5 text-amber-400">
                                 {[...Array(Math.min(5, Math.max(1, hotelStars)))].map((_, i) => (
-                                    <span key={i} className="material-symbols-outlined text-[13px] fill-1 drop-shadow-xs">star</span>
+                                    <span key={i} className="material-symbols-outlined text-[14px] fill-1 drop-shadow-xs">star</span>
                                 ))}
                                 <span className="text-white text-xs font-bold drop-shadow-xs ml-0.5">{hotelStars}.0</span>
                                 {hotel?.isRecommended && (
-                                    <span className="ml-1.5 bg-[#1a73e8] text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
+                                    <span className="ml-1.5 bg-[#0b57d0] text-white text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5">
                                         <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
                                         REC
                                     </span>
                                 )}
                             </div>
-                            <h3 className="font-bold text-white text-base sm:text-lg leading-tight line-clamp-2 drop-shadow-md" title={hotelName}>
+                            <h3 className="font-bold text-white text-lg leading-tight line-clamp-2 drop-shadow-md" title={hotelName}>
                                 {hotelName}
                             </h3>
                             {Boolean(hotelAddress || hotel?.location) && (
-                                <p className="text-white/80 text-[11px] font-medium flex items-center gap-1 mt-1 drop-shadow-xs truncate">
+                                <p className="text-white/90 text-xs font-normal flex items-center gap-1 mt-1.5 drop-shadow-xs truncate">
                                     <span className="material-symbols-outlined text-[13px] text-white/90 shrink-0">location_on</span>
                                     <span className="truncate">{hotelAddress || hotel?.location}</span>
                                 </p>
                             )}
                         </div>
                     </div>
+                </div>
 
+                <div className="px-4 pb-4 sm:px-5 sm:pb-5 space-y-4">
                     {/* 3. Check-in & Check-out Times */}
                     <div className="flex items-center justify-between text-xs px-1 text-slate-600 dark:text-slate-300" lang={currentLang}>
                         <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">login</span>
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="material-symbols-outlined text-[15px] text-[#0b57d0]">login</span>
+                            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
                                 {t('in')}: <span className="font-semibold text-slate-800 dark:text-slate-200">{hotel?.checkIn || '15:00'}</span>
                             </span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">logout</span>
-                            <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            <span className="material-symbols-outlined text-[15px] text-[#0b57d0]">logout</span>
+                            <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
                                 {t('out')}: <span className="font-semibold text-slate-800 dark:text-slate-200">{hotel?.checkOut || '11:00'}</span>
                             </span>
                         </div>
@@ -961,38 +977,38 @@ const HotelReservationSummaryCard = ({
                     <div className="rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 p-4 space-y-3">
                         <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-slate-700/80">
                             <div className="pr-3">
-                                <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
+                                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
                                     {t('checkIn')}
                                 </span>
-                                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block mt-0.5">
+                                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 block mt-0.5">
                                     {checkInFormatted.dateStr || startDate}
                                 </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
                                     {checkInFormatted.dayStr ? `${checkInFormatted.dayStr} • ` : ''}{hotel?.checkIn || '15:00'}
                                 </span>
                             </div>
                             <div className="pl-3">
-                                <span className="text-[10.5px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
+                                <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 block uppercase tracking-wider">
                                     {t('checkOut')}
                                 </span>
-                                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 block mt-0.5">
+                                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100 block mt-0.5">
                                     {checkOutFormatted.dateStr || endDate}
                                 </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
                                     {checkOutFormatted.dayStr ? `${checkOutFormatted.dayStr} • ` : ''}{hotel?.checkOut || '11:00'}
                                 </span>
                             </div>
                         </div>
                         <div className="pt-2.5 border-t border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
-                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">hotel</span>
+                            <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
+                                <span className="material-symbols-outlined text-[16px] text-[#0b57d0]">hotel</span>
                                 <span>{nights} {nights > 1 ? t('nights') : t('night')} • {getGuestsSummaryText()}</span>
                             </div>
                             {onChangeRoom && (
                                 <button
                                     type="button"
                                     onClick={onChangeRoom}
-                                    className="text-xs font-semibold text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
+                                    className="text-xs font-semibold text-[#0b57d0] dark:text-blue-400 hover:underline cursor-pointer"
                                 >
                                     {t('changeRoom')}
                                 </button>
@@ -1004,7 +1020,7 @@ const HotelReservationSummaryCard = ({
                     <div className="space-y-2 py-1">
                         {primaryBoardLabel && (
                             <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-                                <span className="size-4.5 rounded-full bg-blue-100 text-[#1a73e8] dark:bg-blue-900/50 dark:text-blue-300 flex items-center justify-center shrink-0">
+                                <span className="size-4.5 rounded-full bg-blue-100 text-[#0b57d0] dark:bg-blue-900/50 dark:text-blue-300 flex items-center justify-center shrink-0">
                                     <span className="material-symbols-outlined text-[13px] font-bold">check</span>
                                 </span>
                                 <span>{primaryBoardLabel}</span>
@@ -1023,10 +1039,10 @@ const HotelReservationSummaryCard = ({
                     {/* 6. Selected Rooms Breakdown (All existing detailed features preserved) */}
                     <div className="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
                         <div className="flex items-center justify-between">
-                            <p className="text-[10.5px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
+                            <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider" lang={currentLang}>
                                 {t('selectedRooms')}
                             </p>
-                            <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-900/30 dark:text-blue-300">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#0b57d0] dark:bg-blue-900/30 dark:text-blue-300">
                                 {selectedRooms.length} / {totalRoomsCount} {t('room')}
                             </span>
                         </div>
@@ -1081,10 +1097,10 @@ const HotelReservationSummaryCard = ({
                                         )}
                                         <div className={`${onRemoveRoom ? 'pr-6' : 'pr-2'} mb-1.5`}>
                                             <div className="flex items-start gap-1.5">
-                                                <div className="size-5 rounded-md bg-[#e8f0fe] text-[#1a73e8] text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                <div className="size-5 rounded-md bg-[#e8f0fe] text-[#0b57d0] text-xs font-semibold flex items-center justify-center shrink-0 mt-0.5">
                                                     {idx + 1}
                                                 </div>
-                                                <span className="font-semibold text-[#202124] dark:text-white text-xs sm:text-sm line-clamp-2">
+                                                <span className="font-semibold text-slate-900 dark:text-white text-sm line-clamp-2">
                                                     {roomName}
                                                 </span>
                                             </div>
@@ -1092,22 +1108,22 @@ const HotelReservationSummaryCard = ({
 
                                         <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-[#dadce0] dark:border-slate-700">
                                             <div className="flex items-center gap-1.5 flex-wrap">
-                                                <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-300 text-xs px-2 py-0.5 rounded-md font-medium">
+                                                <span className="bg-white dark:bg-slate-800 border border-[#dadce0] dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs px-2.5 py-0.5 rounded-full font-medium">
                                                     {boardLabel}
                                                 </span>
                                                 {refundable !== undefined && (
                                                     <RefundPolicyTooltip
                                                         isRefundable={refundable}
                                                         textOverride={refundable ? t('freeCancel') : t('nonRefundable')}
-                                                        className={`text-xs font-medium px-2 py-0.5 rounded-md ${refundable ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'}`}
+                                                        className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${refundable ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'}`}
                                                     />
                                                 )}
                                             </div>
                                             <div className="text-right">
-                                                <span className="text-xs sm:text-sm font-bold text-[#202124] dark:text-white tabular-nums">
+                                                <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
                                                     {getCurrencySymbol(roomCurr, authCurrencyMap)} {roomPrice.toFixed(2)}
                                                 </span>
-                                                <p className="text-[10px] text-[#70757a]">
+                                                <p className="text-xs text-slate-500">
                                                     {nights} {nights > 1 ? t('nights') : t('night')}
                                                 </p>
                                             </div>
@@ -1117,7 +1133,7 @@ const HotelReservationSummaryCard = ({
                                         <div className="mt-2 pt-1.5 border-t border-dashed border-[#dadce0] dark:border-slate-700">
                                             {policies && policies.length > 0 ? (
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-semibold text-[#5f6368] dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
+                                                    <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5" lang={currentLang}>
                                                         {t('cancellationPolicy')}
                                                     </p>
                                                     {policies.map((policy, pIdx) => {
@@ -1126,8 +1142,8 @@ const HotelReservationSummaryCard = ({
                                                         const isFree = policyAmount === 0;
 
                                                         return (
-                                                            <div key={pIdx} className="flex justify-between items-center text-[11px]">
-                                                                <span className="text-[#5f6368] dark:text-slate-400">
+                                                            <div key={pIdx} className="flex justify-between items-center text-xs">
+                                                                <span className="text-slate-600 dark:text-slate-400">
                                                                     {policy?.fromDate 
                                                                         ? (policy.fromDate.includes('[') 
                                                                             ? new Date(policy.fromDate.split('[')[0]).toLocaleDateString(currentLang, { day: '2-digit', month: 'short', year: 'numeric' })
@@ -1135,7 +1151,7 @@ const HotelReservationSummaryCard = ({
                                                                         : (isFree ? t('flexible') : t('cancellationPenalty'))
                                                                     }
                                                                 </span>
-                                                                <span className={`font-medium px-2 py-0.5 rounded-md text-[10px] ${
+                                                                <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${
                                                                     isFree ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300'
                                                                 }`}>
                                                                     {isFree 
@@ -1149,7 +1165,7 @@ const HotelReservationSummaryCard = ({
                                                     })}
                                                 </div>
                                             ) : (
-                                                <span className="text-xs text-[#70757a] flex items-center gap-1" lang={currentLang}>
+                                                <span className="text-xs text-slate-500 flex items-center gap-1" lang={currentLang}>
                                                     <span className="material-symbols-outlined text-[13px]">info</span>
                                                     {t('standardCancellation')}
                                                 </span>
@@ -1209,7 +1225,7 @@ const HotelReservationSummaryCard = ({
                     <div className="border-t border-slate-200/80 dark:border-slate-700/80 pt-3.5 space-y-2 text-xs">
                         <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
                             <span>{t('roomStayPrice')} ({nights} {nights > 1 ? t('nights') : t('night')})</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 tabular-nums">
+                            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
                                 {getCurrencySymbol(displayCurrency, authCurrencyMap)} {Number(grandTotal).toFixed(2)}
                             </span>
                         </div>
@@ -1222,14 +1238,14 @@ const HotelReservationSummaryCard = ({
                     {/* 9. Grand Total (Mockup style - large bold blue) */}
                     <div className="border-t border-slate-200/80 dark:border-slate-700/80 pt-3.5 flex items-baseline justify-between" lang={currentLang}>
                         <div>
-                            <span className="text-xs font-semibold text-slate-900 dark:text-white block">
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white block">
                                 {t('totalAmount')}
                             </span>
-                            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                            <span className="text-xs text-slate-400 dark:text-slate-500">
                                 {t('allTaxesIncluded')}
                             </span>
                         </div>
-                        <span className="text-2xl sm:text-3xl font-extrabold text-[#1a73e8] dark:text-blue-400 tracking-tight tabular-nums">
+                        <span className="text-2xl font-bold text-[#0b57d0] dark:text-blue-400 tracking-tight tabular-nums">
                             {getCurrencySymbol(displayCurrency, authCurrencyMap)} {isLoadingRates ? '...' : (Number(grandTotal) || 0).toFixed(2)}
                         </span>
                     </div>

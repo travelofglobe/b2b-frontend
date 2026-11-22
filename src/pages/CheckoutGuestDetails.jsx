@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Footer from '../components/Footer';
@@ -51,8 +51,14 @@ const confirmLocales = {
         specialNotesPlaceholder: "e.g. Flight arrives at 16:30, expected hotel check-in around 18:00...",
         unspecified: "Unspecified",
         proceedToPayment: "Proceed to Payment Step",
-        securePaymentNote: "Secure payment with card or Google Pay in the next step."
-        },
+        securePaymentNote: "Secure payment with card or Google Pay in the next step.",
+        crmSuggestionsTitle: "Saved Contacts (CRM)",
+        autoFillActionShort: "Fill",
+        keyboardNavTip: "↑↓ Navigate • Enter to select • Esc close",
+        seeAllContacts: "View All",
+        noCrmMatch: "No matching CRM record found",
+        searchingCrm: "Searching CRM records..."
+    },
     tr: {
         title: "Emin misiniz?",
         message: "Oda seçimine geri dönerseniz girdiğiniz tüm konuk bilgileri silinecektir.",
@@ -75,8 +81,14 @@ const confirmLocales = {
         specialNotesPlaceholder: "Varsa otele iletmek istediğiniz özel isteklerinizi veya tahmini varış saatinizi belirtebilirsiniz...",
         unspecified: "Belirtme",
         proceedToPayment: "Ödeme Adımına İlerle",
-        securePaymentNote: "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır."
-        },
+        securePaymentNote: "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır.",
+        crmSuggestionsTitle: "Kayıtlı Kişiler (CRM)",
+        autoFillActionShort: "Doldur",
+        keyboardNavTip: "↑↓ Gezin • Enter ile seç • Esc kapat",
+        seeAllContacts: "Tümünü Gör",
+        noCrmMatch: "Eşleşen CRM kaydı bulunamadı",
+        searchingCrm: "CRM aranıyor..."
+    },
     ar: {
         title: "هل أنت متأكد؟",
         message: "إذا عدت إلى اختيار الغرفة، فستفقد جميع تفاصيل النزلاء التي تم إدخالها.",
@@ -100,7 +112,7 @@ const confirmLocales = {
         unspecified: "غير محدد",
         proceedToPayment: "الانتقال إلى خطوة الدفع",
         securePaymentNote: "دفع آمن بالبطاقة أو Google Pay في الخطوة التالية."
-        },
+    },
     es: {
         title: "¿Está seguro?",
         message: "Si regresa a la selección de habitación, se perderán todos los datos ingresados de los huéspedes.",
@@ -124,7 +136,7 @@ const confirmLocales = {
         unspecified: "No especificado",
         proceedToPayment: "Continuar al paso de pago",
         securePaymentNote: "Pago seguro con tarjeta o Google Pay en el siguiente paso."
-        },
+    },
     ru: {
         title: "Вы уверены?",
         message: "Если вы вернетесь к выбору номера, все введенные данные гостей будут утеряны.",
@@ -148,7 +160,7 @@ const confirmLocales = {
         unspecified: "Не указано",
         proceedToPayment: "Перейти к оплате",
         securePaymentNote: "Безопасная оплата картой или Google Pay на следующем шаге."
-        },
+    },
     zh: {
         title: "您确定吗？",
         message: "如果您返回选择客房，所有已输入的旅客信息都将丢失。",
@@ -172,7 +184,7 @@ const confirmLocales = {
         unspecified: "不透露",
         proceedToPayment: "前往支付步骤",
         securePaymentNote: "下一步将通过信用卡或 Google Pay 进行安全支付。"
-        },
+    },
     ja: {
         title: "よろしいですか？",
         message: "客室選択に戻ると、入力されたすべての宿泊者情報が失われます。",
@@ -196,7 +208,7 @@ const confirmLocales = {
         unspecified: "指定なし",
         proceedToPayment: "お支払いへ進む",
         securePaymentNote: "次のステップでカードまたはGoogle Payによる安全な決済が行われます。"
-        },
+    },
     fa: {
         title: "آیا مطمئن هستید؟",
         message: "در صورت بازگشت به انتخاب اتاق، تمام اطلاعات وارد شده مهمانان پاک خواهد شد.",
@@ -220,7 +232,7 @@ const confirmLocales = {
         unspecified: "عدم ذکر",
         proceedToPayment: "ادامه به مرحله پرداخت",
         securePaymentNote: "پرداخت امن در مرحله بعد انجام می‌شود."
-        },
+    },
     fr: {
         title: "Êtes-vous sûr ?",
         message: "Si vous retournez au choix de la chambre, toutes les coordonnées des voyageurs saisies seront perdues.",
@@ -244,7 +256,7 @@ const confirmLocales = {
         unspecified: "Non spécifié",
         proceedToPayment: "Passer à l'étape du paiement",
         securePaymentNote: "Paiement sécurisé par carte bancaire ou Google Pay à l'étape suivante."
-        },
+    },
     it: {
         title: "Sei sicuro?",
         message: "Se torni alla scelta della camera, tutti i dettagli degli ospiti inseriti andranno persi.",
@@ -268,7 +280,7 @@ const confirmLocales = {
         unspecified: "Non specificato",
         proceedToPayment: "Procedi al pagamento",
         securePaymentNote: "Pagamento sicuro con carta o Google Pay al passaggio successivo."
-        },
+    },
     el: {
         title: "Είστε σίγουροι;",
         message: "Εάν επιστρέψετε στην επιλογή δωματίου, όλα τα στοιχεία επισκεπτών που καταχωρίσατε θα χαθούν.",
@@ -292,7 +304,7 @@ const confirmLocales = {
         unspecified: "Δεν δηλώνεται",
         proceedToPayment: "Συνέχεια στο βήμα πληρωμής",
         securePaymentNote: "Ασφαλής πληρωμή με κάρτα ή Google Pay στο επόμενο βήμα."
-        },
+    },
     pt: {
         title: "Tem certeza?",
         message: "Se você retornar à seleção de quartos, todos os detalhes do hóspede inseridos serão perdidos.",
@@ -316,7 +328,7 @@ const confirmLocales = {
         unspecified: "Não especificado",
         proceedToPayment: "Avançar para a etapa de pagamento",
         securePaymentNote: "Pagamento seguro com cartão ou Google Pay na próxima etapa."
-        }
+    }
 };
 
 const CHECKOUT_SUMMARY_LOCALES = {
@@ -379,6 +391,8 @@ const CHECKOUT_SUMMARY_LOCALES = {
         enterLastName: "Enter last name",
         enterEmail: "email@example.com",
         invalidBirthDate: "Please enter a valid birth date",
+        invalidEmail: "Please enter a valid email address (e.g. name@example.com)",
+        invalidPhone: "Please enter a valid phone number",
         childAgeMismatch: "Child must be {age} years old on check-in date"
     },
     tr: {
@@ -440,6 +454,8 @@ const CHECKOUT_SUMMARY_LOCALES = {
         enterLastName: "Soyadı giriniz",
         enterEmail: "e-posta@ornek.com",
         invalidBirthDate: "Lütfen geçerli bir doğum tarihi giriniz",
+        invalidEmail: "Lütfen geçerli bir e-posta adresi giriniz (ör: ad@ornek.com)",
+        invalidPhone: "Lütfen geçerli bir telefon numarası giriniz",
         childAgeMismatch: "Çocuk giriş tarihinde {age} yaşında olmalıdır"
     },
     ar: {
@@ -1129,7 +1145,7 @@ const CheckoutGuestDetails = () => {
 
     const togglePreference = (pref) => {
         const isSelected = selectedPreferences.includes(pref.id);
-        const updated = isSelected 
+        const updated = isSelected
             ? selectedPreferences.filter(id => id !== pref.id)
             : [...selectedPreferences, pref.id];
         setSelectedPreferences(updated);
@@ -1141,7 +1157,7 @@ const CheckoutGuestDetails = () => {
             setRemark(prev => prev.replace(new RegExp(`\\n?• ${prefLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`), '').trim());
         }
     };
-    
+
     const [sessionId, setSessionId] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('sessionId') || '';
@@ -1200,7 +1216,7 @@ const CheckoutGuestDetails = () => {
                         setCheckOutDate(session.checkOutDate || null);
                         setRateSearchUuid(session.rateSearchUuid || null);
                         setCheckRatesData(session.checkRatesData || null);
-                        
+
                         // Initial roomsData setup if empty
                         if (!session.roomsData || session.roomsData.length === 0) {
                             const initialRoomsData = (session.selectedRooms || []).map((room, roomIdx) => {
@@ -1219,7 +1235,7 @@ const CheckoutGuestDetails = () => {
                                             rateChildAges = decoded.childrenAges;
                                         }
                                     }
-                                } catch (e) {}
+                                } catch (e) { }
 
                                 const occ = room.hubRateModel?.occupancy;
                                 if (rateAdults === null && occ && typeof occ.adults === 'number') {
@@ -1330,26 +1346,71 @@ const CheckoutGuestDetails = () => {
     }, [selectedRooms]);
 
     const [errors, setErrors] = useState({});
+    const [emailTouched, setEmailTouched] = useState({});
 
+    // CRM Autocomplete Suggestion States
+    const [activeAutocomplete, setActiveAutocomplete] = useState(null); // { roomIdx, guestIdx, field, query }
+    const [crmSuggestions, setCrmSuggestions] = useState([]);
+    const [isCrmSuggestLoading, setIsCrmSuggestLoading] = useState(false);
+    const [autocompleteSelectedIndex, setAutocompleteSelectedIndex] = useState(-1);
+    const autocompleteDropdownRef = useRef(null);
+    const crmAbortRef = useRef(null);
 
-
-    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-
+    const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email ? email.trim() : '');
 
     const handleInputChange = (roomIdx, guestIdx, field, value) => {
         const newData = [...roomsData];
-        
+
+        let filteredValue = value;
         // Validation for Name fields: only letters and spaces allowed
         if (field === 'firstName' || field === 'lastName') {
             // Remove numbers and special characters (keeping Turkish characters)
-            const filteredValue = value.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+            filteredValue = value.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
             newData[roomIdx].guests[guestIdx][field] = filteredValue;
         } else {
             newData[roomIdx].guests[guestIdx][field] = value;
         }
-        
+
+        // Live error clearing when valid
+        const errKey = `${roomIdx}-${guestIdx}`;
+        if (errors[errKey]?.[field]) {
+            let isValidNow = false;
+            if (field === 'email') {
+                isValidNow = validateEmail(value);
+            } else if (field === 'firstName' || field === 'lastName' || field === 'gender') {
+                isValidNow = Boolean(value && value.trim().length > 0);
+            } else if (field === 'birthDate') {
+                isValidNow = validateBirthDate(value);
+            }
+            if (isValidNow) {
+                setErrors(prev => ({
+                    ...prev,
+                    [errKey]: {
+                        ...prev[errKey],
+                        [field]: false
+                    }
+                }));
+            }
+        }
+
         setRoomsData(newData);
+
+        // CRM Autocomplete trigger for first name, last name, and email fields
+        if (field === 'firstName' || field === 'lastName' || field === 'email') {
+            const queryVal = (field === 'firstName' || field === 'lastName') ? filteredValue : value;
+            if (queryVal && queryVal.trim().length >= 2) {
+                setActiveAutocomplete({
+                    roomIdx,
+                    guestIdx,
+                    field,
+                    query: queryVal.trim()
+                });
+            } else {
+                setActiveAutocomplete(null);
+                setCrmSuggestions([]);
+                setAutocompleteSelectedIndex(-1);
+            }
+        }
     };
 
     const decodeHTMLEntities = (text) => {
@@ -1404,11 +1465,9 @@ const CheckoutGuestDetails = () => {
         return age;
     };
 
-    const handleCrmGuestSelect = (crmGuest) => {
-        if (!targetGuestIndex) return;
-        const { roomIdx, guestIdx } = targetGuestIndex;
+    const applyCrmGuest = (roomIdx, guestIdx, crmGuest) => {
+        if (!crmGuest || roomIdx === undefined || guestIdx === undefined) return;
 
-        // Update newData with cloned room and guest to ensure React detects changes and props are preserved
         const newData = roomsData.map((room, rIdx) => {
             if (rIdx === roomIdx) {
                 return {
@@ -1416,30 +1475,42 @@ const CheckoutGuestDetails = () => {
                     guests: room.guests.map((guest, gIdx) => {
                         if (gIdx === guestIdx) {
                             const updatedGuest = { ...guest };
-                            
-                            if (crmGuest.firstName) updatedGuest.firstName = crmGuest.firstName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
-                            if (crmGuest.lastName) updatedGuest.lastName = crmGuest.lastName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
-                            
+
+                            if (crmGuest.firstName) {
+                                updatedGuest.firstName = crmGuest.firstName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+                            }
+                            if (crmGuest.lastName) {
+                                updatedGuest.lastName = crmGuest.lastName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
+                            }
+
                             if (crmGuest.email && guest.type === 'Adult' && guestIdx === 0) {
                                 updatedGuest.email = crmGuest.email;
                             }
-                            
+
                             if (crmGuest.phoneNumber && guest.type === 'Adult' && guestIdx === 0) {
-                                updatedGuest.phone = `${crmGuest.phoneCountryCode || '+90'} ${crmGuest.phoneNumber}`;
+                                updatedGuest.phone = `${crmGuest.phoneCountryCode || '+90'} ${crmGuest.phoneNumber}`.trim();
                             }
-                            
-                            if (crmGuest.gender) updatedGuest.gender = crmGuest.gender.toLowerCase();
-                            
+
+                            if (crmGuest.gender) {
+                                const gLower = crmGuest.gender.toLowerCase();
+                                updatedGuest.gender = gLower === 'female' ? 'female' : 'male';
+                            }
+
                             if (crmGuest.birthDate) {
-                                const parts = crmGuest.birthDate.split('.');
-                                if (parts.length === 3) {
-                                    updatedGuest.birthDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                                const b = crmGuest.birthDate;
+                                if (b.includes('.')) {
+                                    const parts = b.split('.');
+                                    if (parts.length === 3) {
+                                        updatedGuest.birthDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                    }
+                                } else if (b.includes('-')) {
+                                    updatedGuest.birthDate = b.split('T')[0];
                                 }
                             }
-                            
+
                             updatedGuest.crmGuestId = crmGuest.id;
                             updatedGuest.agencyId = crmGuest.agencyId;
-                            
+
                             // Store original data snapshot for later comparison
                             updatedGuest.originalData = {
                                 firstName: updatedGuest.firstName,
@@ -1449,7 +1520,7 @@ const CheckoutGuestDetails = () => {
                                 gender: updatedGuest.gender,
                                 birthDate: updatedGuest.birthDate
                             };
-                            
+
                             return updatedGuest;
                         }
                         return guest;
@@ -1460,8 +1531,266 @@ const CheckoutGuestDetails = () => {
         });
 
         setRoomsData(newData);
+
+        // Clear error flags for this guest
+        const errKey = `${roomIdx}-${guestIdx}`;
+        setErrors(prev => {
+            const nextErrors = { ...prev };
+            delete nextErrors[errKey];
+            return nextErrors;
+        });
+
+        if (crmGuest.email && guestIdx === 0) {
+            setEmailTouched(prev => ({ ...prev, [errKey]: true }));
+        }
+
         setIsCrmModalOpen(false);
         setTargetGuestIndex(null);
+        setActiveAutocomplete(null);
+        setCrmSuggestions([]);
+        setAutocompleteSelectedIndex(-1);
+    };
+
+    const handleCrmGuestSelect = (crmGuest) => {
+        if (!targetGuestIndex) return;
+        const { roomIdx, guestIdx } = targetGuestIndex;
+        applyCrmGuest(roomIdx, guestIdx, crmGuest);
+    };
+
+    // Debounced CRM search for active autocomplete input
+    useEffect(() => {
+        if (!activeAutocomplete || !activeAutocomplete.query || activeAutocomplete.query.trim().length < 2) {
+            setCrmSuggestions([]);
+            setIsCrmSuggestLoading(false);
+            setAutocompleteSelectedIndex(-1);
+            return;
+        }
+
+        const queryText = activeAutocomplete.query.trim();
+
+        if (crmAbortRef.current) {
+            crmAbortRef.current.abort();
+        }
+        const controller = new AbortController();
+        crmAbortRef.current = controller;
+
+        setIsCrmSuggestLoading(true);
+
+        const timer = setTimeout(async () => {
+            try {
+                const response = await guestService.filterGuests(
+                    { query: queryText },
+                    0,
+                    6,
+                    controller.signal
+                );
+                if (response) {
+                    const content = response.content || response.guests || response.agencyCrmGuests || (Array.isArray(response) ? response : []);
+                    setCrmSuggestions(content || []);
+                    setAutocompleteSelectedIndex(-1);
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError' && err.code !== 'ERR_CANCELED') {
+                    console.error('CRM autocomplete search error:', err);
+                    setCrmSuggestions([]);
+                }
+            } finally {
+                setIsCrmSuggestLoading(false);
+            }
+        }, 220);
+
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [activeAutocomplete?.query, activeAutocomplete?.roomIdx, activeAutocomplete?.guestIdx, activeAutocomplete?.field]);
+
+    // Click outside to dismiss CRM autocomplete dropdown
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (autocompleteDropdownRef.current && !autocompleteDropdownRef.current.contains(e.target)) {
+                if (e.target.closest && e.target.closest('[data-autocomplete-input]')) {
+                    return;
+                }
+                setActiveAutocomplete(null);
+                setCrmSuggestions([]);
+                setAutocompleteSelectedIndex(-1);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, []);
+
+    const handleKeyDownAutocomplete = (e, roomIdx, guestIdx) => {
+        if (!activeAutocomplete || crmSuggestions.length === 0) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setAutocompleteSelectedIndex(prev => (prev < crmSuggestions.length - 1 ? prev + 1 : 0));
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setAutocompleteSelectedIndex(prev => (prev > 0 ? prev - 1 : crmSuggestions.length - 1));
+        } else if (e.key === 'Enter') {
+            if (autocompleteSelectedIndex >= 0 && autocompleteSelectedIndex < crmSuggestions.length) {
+                e.preventDefault();
+                applyCrmGuest(roomIdx, guestIdx, crmSuggestions[autocompleteSelectedIndex]);
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setActiveAutocomplete(null);
+            setCrmSuggestions([]);
+            setAutocompleteSelectedIndex(-1);
+        }
+    };
+
+    const handleInputFocus = (roomIdx, guestIdx, field, val) => {
+        if (val && val.trim().length >= 2) {
+            setActiveAutocomplete({
+                roomIdx,
+                guestIdx,
+                field,
+                query: val.trim()
+            });
+        }
+    };
+
+    const renderCrmAutocompleteDropdown = (roomIdx, guestIdx, field) => {
+        const isThisFieldActive =
+            activeAutocomplete &&
+            activeAutocomplete.roomIdx === roomIdx &&
+            activeAutocomplete.guestIdx === guestIdx &&
+            activeAutocomplete.field === field &&
+            (crmSuggestions.length > 0 || isCrmSuggestLoading);
+
+        if (!isThisFieldActive) return null;
+
+        return (
+            <div
+                ref={autocompleteDropdownRef}
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white dark:bg-[#1e2023] rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.18)] border border-slate-200/90 dark:border-slate-700/80 overflow-hidden animate-in fade-in slide-in-from-top-1.5 duration-150"
+            >
+                {/* Header */}
+                <div className="px-3.5 py-2 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                        <span className="material-symbols-outlined text-[16px] text-[#0b57d0]">contact_page</span>
+                        <span>{cl.crmSuggestionsTitle || "Kayıtlı Kişiler (CRM)"}</span>
+                    </div>
+                    <span className="text-[11px] text-slate-400 font-medium">
+                        {isCrmSuggestLoading ? (
+                            <span className="inline-flex items-center gap-1 text-[#0b57d0] dark:text-blue-400">
+                                <span className="size-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                                <span>{cl.searchingCrm || "Aranıyor..."}</span>
+                            </span>
+                        ) : (
+                            `${crmSuggestions.length} ${cl.records || "kayıt"}`
+                        )}
+                    </span>
+                </div>
+
+                {/* Body */}
+                {isCrmSuggestLoading && crmSuggestions.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-400 flex items-center justify-center gap-2">
+                        <span className="size-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                        <span>{cl.searchingCrm || "CRM kayıtları taranıyor..."}</span>
+                    </div>
+                ) : crmSuggestions.length === 0 ? (
+                    <div className="p-3.5 text-center text-xs text-slate-400">
+                        {cl.noCrmMatch || "Eşleşen CRM kaydı bulunamadı"}
+                    </div>
+                ) : (
+                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
+                        {crmSuggestions.map((item, idx) => {
+                            const isSelected = autocompleteSelectedIndex === idx;
+                            const isFemale = item.gender?.toUpperCase() === 'FEMALE';
+                            return (
+                                <button
+                                    key={item.id || idx}
+                                    type="button"
+                                    onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        applyCrmGuest(roomIdx, guestIdx, item);
+                                    }}
+                                    onMouseEnter={() => setAutocompleteSelectedIndex(idx)}
+                                    className={`w-full text-left px-3.5 py-2.5 flex items-center gap-3 transition-colors cursor-pointer ${
+                                        isSelected
+                                            ? 'bg-blue-50/90 dark:bg-blue-950/50'
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                    }`}
+                                >
+                                    {/* Avatar */}
+                                    <div className={`size-8 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold ${
+                                        isFemale
+                                            ? 'bg-pink-100 text-pink-700 dark:bg-pink-950/60 dark:text-pink-300'
+                                            : 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
+                                    }`}>
+                                        <span className="material-symbols-outlined text-[17px]">
+                                            {isFemale ? 'female' : 'person'}
+                                        </span>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                                {item.firstName} {item.lastName}
+                                            </span>
+                                            {item.birthDate && (
+                                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">
+                                                    {item.birthDate}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2.5 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                            {item.email && (
+                                                <span className="truncate flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-[12px] text-slate-400">mail</span>
+                                                    <span className="truncate">{item.email}</span>
+                                                </span>
+                                            )}
+                                            {item.phoneNumber && (
+                                                <span className="shrink-0 flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-[12px] text-slate-400">phone</span>
+                                                    <span>{item.phoneCountryCode || '+90'} {item.phoneNumber}</span>
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Action button */}
+                                    <div className="shrink-0">
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#0b57d0] dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/40">
+                                            {cl.autoFillActionShort || "Doldur"}
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+
+                {/* Footer hints */}
+                <div className="px-3.5 py-1.5 bg-slate-50/90 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between">
+                    <span>{cl.keyboardNavTip || "↑↓ Gezin • Enter ile seç • Esc kapat"}</span>
+                    <button
+                        type="button"
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            setTargetGuestIndex({ roomIdx, guestIdx });
+                            setIsCrmModalOpen(true);
+                            setActiveAutocomplete(null);
+                        }}
+                        className="text-[#0b57d0] dark:text-blue-400 hover:underline font-medium cursor-pointer"
+                    >
+                        {cl.seeAllContacts || "Tümünü Gör"}
+                    </button>
+                </div>
+            </div>
+        );
     };
 
     const handleNext = async () => {
@@ -1472,7 +1801,7 @@ const CheckoutGuestDetails = () => {
 
         currentRoom.guests.forEach((guest, gIdx) => {
             const key = `${activeRoomIdx}-${gIdx}`;
-            
+
             // Age validation for children
             let ageMismatch = false;
             if (guest.type === 'Child' && guest.birthDate) {
@@ -1550,7 +1879,7 @@ const CheckoutGuestDetails = () => {
 
             await Promise.all(guestsToUpdate.map(async (guest) => {
                 // Check if any tracked field has actually changed
-                const hasChanged = !guest.originalData || 
+                const hasChanged = !guest.originalData ||
                     guest.firstName !== guest.originalData.firstName ||
                     guest.lastName !== guest.originalData.lastName ||
                     guest.email !== guest.originalData.email ||
@@ -1570,11 +1899,11 @@ const CheckoutGuestDetails = () => {
                     email: guest.email,
                     phoneNumber: guest.phone?.includes(' ') ? guest.phone.split(' ')[1] : guest.phone,
                     phoneCountryCode: guest.phone?.includes(' ') ? guest.phone.split(' ')[0].replace('+', '') : '90',
-                    birthDate: guest.birthDate?.includes('-') 
-                        ? guest.birthDate.split('-').reverse().join('.') 
+                    birthDate: guest.birthDate?.includes('-')
+                        ? guest.birthDate.split('-').reverse().join('.')
                         : guest.birthDate
                 };
-                
+
                 console.log(`Updating guest ${guest.crmGuestId} with data:`, updateDto);
                 const response = await guestService.updateGuest(guest.crmGuestId, updateDto);
                 console.log(`Update response for ${guest.crmGuestId}:`, response);
@@ -1594,8 +1923,8 @@ const CheckoutGuestDetails = () => {
                         <div className="flex-1 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                         <div className="w-32 h-12 bg-slate-200/50 dark:bg-slate-800/50 rounded-2xl animate-pulse"></div>
                     </div>
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                        <div className="lg:col-span-7 space-y-6">
+                    <div className="flex flex-col lg:flex-row gap-7 items-start">
+                        <div className="flex-1 min-w-0 space-y-6">
                             <div className="flex gap-2">
                                 <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
                                 <div className="w-28 h-10 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl animate-pulse"></div>
@@ -1603,7 +1932,7 @@ const CheckoutGuestDetails = () => {
                             <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                             <div className="h-56 bg-slate-200/40 dark:bg-slate-800/40 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
-                        <div className="lg:col-span-5">
+                        <div className="w-full lg:w-[410px] xl:w-[430px] shrink-0">
                             <div className="h-[480px] bg-slate-200/40 dark:bg-slate-800/40 rounded-[40px] border border-slate-200/50 dark:border-slate-700/50 animate-pulse"></div>
                         </div>
                     </div>
@@ -1674,14 +2003,14 @@ const CheckoutGuestDetails = () => {
     const hotelStars = hotel?.starRating || (hotel?.propertyRating ? parseFloat(hotel.propertyRating) : (hotel?.stars || hotel?.hotelStar?.star || 5));
     const hotelAddress = hotel?.address ? `${hotel.address.street || ''}, ${hotel.address.cityName || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : (hotel?.location || '');
     const hotelImage = hotel?.images?.[0]?.url || hotel?.image || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-    
+
     // Use price from checkRatesData if available, otherwise fallback to local calculation
     const checkRate = checkRatesData?.rooms?.[0]?.rates?.[0];
     const grandTotal = checkRatesData?.rooms?.reduce((sum, room) => sum + (room.rates?.[0]?.price?.calculatedAmount || room.rates?.[0]?.price?.totalPaymentAmount || 0), 0) || selectedRooms.reduce((sum, r) => sum + r.rate, 0);
     const displayCurrency = checkRate?.price?.currency || selectedRooms[0]?.currency || agencyCurrency || 'USD';
 
     return (
-        <div className="flex-1 min-h-screen bg-slate-50/50 dark:bg-[#18191b] text-slate-900 dark:text-white font-roboto">
+        <div className="flex-1 min-h-screen bg-slate-50/50 dark:bg-[#18191b] text-slate-900 dark:text-white font-sans antialiased">
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 lg:py-7">
                 {/* Top Action & Step Bar */}
                 <div className="flex items-center justify-between gap-4 mb-4">
@@ -1691,32 +2020,32 @@ const CheckoutGuestDetails = () => {
                             setPendingStepId(1);
                             setShowConfirmBack(true);
                         }}
-                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#1a73e8] hover:text-[#1557b0] transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-[#0b57d0] hover:text-[#0842a0] transition-colors cursor-pointer"
                     >
                         <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                         <span>{cl.backToRoomSelection || "← Oda Seçimine Dön"}</span>
                     </button>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-blue-200/60 dark:border-slate-700">
-                        <span className="material-symbols-outlined text-[15px] text-[#1a73e8]">lock</span>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium border border-blue-200/60 dark:border-slate-700">
+                        <span className="material-symbols-outlined text-[15px] text-[#0b57d0]">lock</span>
                         <span>{cl.step2ReservationDetails || "Adım 2 / 3: Rezervasyon Detayları"}</span>
                     </div>
                 </div>
 
                 <div className="mb-6">
-                    <CheckoutStepper 
-                        currentStep={2} 
+                    <CheckoutStepper
+                        currentStep={2}
                         onStepClick={(stepId) => {
                             if (stepId === 1) {
                                 setPendingStepId(stepId);
                                 setShowConfirmBack(true);
                             } else if (stepId === 3) {
-                                handleNext(); 
+                                handleNext();
                             }
                         }}
                     />
                 </div>
 
-                <ConfirmationModal 
+                <ConfirmationModal
                     isOpen={showConfirmBack}
                     onClose={() => setShowConfirmBack(false)}
                     onConfirm={() => {
@@ -1740,19 +2069,19 @@ const CheckoutGuestDetails = () => {
                     onSelect={handleCrmGuestSelect}
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-start">
-                    <div className="lg:col-span-8 space-y-5">
+                <div className="flex flex-col lg:flex-row gap-7 items-start">
+                    <div className="flex-1 min-w-0 space-y-5">
                         {/* Hızlı Doldurma Asistanı Banner */}
                         <div className="rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/80 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
                             <div className="flex items-center gap-3.5">
-                                <div className="size-10 rounded-2xl bg-[#1a73e8] text-white flex items-center justify-center shadow-sm shrink-0">
+                                <div className="size-10 rounded-2xl bg-[#0b57d0] text-white flex items-center justify-center shadow-sm shrink-0">
                                     <span className="material-symbols-outlined text-xl">auto_awesome</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
                                         {cl.autoFillAssistant || "Hızlı Doldurma Asistanı"}
                                     </h3>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         {cl.autoFillDesc || "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın."}
                                     </p>
                                 </div>
@@ -1763,7 +2092,7 @@ const CheckoutGuestDetails = () => {
                                     setTargetGuestIndex({ roomIdx: 0, guestIdx: 0 });
                                     setIsCrmModalOpen(true);
                                 }}
-                                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 font-bold text-xs border border-blue-200/80 dark:border-blue-800 shadow-xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
+                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-[#0b57d0] dark:text-blue-400 font-medium text-xs border border-blue-200/80 dark:border-blue-800 shadow-xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[16px]">magic_button</span>
                                 <span>{cl.autoFillAction || "Bilgileri Otomatik Doldur"}</span>
@@ -1772,10 +2101,10 @@ const CheckoutGuestDetails = () => {
 
                         {/* Title & Subtitle */}
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
                                 {cl.enterGuestDetailsTitle || "Misafir Bilgilerini Girin"}
                             </h1>
-                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                 {cl.enterGuestDetailsNotice || "Otele giriş esnasında kimlik belgesi veya pasaportla tam eşleşecek resmi bilgileri eksiksiz belirtiniz."}
                             </p>
                         </div>
@@ -1794,21 +2123,19 @@ const CheckoutGuestDetails = () => {
                                             key={idx}
                                             type="button"
                                             onClick={() => isDone && setActiveRoomIdx(idx)}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-                                                isCurrent
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${isCurrent
                                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs cursor-default'
                                                     : isDone
                                                         ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-100/70'
                                                         : 'bg-white dark:bg-[#202124] border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60'
-                                            }`}
+                                                }`}
                                         >
                                             <span className="material-symbols-outlined text-[16px]">
                                                 {isDone ? 'check_circle' : 'bed'}
                                             </span>
                                             <span>{tSummary('room', currentLang)} {idx + 1}</span>
-                                            <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${
-                                                isCurrent ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-current'
-                                            }`}>
+                                            <span className={`text-[10px] font-normal px-2 py-0.5 rounded-full ${isCurrent ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-current'
+                                                }`}>
                                                 {adultCount} {tSummary('adult', currentLang)}
                                                 {childCount > 0 ? `, ${childCount} ${tSummary('child', currentLang)}` : ''}
                                             </span>
@@ -1821,14 +2148,14 @@ const CheckoutGuestDetails = () => {
                         {/* Room Title Header */}
                         <div className="bg-white dark:bg-[#202124] border border-slate-200/90 dark:border-slate-800 rounded-2xl px-4 py-3 shadow-xs flex items-center justify-between gap-3" lang={currentLang}>
                             <div className="min-w-0 flex items-center gap-2.5">
-                                <span className="size-8 rounded-xl bg-blue-50 dark:bg-slate-800 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center text-xs font-bold shrink-0">
+                                <span className="size-7 rounded-xl bg-blue-50 dark:bg-slate-800 text-[#0b57d0] dark:text-blue-400 flex items-center justify-center text-xs font-semibold shrink-0">
                                     {activeRoomIdx + 1}
                                 </span>
-                                <h2 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">
+                                <h2 className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                                     {currentRoom.roomName}
                                 </h2>
                             </div>
-                            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-medium shrink-0">
+                            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium shrink-0">
                                 {currentRoom.guests.filter(g => g.type === 'Adult').length} {tSummary('adult', currentLang)}
                                 {currentRoom.guests.filter(g => g.type === 'Child').length > 0 && `, ${currentRoom.guests.filter(g => g.type === 'Child').length} ${tSummary('child', currentLang)}`}
                             </span>
@@ -1839,23 +2166,23 @@ const CheckoutGuestDetails = () => {
                             {currentRoom.guests.map((guest, gIdx) => (
                                 <div
                                     key={gIdx}
-                                    className="bg-white dark:bg-[#202124] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs relative space-y-4"
+                                    className="bg-white dark:bg-[#202124] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs relative space-y-5"
                                     lang={currentLang}
                                 >
                                     {/* Header */}
-                                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                                    <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
                                         <div className="flex items-center gap-2.5">
-                                            <span className="size-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                                            <span className="size-7 rounded-full bg-[#0b57d0] text-white flex items-center justify-center text-xs font-bold shrink-0 shadow-xs">
                                                 {gIdx + 1}
                                             </span>
-                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                                            <h3 className="text-[15px] sm:text-[16px] font-semibold text-slate-900 dark:text-white">
                                                 {gIdx === 0 && guest.type === 'Adult'
                                                     ? (cl.leadGuestTitle || "1. Misafir (Ana İletişim & Rezervasyon Sahibi)")
                                                     : `${gIdx + 1}. Misafir (${guest.type === 'Adult' ? tSummary('adult', currentLang) : `${tSummary('child', currentLang)} (${tSummary('age', currentLang)} ${guest.age})`})`}
                                             </h3>
                                         </div>
                                         {gIdx === 0 && guest.type === 'Adult' ? (
-                                            <span className="px-3 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800 text-[10px] font-bold text-[#1a73e8] tracking-wider uppercase">
+                                            <span className="px-3.5 py-1 rounded-full bg-[#e8f0fe] dark:bg-blue-950/60 text-[11px] font-semibold text-[#0b57d0] dark:text-blue-300 tracking-wider uppercase">
                                                 {cl.leadGuestBadge || "ASIL MİSAFİR"}
                                             </span>
                                         ) : (
@@ -1865,7 +2192,7 @@ const CheckoutGuestDetails = () => {
                                                     setTargetGuestIndex({ roomIdx: activeRoomIdx, guestIdx: gIdx });
                                                     setIsCrmModalOpen(true);
                                                 }}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 transition-colors cursor-pointer"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-[#0b57d0] hover:bg-blue-50 dark:hover:bg-blue-950/50 border border-blue-200 dark:border-blue-800/70 transition-colors cursor-pointer"
                                             >
                                                 <span className="material-symbols-outlined text-[15px]">contact_page</span>
                                                 <span>{cl.selectFromCrm || "Kayıtlı Kişilerden Seç"}</span>
@@ -1874,106 +2201,123 @@ const CheckoutGuestDetails = () => {
                                     </div>
 
                                     {/* Form Inputs Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* First Name */}
-                                        <div>
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                        <div className={`relative ${activeAutocomplete?.roomIdx === activeRoomIdx && activeAutocomplete?.guestIdx === gIdx && activeAutocomplete?.field === 'firstName' ? 'z-40' : ''}`}>
+                                            <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                                 {tSummary('firstName', currentLang)}
                                             </label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-firstName`}
+                                                data-autocomplete-input="true"
                                                 required
-                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
-                                                    errors[`${activeRoomIdx}-${gIdx}`]?.firstName ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
-                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
+                                                className={`w-full h-12 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border ${errors[`${activeRoomIdx}-${gIdx}`]?.firstName
+                                                        ? '!border-[#d93025] !bg-rose-50/20 dark:!bg-rose-950/20'
+                                                        : 'border-transparent focus:border-[#0b57d0]'
+                                                    } px-5 rounded-full outline-none focus:bg-white dark:focus:bg-[#1f2023] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white placeholder:text-slate-400`}
                                                 placeholder={tSummary('enterFirstName', currentLang)}
                                                 value={guest.firstName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'firstName', e.target.value)}
+                                                onFocus={() => handleInputFocus(activeRoomIdx, gIdx, 'firstName', guest.firstName)}
+                                                onKeyDown={(e) => handleKeyDownAutocomplete(e, activeRoomIdx, gIdx)}
                                             />
+                                            {renderCrmAutocompleteDropdown(activeRoomIdx, gIdx, 'firstName')}
                                         </div>
 
                                         {/* Last Name */}
-                                        <div>
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                        <div className={`relative ${activeAutocomplete?.roomIdx === activeRoomIdx && activeAutocomplete?.guestIdx === gIdx && activeAutocomplete?.field === 'lastName' ? 'z-40' : ''}`}>
+                                            <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                                 {tSummary('lastName', currentLang)}
                                             </label>
                                             <input
                                                 data-field={`${activeRoomIdx}-${gIdx}-lastName`}
+                                                data-autocomplete-input="true"
                                                 required
-                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
-                                                    errors[`${activeRoomIdx}-${gIdx}`]?.lastName ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
-                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
+                                                className={`w-full h-12 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border ${errors[`${activeRoomIdx}-${gIdx}`]?.lastName
+                                                        ? '!border-[#d93025] !bg-rose-50/20 dark:!bg-rose-950/20'
+                                                        : 'border-transparent focus:border-[#0b57d0]'
+                                                    } px-5 rounded-full outline-none focus:bg-white dark:focus:bg-[#1f2023] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white placeholder:text-slate-400`}
                                                 placeholder={tSummary('enterLastName', currentLang)}
                                                 value={guest.lastName}
                                                 onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'lastName', e.target.value)}
+                                                onFocus={() => handleInputFocus(activeRoomIdx, gIdx, 'lastName', guest.lastName)}
+                                                onKeyDown={(e) => handleKeyDownAutocomplete(e, activeRoomIdx, gIdx)}
                                             />
+                                            {renderCrmAutocompleteDropdown(activeRoomIdx, gIdx, 'lastName')}
                                         </div>
 
                                         {/* Birth Date */}
                                         <div>
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                            <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                                 {tSummary('birthDate', currentLang)}
                                             </label>
-                                            <input
-                                                data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
-                                                type="date"
-                                                className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
-                                                    errors[`${activeRoomIdx}-${gIdx}`]?.birthDate ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
-                                                } px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white`}
-                                                value={guest.birthDate}
-                                                min="1900-01-01"
-                                                max={new Date().toISOString().split('T')[0]}
-                                                onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value)}
-                                                onBlur={(e) => {
-                                                    const val = e.target.value;
-                                                    if (val) {
-                                                        const year = parseInt(val.split('-')[0], 10);
-                                                        if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-                                                            handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
+                                            <div className="relative flex items-center group">
+                                                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 group-focus-within:text-[#0b57d0] transition-colors text-[20px] pointer-events-none">
+                                                    calendar_today
+                                                </span>
+                                                <input
+                                                    data-field={`${activeRoomIdx}-${gIdx}-birthDate`}
+                                                    type="date"
+                                                    className={`w-full h-12 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border ${errors[`${activeRoomIdx}-${gIdx}`]?.birthDate
+                                                            ? '!border-[#d93025] !bg-rose-50/20 dark:!bg-rose-950/20'
+                                                            : 'border-transparent focus:border-[#0b57d0]'
+                                                        } pl-12 pr-5 rounded-full outline-none focus:bg-white dark:focus:bg-[#1f2023] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white`}
+                                                    value={guest.birthDate}
+                                                    min="1900-01-01"
+                                                    max={new Date().toISOString().split('T')[0]}
+                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'birthDate', e.target.value)}
+                                                    onBlur={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val) {
+                                                            const year = parseInt(val.split('-')[0], 10);
+                                                            if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+                                                                handleInputChange(activeRoomIdx, gIdx, 'birthDate', '');
+                                                            }
                                                         }
-                                                    }
-                                                }}
-                                            />
+                                                    }}
+                                                />
+                                            </div>
                                             {errors[`${activeRoomIdx}-${gIdx}`]?.birthDate && !errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                <p className="text-[#d93025] text-xs font-medium mt-1">{tSummary('invalidBirthDate', currentLang)}</p>
+                                                <p className="text-[#d93025] dark:text-rose-400 text-xs font-semibold mt-1.5 ml-4 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                                    <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
+                                                    <span>{tSummary('invalidBirthDate', currentLang)}</span>
+                                                </p>
                                             )}
                                             {errors[`${activeRoomIdx}-${gIdx}`]?.ageMismatch && (
-                                                <p className="text-[#d93025] text-xs font-medium mt-1">
-                                                    {tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}
+                                                <p className="text-[#d93025] dark:text-rose-400 text-xs font-semibold mt-1.5 ml-4 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                                    <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
+                                                    <span>{tSummary('childAgeMismatch', currentLang).replace('{age}', guest.age)}</span>
                                                 </p>
                                             )}
                                         </div>
 
                                         {/* Gender 2-Way Segmented Switch (Male / Female only) */}
                                         <div>
-                                            <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                            <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                                 {tSummary('gender', currentLang)}
                                             </label>
                                             <div
                                                 data-field={`${activeRoomIdx}-${gIdx}-gender`}
-                                                className={`h-11 p-1 bg-slate-100/90 dark:bg-slate-800 rounded-2xl flex items-center gap-1 border ${
-                                                    errors[`${activeRoomIdx}-${gIdx}`]?.gender ? 'border-[#d93025]' : 'border-slate-200/80 dark:border-slate-700'
-                                                }`}
+                                                className={`h-12 p-1.5 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] rounded-full flex items-center gap-1.5 border ${errors[`${activeRoomIdx}-${gIdx}`]?.gender ? '!border-[#d93025] !bg-rose-50/20' : 'border-transparent'
+                                                    } transition-all duration-200`}
                                             >
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'male')}
-                                                    className={`flex-1 h-full flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                                                        guest.gender === 'male'
-                                                            ? 'bg-white dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400 shadow-xs'
-                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                                    }`}
+                                                    className={`flex-1 h-full flex items-center justify-center rounded-full text-[13px] transition-all duration-200 cursor-pointer ${guest.gender === 'male'
+                                                            ? 'bg-white dark:bg-[#1f2023] text-[#0b57d0] dark:text-blue-400 font-semibold shadow-xs border border-blue-100 dark:border-blue-900/30'
+                                                            : 'text-slate-600 dark:text-slate-400 font-normal hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                                                        }`}
                                                 >
                                                     {tSummary('male', currentLang)}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleInputChange(activeRoomIdx, gIdx, 'gender', 'female')}
-                                                    className={`flex-1 h-full flex items-center justify-center rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                                                        guest.gender === 'female'
-                                                            ? 'bg-white dark:bg-slate-700 text-[#1a73e8] dark:text-blue-400 shadow-xs'
-                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                                                    }`}
+                                                    className={`flex-1 h-full flex items-center justify-center rounded-full text-[13px] transition-all duration-200 cursor-pointer ${guest.gender === 'female'
+                                                            ? 'bg-white dark:bg-[#1f2023] text-[#0b57d0] dark:text-blue-400 font-semibold shadow-xs border border-blue-100 dark:border-blue-900/30'
+                                                            : 'text-slate-600 dark:text-slate-400 font-normal hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-white/5'
+                                                        }`}
                                                 >
                                                     {tSummary('female', currentLang)}
                                                 </button>
@@ -1983,41 +2327,84 @@ const CheckoutGuestDetails = () => {
                                         {/* Lead Guest Email & Phone */}
                                         {gIdx === 0 && guest.type === 'Adult' && (
                                             <>
-                                                <div>
-                                                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
-                                                        {tSummary('emailAddress', currentLang)}
-                                                    </label>
-                                                    <div className="relative">
-                                                        <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg pointer-events-none">
-                                                            mail
-                                                        </span>
-                                                        <input
-                                                            data-field={`${activeRoomIdx}-${gIdx}-email`}
-                                                            required
-                                                            type="email"
-                                                            className={`w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border ${
-                                                                errors[`${activeRoomIdx}-${gIdx}`]?.email ? 'border-[#d93025]' : 'border-slate-200 dark:border-slate-700'
-                                                            } pl-10 pr-10 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400`}
-                                                            placeholder={tSummary('enterEmail', currentLang)}
-                                                            value={guest.email}
-                                                            onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
-                                                        />
-                                                        {validateEmail(guest.email) && (
-                                                            <span className="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-500 text-lg">
-                                                                check_circle
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
+                                                {(() => {
+                                                    const emailKey = `${activeRoomIdx}-${gIdx}`;
+                                                    const emailVal = guest.email || '';
+                                                    const isFormatValid = validateEmail(emailVal);
+                                                    const hasEmailError = Boolean(
+                                                        errors[emailKey]?.email ||
+                                                        (emailTouched[emailKey] && emailVal.length > 0 && !isFormatValid)
+                                                    );
+
+                                                    return (
+                                                        <div className={`relative ${activeAutocomplete?.roomIdx === activeRoomIdx && activeAutocomplete?.guestIdx === gIdx && activeAutocomplete?.field === 'email' ? 'z-40' : ''}`}>
+                                                            <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
+                                                                {tSummary('emailAddress', currentLang)}
+                                                            </label>
+                                                            <div className="relative flex items-center group">
+                                                                <span className={`material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 transition-colors text-[20px] pointer-events-none ${hasEmailError
+                                                                        ? 'text-[#d93025]'
+                                                                        : 'text-slate-400 dark:text-slate-500 group-focus-within:text-[#0b57d0]'
+                                                                    }`}>
+                                                                    mail
+                                                                </span>
+                                                                <input
+                                                                    data-field={`${activeRoomIdx}-${gIdx}-email`}
+                                                                    data-autocomplete-input="true"
+                                                                    required
+                                                                    type="email"
+                                                                    className={`w-full h-12 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border ${hasEmailError
+                                                                            ? '!border-[#d93025] !bg-rose-50/20 dark:!bg-rose-950/20'
+                                                                            : 'border-transparent focus:border-[#0b57d0]'
+                                                                        } pl-12 pr-12 rounded-full outline-none focus:bg-white dark:focus:bg-[#1f2023] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white placeholder:text-slate-400`}
+                                                                    placeholder={tSummary('enterEmail', currentLang)}
+                                                                    value={guest.email}
+                                                                    onChange={(e) => handleInputChange(activeRoomIdx, gIdx, 'email', e.target.value)}
+                                                                    onFocus={() => handleInputFocus(activeRoomIdx, gIdx, 'email', guest.email)}
+                                                                    onKeyDown={(e) => handleKeyDownAutocomplete(e, activeRoomIdx, gIdx)}
+                                                                    onBlur={() => setEmailTouched(prev => ({ ...prev, [emailKey]: true }))}
+                                                                />
+                                                                {/* Validation Status Indicator */}
+                                                                {isFormatValid && (
+                                                                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#0b57d0] text-[20px] font-bold animate-in zoom-in-50 duration-200">
+                                                                        check_circle
+                                                                    </span>
+                                                                )}
+                                                                {hasEmailError && (
+                                                                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-[#d93025] text-[20px] font-bold animate-in zoom-in-50 duration-200">
+                                                                        error
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {/* Explicit Validation Error Message */}
+                                                            {hasEmailError && (
+                                                                <p className="text-[#d93025] dark:text-rose-400 text-xs font-semibold mt-1.5 ml-4 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                                                    <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
+                                                                    <span>{tSummary('invalidEmail', currentLang) || "Lütfen geçerli bir e-posta adresi giriniz"}</span>
+                                                                </p>
+                                                            )}
+                                                            {renderCrmAutocompleteDropdown(activeRoomIdx, gIdx, 'email')}
+                                                        </div>
+                                                    );
+                                                })()}
 
                                                 <div>
-                                                    <PhoneInput 
+                                                    <PhoneInput
                                                         label={tSummary('phoneNumber', currentLang)}
                                                         value={guest.phone}
                                                         onChange={(val) => handleInputChange(activeRoomIdx, gIdx, 'phone', val)}
                                                         error={errors[`${activeRoomIdx}-${gIdx}`]?.phone}
-                                                        className="h-11 rounded-2xl bg-slate-50/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
+                                                        className={`h-12 rounded-full bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border ${errors[`${activeRoomIdx}-${gIdx}`]?.phone
+                                                                ? '!border-[#d93025] !bg-rose-50/20 dark:!bg-rose-950/20'
+                                                                : 'border-transparent focus-within:border-[#0b57d0]'
+                                                            } focus-within:bg-white dark:focus-within:bg-[#1f2023] transition-all duration-200`}
                                                     />
+                                                    {errors[`${activeRoomIdx}-${gIdx}`]?.phone && (
+                                                        <p className="text-[#d93025] dark:text-rose-400 text-xs font-semibold mt-1.5 ml-4 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
+                                                            <span className="material-symbols-outlined text-[16px] shrink-0">error</span>
+                                                            <span>{tSummary('invalidPhone', currentLang) || "Lütfen geçerli bir telefon numarası giriniz"}</span>
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </>
                                         )}
@@ -2025,8 +2412,8 @@ const CheckoutGuestDetails = () => {
 
                                     {/* Lead Guest Notice Banner */}
                                     {gIdx === 0 && guest.type === 'Adult' && (
-                                        <div className="flex items-center gap-2 p-3 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-800 dark:text-blue-300 font-medium">
-                                            <span className="material-symbols-outlined text-[17px] text-[#1a73e8] shrink-0">verified_user</span>
+                                        <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-900/90 dark:text-blue-200 font-normal">
+                                            <span className="material-symbols-outlined text-[18px] text-[#0b57d0] shrink-0">verified_user</span>
                                             <span>{cl.leadGuestNotice || "Rezervasyon onay belgesi ve giriş bilgileri bu iletişim kanallarına anında gönderilir."}</span>
                                         </div>
                                     )}
@@ -2038,14 +2425,14 @@ const CheckoutGuestDetails = () => {
                                 <div className="bg-white dark:bg-[#202124] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
                                     <div className="flex items-start justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
                                         <div>
-                                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                            <h3 className="text-base font-semibold text-slate-900 dark:text-white">
                                                 {cl.preferencesAndSpecialServices || "Kişiselleştirilmiş Tercihler & Özel Hizmetler"}
                                             </h3>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                                 {cl.preferencesSubtitle || "İsteğinize göre konaklamanızı özelleştirin, ek ücretler ayrıntılandırılır."}
                                             </p>
                                         </div>
-                                        <div className="size-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#1a73e8] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                        <div className="size-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0b57d0] dark:text-blue-400 flex items-center justify-center shrink-0">
                                             <span className="material-symbols-outlined text-lg">hotel_class</span>
                                         </div>
                                     </div>
@@ -2060,11 +2447,10 @@ const CheckoutGuestDetails = () => {
                                                     key={pref.id}
                                                     type="button"
                                                     onClick={() => togglePreference(pref)}
-                                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
-                                                        isSelected
-                                                            ? 'bg-blue-50 dark:bg-blue-950/60 border border-blue-400 text-[#1a73e8] dark:text-blue-300 shadow-2xs'
+                                                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-medium transition-all cursor-pointer ${isSelected
+                                                            ? 'bg-blue-50 dark:bg-blue-950/60 border border-blue-400 text-[#0b57d0] dark:text-blue-300 shadow-2xs'
                                                             : 'bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-700/80'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <span className="material-symbols-outlined text-[15px]">
                                                         {isSelected ? 'check' : 'add'}
@@ -2077,12 +2463,12 @@ const CheckoutGuestDetails = () => {
 
                                     {/* Special Requests Textarea */}
                                     <div className="pt-2">
-                                        <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                        <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                             {cl.specialNotesLabel || "Otele İletmek İstediğiniz Özel Notlar"}
                                         </label>
                                         <textarea
                                             rows={3}
-                                            className="w-full bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 resize-none"
+                                            className="w-full bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border border-transparent p-4 rounded-3xl outline-none focus:bg-white dark:focus:bg-[#1f2023] focus:border-[#0b57d0] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white placeholder:text-slate-400 resize-none"
                                             placeholder={cl.specialNotesPlaceholder || tSummary('enterRemarks', currentLang)}
                                             value={remark}
                                             onChange={(e) => setRemark(e.target.value)}
@@ -2091,11 +2477,11 @@ const CheckoutGuestDetails = () => {
 
                                     {/* Client Reference ID (Retained B2B Feature) */}
                                     <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                                        <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5 block">
+                                        <label className="text-[13px] font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                                             {tSummary('clientReferenceId', currentLang)}
                                         </label>
                                         <input
-                                            className="w-full h-11 bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-4 rounded-2xl outline-none focus:bg-white dark:focus:bg-slate-800 focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400"
+                                            className="w-full h-12 bg-[#f0f4f9] hover:bg-[#e9eef6] dark:bg-[#282a2d] dark:hover:bg-[#2f3136] border border-transparent px-5 rounded-full outline-none focus:bg-white dark:focus:bg-[#1f2023] focus:border-[#0b57d0] transition-all duration-200 text-sm font-normal text-slate-900 dark:text-white placeholder:text-slate-400"
                                             placeholder={tSummary('internalReferenceNumber', currentLang)}
                                             value={clientReferenceId}
                                             onChange={(e) => setClientReferenceId(e.target.value)}
@@ -2116,11 +2502,11 @@ const CheckoutGuestDetails = () => {
                                             setShowConfirmBack(true);
                                         }
                                     }}
-                                    className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
                                 >
                                     <span className="material-symbols-outlined text-[18px]">arrow_back</span>
                                     <span>
-                                        {activeRoomIdx > 0 
+                                        {activeRoomIdx > 0
                                             ? `${tSummary('backToRoom', currentLang)} ${activeRoomIdx}`
                                             : (cl.backToRoomSelection || "← Oda Seçimine Geri Dön")}
                                     </span>
@@ -2130,7 +2516,7 @@ const CheckoutGuestDetails = () => {
                                     <button
                                         type="button"
                                         onClick={handleNext}
-                                        className="w-full sm:w-auto px-8 py-3.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-2xl font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98]"
+                                        className="w-full sm:w-auto px-8 py-3.5 bg-[#0b57d0] hover:bg-[#0842a0] text-white rounded-full font-semibold text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98]"
                                     >
                                         <span className="material-symbols-outlined text-[18px]">lock</span>
                                         <span>
@@ -2142,7 +2528,7 @@ const CheckoutGuestDetails = () => {
                                         </span>
                                         <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                                     </button>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 text-right">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 text-right">
                                         {cl.securePaymentNote || "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır."}
                                     </p>
                                 </div>
@@ -2151,7 +2537,7 @@ const CheckoutGuestDetails = () => {
                     </div>
 
                     {/* Google Travel Sticky Reservation Summary Sidebar */}
-                    <div className="lg:col-span-4 lg:sticky lg:top-4 space-y-4">
+                    <div className="w-full lg:w-[410px] xl:w-[430px] shrink-0 lg:sticky lg:top-4 space-y-4">
                         <HotelReservationSummaryCard
                             hotel={{
                                 ...hotel,

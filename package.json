@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@maplibre/maplibre-gl-leaflet": "^0.1.4",
+    "dompurify": "^3.5.0",
     "i18next": "^26.2.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

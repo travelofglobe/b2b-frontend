@@ -3051,6 +3051,7 @@ const HotelListing = () => {
     const markerPoolRef = React.useRef(new Map());
     const lastFetchedBoundsRef = React.useRef(null);
     const mapFetchDebounceRef = React.useRef(null);
+    const hasAttemptedInitialMapFetchRef = React.useRef(false);
 
     // Pan threshold check: skips re-fetch if movement is less than 15% of viewport width/height
     const isSignificantPan = (newBounds, oldBounds) => {
@@ -4142,6 +4143,7 @@ const HotelListing = () => {
             isMapBoundsSyncRef.current = false;
             return;
         }
+        hasAttemptedInitialMapFetchRef.current = false;
         setPage(0);
         setHasMore(true);
         setSelectedHotel(null);
@@ -4185,7 +4187,8 @@ const HotelListing = () => {
 
     // Fast initial map marker fetch as soon as Leaflet map mounts if markers not yet populated
     React.useEffect(() => {
-        if (isMapReady && mapInstance && markerPoolRef.current.size === 0 && !isMapMarkersLoading) {
+        if (isMapReady && mapInstance && !hasAttemptedInitialMapFetchRef.current && markerPoolRef.current.size === 0) {
+            hasAttemptedInitialMapFetchRef.current = true;
             try {
                 const isExplicitBoundsSearch = Boolean(searchParams.get('bounds'));
                 if (isExplicitBoundsSearch || isPoiSearch) {
@@ -4204,7 +4207,7 @@ const HotelListing = () => {
                 }
             } catch (_) {}
         }
-    }, [isMapReady, mapInstance, isMapMarkersLoading, isPoiSearch, searchParams, regionId, locationId]);
+    }, [isMapReady, mapInstance, isPoiSearch, searchParams, regionId, locationId]);
 
     // Close sort, layer, amenities, star, and price dropdowns on outside click
     React.useEffect(() => {

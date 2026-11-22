@@ -2280,6 +2280,16 @@ const HotelListing = () => {
     const listScrollRef = React.useRef(null);
     const loaderRef = React.useRef(null);
     const sortDropdownRef = React.useRef(null);
+    const compactSortRef = React.useRef(null);
+    const [isScrolled, setIsScrolled] = React.useState(false);
+    const [isHeaderSearchExpanded, setIsHeaderSearchExpanded] = React.useState(false);
+    const isScrolledRef = React.useRef(false);
+
+    // Auto-collapse expanded header search on search params change
+    React.useEffect(() => {
+        setIsHeaderSearchExpanded(false);
+    }, [searchParams]);
+
     // ── Quick Filter: Amenities ──
     const [isAmenitiesOpen, setIsAmenitiesOpen] = React.useState(false);
     const [amenitiesPosition, setAmenitiesPosition] = React.useState({ top: 0, left: 0 });
@@ -2773,6 +2783,51 @@ const HotelListing = () => {
         if (totalRooms > 1) parts.push(`${totalRooms} ${tListing('rooms', currentLang)}`);
         return parts.join(', ') || '2';
     }, [totalGuests, totalRooms, currentLang]);
+
+    // Compact Search Summary Labels for minimized header
+    const compactCityLabel = React.useMemo(() => {
+        const q = searchParams.get('q');
+        if (q && !isGenericAreaText(q)) {
+            const parts = q.split(',');
+            return parts[0].trim();
+        }
+        if (slug) {
+            return getSlugDisplayName(slug) || (currentLang === 'tr' ? 'Oteller' : 'Hotels');
+        }
+        return currentLang === 'tr' ? 'Oteller' : 'Hotels';
+    }, [searchParams, slug, currentLang]);
+
+    const compactDateLabel = React.useMemo(() => {
+        const checkinStr = searchParams.get('checkin');
+        const checkoutStr = searchParams.get('checkout');
+        if (!checkinStr || !checkoutStr) return '';
+        try {
+            const inDate = new Date(checkinStr + 'T00:00:00');
+            const outDate = new Date(checkoutStr + 'T00:00:00');
+            if (isNaN(inDate.getTime()) || isNaN(outDate.getTime())) return '';
+
+            const inMonth = inDate.toLocaleDateString(currentLang, { month: 'short' });
+            const outMonth = outDate.toLocaleDateString(currentLang, { month: 'short' });
+            const inDay = inDate.getDate();
+            const outDay = outDate.getDate();
+
+            if (inMonth === outMonth && inDate.getFullYear() === outDate.getFullYear()) {
+                return `${inDay} - ${outDay} ${inMonth}`;
+            } else {
+                return `${inDay} ${inMonth} - ${outDay} ${outMonth}`;
+            }
+        } catch {
+            return '';
+        }
+    }, [searchParams, currentLang]);
+
+    const compactGuestLabel = React.useMemo(() => {
+        if (totalGuests > 0) {
+            const guestWord = currentLang === 'tr' ? 'Misafir' : (totalGuests === 1 ? 'Guest' : 'Guests');
+            return `${totalGuests} ${guestWord}`;
+        }
+        return currentLang === 'tr' ? '2 Misafir' : '2 Guests';
+    }, [totalGuests, currentLang]);
 
     // Filtered hotels based on selected quick amenities & price range
     // Filtered hotels based on selected price range & client-side overrides
@@ -3474,6 +3529,17 @@ const HotelListing = () => {
     // Smooth scroll-based infinite loading trigger (complements IntersectionObserver)
     const handleListScroll = React.useCallback((e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.target;
+
+        // Compact header trigger: minimize when scrolled down > 70px, restore when near top <= 25px
+        if (scrollTop > 70 && !isScrolledRef.current) {
+            isScrolledRef.current = true;
+            setIsScrolled(true);
+        } else if (scrollTop <= 25 && isScrolledRef.current) {
+            isScrolledRef.current = false;
+            setIsScrolled(false);
+            setIsHeaderSearchExpanded(false);
+        }
+
         const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
         const now = Date.now();
         if (
@@ -4143,7 +4209,9 @@ const HotelListing = () => {
     // Close sort, layer, amenities, star, and price dropdowns on outside click
     React.useEffect(() => {
         const handleClickOutside = (event) => {
-            if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setIsSortOpen(false);
+            const isOutsideSort = (!sortDropdownRef.current || !sortDropdownRef.current.contains(event.target)) &&
+                (!compactSortRef.current || !compactSortRef.current.contains(event.target));
+            if (isOutsideSort) setIsSortOpen(false);
             if (layerMenuRef.current && !layerMenuRef.current.contains(event.target)) setIsLayerMenuOpen(false);
             if (
                 amenitiesDropdownRef.current && !amenitiesDropdownRef.current.contains(event.target) &&
@@ -4272,14 +4340,71 @@ const HotelListing = () => {
                     currentLang={currentLang}
                 />
 
-                {/* Search Context Bar */}
-                <div className="pl-6 pr-4 pt-4 pb-2 shrink-0 bg-white dark:bg-[#303134] flex items-center w-full relative z-50">
-                    <ListingSearch isCompact={isMapExpanded} />
+                {/* Search Context Bar - Smooth slide & collapse */}
+                <div
+                    className={`grid shrink-0 bg-white dark:bg-[#303134] w-full relative z-50 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
+                        isScrolled
+                            ? 'grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none'
+                            : 'grid-rows-[1fr] opacity-100 translate-y-0 pl-6 pr-4 pt-4 pb-2'
+                    }`}
+                >
+                    <div className="overflow-hidden min-h-0 flex items-center w-full">
+                        <ListingSearch isCompact={isMapExpanded} />
+                    </div>
                 </div>
 
                 {/* Filter Chips Row */}
-                <div className="relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-[40]">
+                <div className={`relative shrink-0 border-b border-[#e8eaed] dark:border-slate-700 bg-white dark:bg-[#303134] z-[40] transition-shadow duration-300 ${isScrolled ? 'shadow-sm' : ''}`}>
                     <div className="flex items-center gap-2 pl-6 pr-4 py-2 overflow-x-auto scrollbar-hide">
+                        {/* Compact Search Capsule (Smooth horizontal slide & expand on scroll) */}
+                        <div
+                            className={`flex items-center shrink-0 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] overflow-hidden ${
+                                isScrolled
+                                    ? 'max-w-[450px] opacity-100 translate-x-0 mr-1'
+                                    : 'max-w-0 opacity-0 -translate-x-3 mr-0 pointer-events-none'
+                            }`}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setIsHeaderSearchExpanded(prev => !prev)}
+                                className={`flex items-center gap-2 px-3 h-8 rounded-lg border transition-all text-left shrink-0 cursor-pointer select-none font-roboto shadow-2xs group whitespace-nowrap ${
+                                    isHeaderSearchExpanded
+                                        ? 'border-[#1a73e8] bg-blue-50/80 dark:bg-blue-950/40 text-[#1a73e8] dark:text-blue-300 ring-2 ring-[#1a73e8]/20'
+                                        : 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] hover:bg-[#f8f9fa] dark:hover:bg-slate-700 text-[#202124] dark:text-white hover:border-[#1a73e8]/40 hover:shadow-xs'
+                                }`}
+                                title={currentLang === 'tr' ? 'Aramayı düzenle' : 'Edit search'}
+                            >
+                                <span className="material-symbols-outlined text-[17px] text-[#1a73e8] dark:text-blue-400 group-hover:scale-110 transition-transform">
+                                    search
+                                </span>
+                                <div className="flex items-center gap-1.5 text-[12.5px] font-medium leading-none">
+                                    <span className="font-semibold text-[#202124] dark:text-white truncate max-w-[120px] sm:max-w-[160px]">
+                                        {compactCityLabel}
+                                    </span>
+                                    {compactDateLabel && (
+                                        <>
+                                            <span className="text-[#dadce0] dark:text-slate-600 font-bold">•</span>
+                                            <span className="text-[#5f6368] dark:text-slate-300 whitespace-nowrap">
+                                                {compactDateLabel}
+                                            </span>
+                                        </>
+                                    )}
+                                    {compactGuestLabel && (
+                                        <>
+                                            <span className="text-[#dadce0] dark:text-slate-600 font-bold">•</span>
+                                            <span className="text-[#5f6368] dark:text-slate-300 whitespace-nowrap">
+                                                {compactGuestLabel}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
+                                <span className="material-symbols-outlined text-[16px] text-[#5f6368] dark:text-slate-400 ml-0.5 group-hover:text-[#1a73e8] transition-colors">
+                                    edit
+                                </span>
+                            </button>
+                            <div className="h-5 w-[1px] bg-[#dadce0] dark:bg-slate-700 mx-2 shrink-0" />
+                        </div>
+
                         {/* 1. All Filters - Google Outlined Button */}
                         <button
                             type="button"
@@ -4392,7 +4517,44 @@ const HotelListing = () => {
                                 {isAmenitiesOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
                         </button>
-                    </div>
+
+                        {/* Compact Mode: Sort dropdown inside chip row when scrolled */}
+                        <div
+                            ref={compactSortRef}
+                            className={`relative shrink-0 ml-auto pl-1 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
+                                isScrolled
+                                    ? 'max-w-[200px] opacity-100 scale-100 pointer-events-auto'
+                                    : 'max-w-0 opacity-0 scale-95 pointer-events-none overflow-hidden'
+                            }`}
+                        >
+                            <button
+                                onClick={() => setIsSortOpen(!isSortOpen)}
+                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 h-8 border border-[#dadce0] dark:border-slate-600 transition-colors font-roboto font-medium shrink-0"
+                            >
+                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                    <span className="hidden xl:inline text-[13px]">{currentSortOption.label}</span>
+                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                                </button>
+                                {isSortOpen && (
+                                    <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                        {sortOptions.map(opt => {
+                                            const isSelected = opt.value === currentSortValue;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => handleSortSelect(opt.value)}
+                                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                                >
+                                                    <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                    <span className="flex-1">{opt.label}</span>
+                                                    {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
 
                     <style>{`
                         .google-range-slider::-webkit-slider-thumb {
@@ -4840,49 +5002,86 @@ const HotelListing = () => {
                             </div>
                         </>
                     )}
+
+                    {/* Expanded Search Dropdown Panel when Scrolled */}
+                    {isHeaderSearchExpanded && isScrolled && (
+                        <>
+                            <div
+                                className="fixed inset-0 z-[80] bg-black/25 dark:bg-black/50 backdrop-blur-[1px] animate-in fade-in duration-200"
+                                onClick={() => setIsHeaderSearchExpanded(false)}
+                            />
+                            <div className="absolute top-full left-0 right-0 bg-white dark:bg-[#303134] border-b border-[#dadce0] dark:border-slate-700 shadow-[0_16px_40px_rgba(0,0,0,0.18)] z-[90] px-6 pt-3.5 pb-4 animate-in slide-in-from-top-2 duration-200 overflow-visible">
+                                <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-blue-400">search</span>
+                                        <span className="text-[13.5px] font-semibold text-[#202124] dark:text-white font-roboto">
+                                            {currentLang === 'tr' ? 'Arama Kriterlerini Değiştir' : 'Edit Search Criteria'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsHeaderSearchExpanded(false)}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                                        title={currentLang === 'tr' ? 'Kapat' : 'Close'}
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+                                <ListingSearch isCompact={isMapExpanded} />
+                            </div>
+                        </>
+                    )}
                 </div>
 
-                {/* Results count + Sort row */}
-                <div className="flex items-center justify-between pl-6 pr-4 py-2.5 shrink-0 bg-white dark:bg-[#303134]">
-                    <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
-                        {resultsText}
-                    </p>
-                    <div className="flex items-center gap-2 shrink-0">
-                        {/* Sort dropdown */}
-                        <div className="relative shrink-0" ref={sortDropdownRef}>
-                            <button
-                                onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                {/* Results count + Sort row - Smooth slide & collapse */}
+                <div
+                    className={`grid shrink-0 bg-white dark:bg-[#303134] w-full transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
+                        isScrolled
+                            ? 'grid-rows-[0fr] opacity-0 -translate-y-2 pointer-events-none'
+                            : 'grid-rows-[1fr] opacity-100 translate-y-0 pl-6 pr-4 py-2.5'
+                    }`}
+                >
+                    <div className="overflow-hidden min-h-0 flex items-center justify-between">
+                        <p className="text-[15.5px] font-medium text-[#202124] dark:text-slate-100 font-roboto tracking-tight truncate">
+                            {resultsText}
+                        </p>
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* Sort dropdown */}
+                            <div className="relative shrink-0" ref={sortDropdownRef}>
+                                <button
+                                    onClick={() => setIsSortOpen(!isSortOpen)}
+                                    className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
+                                    <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
+                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                                </button>
+                                {isSortOpen && (
+                                    <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
+                                        {sortOptions.map(opt => {
+                                            const isSelected = opt.value === currentSortValue;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    onClick={() => handleSortSelect(opt.value)}
+                                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
+                                                >
+                                                    <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
+                                                    <span className="flex-1">{opt.label}</span>
+                                                    {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                            <span
+                                className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
+                                title="Sonuç bilgisi"
                             >
-                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
-                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
-                            </button>
-                            {isSortOpen && (
-                                <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
-                                    {sortOptions.map(opt => {
-                                        const isSelected = opt.value === currentSortValue;
-                                        return (
-                                            <button
-                                                key={opt.value}
-                                                onClick={() => handleSortSelect(opt.value)}
-                                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] text-left transition-colors ${isSelected ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] font-medium' : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'}`}
-                                            >
-                                                <span className={`material-symbols-outlined ${isSelected ? 'text-[#1a73e8]' : 'text-[#70757a]'}`} style={{ fontSize: '18px' }}>{opt.icon}</span>
-                                                <span className="flex-1">{opt.label}</span>
-                                                {isSelected && <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>check</span>}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                info
+                            </span>
                         </div>
-                        <span
-                            className="material-symbols-outlined text-[20px] text-[#5f6368] dark:text-slate-400 hover:text-[#202124] dark:hover:text-white cursor-pointer select-none"
-                            title="Sonuç bilgisi"
-                        >
-                            info
-                        </span>
                     </div>
                 </div>
                 {/* ── Scrollable Hotel List ── */}

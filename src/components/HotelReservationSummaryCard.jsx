@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import RefundPolicyTooltip from './RefundPolicyTooltip';
 import { getCurrencySymbol, useAuth } from '../context/AuthContext';
 
@@ -716,7 +717,7 @@ const SUMMARY_LOCALES = {
 const decodeHTMLEntities = (text) => {
     if (!text || typeof text !== 'string') return text || '';
     const textarea = document.createElement('textarea');
-    textarea.innerHTML = text;
+    textarea.textContent = text;
     return textarea.value;
 };
 
@@ -1259,7 +1260,7 @@ const HotelReservationSummaryCard = ({
                             </p>
                             <div 
                                 className="text-xs font-normal text-amber-900 dark:text-amber-200 space-y-1 max-h-32 overflow-y-auto pr-2 custom-scrollbar html-content"
-                                dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(rateNotesList.join('<br/>')) }}
+                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodeHTMLEntities(rateNotesList.join('<br/>'))) }}
                             />
                         </div>
                     )}

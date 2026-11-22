@@ -988,7 +988,6 @@ const CheckoutPayment = () => {
                     totalPrice: grandTotal,
                     displayCurrency: displayCurrency,
                     paymentMethod,
-                    cardDetails,
                     bookingResponse: response
                 }
             });
@@ -1046,7 +1045,6 @@ const CheckoutPayment = () => {
                     totalPrice: grandTotal,
                     displayCurrency: displayCurrency,
                     paymentMethod,
-                    cardDetails,
                     bookingResponse: response,
                     isReserve: true
                 }

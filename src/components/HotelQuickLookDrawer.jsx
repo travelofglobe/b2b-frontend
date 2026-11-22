@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { Link, useNavigate } from 'react-router-dom';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { hotelService } from '../services/hotelService';
@@ -1726,7 +1727,7 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13px] text-[#5f6368] dark:text-slate-400 line-clamp-3 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: decodeHTMLEntities(currentHotel.descriptions?.[0]?.text || currentHotel.description || '') 
+                                        __html: DOMPurify.sanitize(decodeHTMLEntities(currentHotel.descriptions?.[0]?.text || currentHotel.description || '')) 
                                     }}
                                 />
                                 <button
@@ -2513,7 +2514,7 @@ const HotelQuickLookDrawer = ({
                                         )}
                                         <p 
                                             className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(desc.text) }}
+                                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodeHTMLEntities(desc.text)) }}
                                         />
                                     </div>
                                 ))
@@ -2521,7 +2522,7 @@ const HotelQuickLookDrawer = ({
                                 <p 
                                     className="text-[13.5px] text-[#3c4043] dark:text-slate-300 leading-relaxed"
                                     dangerouslySetInnerHTML={{ 
-                                        __html: decodeHTMLEntities(currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor.") 
+                                        __html: DOMPurify.sanitize(decodeHTMLEntities(currentHotel.description || "Travel of Globe garantili tesisimizde konforlu ve eşsiz bir konaklama deneyimi sizleri bekliyor.")) 
                                     }}
                                 />
                             )}

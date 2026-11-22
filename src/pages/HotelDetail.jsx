@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Footer from '../components/Footer';
@@ -3271,14 +3272,14 @@ const HotelDetail = () => {
                                                         <h4 className="text-xs font-semibold uppercase text-[#1a73e8] tracking-wider">{decodeHTMLEntities(desc.type)}</h4>
                                                         <p
                                                             className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                                            dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(desc.text) }}
+                                                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodeHTMLEntities(desc.text)) }}
                                                         />
                                                     </div>
                                                 ))
                                             ) : (
                                                 <p
                                                     className="text-sm text-[#3c4043] dark:text-slate-300 leading-relaxed"
-                                                    dangerouslySetInnerHTML={{ __html: decodeHTMLEntities(hotel.description || "Experience the ultimate luxury at our TOG-certified property.") }}
+                                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(decodeHTMLEntities(hotel.description || "Experience the ultimate luxury at our TOG-certified property.")) }}
                                                 />
                                             )}
                                         </div>

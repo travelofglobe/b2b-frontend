@@ -10,6 +10,20 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    build: {
+      target: 'esnext',
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-maps': ['leaflet', 'react-leaflet', 'maplibre-gl', '@maplibre/maplibre-gl-leaflet'],
+            'vendor-export': ['jspdf', 'jspdf-autotable', 'xlsx'],
+            'vendor-i18n': ['i18next', 'react-i18next'],
+          }
+        }
+      }
+    },
     server: {
       port: 3000,
       strictPort: true,

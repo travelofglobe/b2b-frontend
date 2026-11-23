@@ -13,9 +13,9 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [remainingSeconds, setRemainingSeconds] = useState(null);
     const [agencyCurrency, setAgencyCurrency] = useState(null);
     const [agencyType, setAgencyType] = useState(null);
+    const [agencyInfo, setAgencyInfo] = useState(null);
     // Map of currency code -> symbol fetched from backend
     const [currencySymbolMap, setCurrencySymbolMap] = useState({});
     // My agency's credit limit data — refreshed every 5 minutes
@@ -89,6 +89,7 @@ export const AuthProvider = ({ children }) => {
         agencyService.getMe(controller.signal)
             .then(res => {
                 if (res) {
+                    setAgencyInfo(res);
                     if (res.currency) {
                         setAgencyCurrency(res.currency);
                     }
@@ -157,19 +158,15 @@ export const AuthProvider = ({ children }) => {
         };
     }, [user]);
 
-    // Session tracking & silent auto-renew token when near expiration
+    // Session tracking & silent auto-renew token when near expiration (checked every 30s, non-rendering)
     useEffect(() => {
-        const updateTimer = async () => {
+        const checkSilentRefresh = async () => {
             const token = authService.getToken();
-            if (!token) {
-                setRemainingSeconds(null);
-                return;
-            }
+            if (!token) return;
 
             const expiration = getTokenExpiration(token);
             if (expiration) {
                 const seconds = Math.floor((expiration.getTime() - Date.now()) / 1000);
-                setRemainingSeconds(seconds > 0 ? seconds : 0);
 
                 // Auto refresh token silently when 5 minutes (300s) or less remain, if refresh token exists
                 if (seconds <= 300 && localStorage.getItem('refreshToken') && !isAutoRenewingRef.current) {
@@ -183,16 +180,14 @@ export const AuthProvider = ({ children }) => {
                         isAutoRenewingRef.current = false;
                     }
                 }
-            } else {
-                setRemainingSeconds(null);
             }
         };
 
-        // Initial timer check
-        updateTimer();
+        // Initial check
+        checkSilentRefresh();
 
-        // Update every 1 second for accurate countdown
-        const interval = setInterval(updateTimer, 1000);
+        // Check every 30 seconds (low-frequency background check without triggering component re-renders)
+        const interval = setInterval(checkSilentRefresh, 30000);
 
         return () => clearInterval(interval);
     }, []);
@@ -210,6 +205,7 @@ export const AuthProvider = ({ children }) => {
         agencyService.clearMeCache();
         authService.logout();
         setUser(null);
+        setAgencyInfo(null);
         setAgencyCurrency(null);
         setAgencyType(null);
         setMyLimit(null);
@@ -236,19 +232,29 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
+    const getRemainingSeconds = useCallback(() => {
+        const token = authService.getToken();
+        if (!token) return null;
+        const expiration = getTokenExpiration(token);
+        if (!expiration) return null;
+        const sec = Math.floor((expiration.getTime() - Date.now()) / 1000);
+        return sec > 0 ? sec : 0;
+    }, []);
+
     const value = useMemo(() => ({
         user,
         loading,
         login,
         logout,
-        remainingSeconds,
-        renewSession,
+        agencyInfo,
         agencyCurrency,
         agencyType,
         currencySymbolMap,
         myLimit,
         refreshMyLimit,
-    }), [user, loading, login, logout, remainingSeconds, renewSession, agencyCurrency, agencyType, currencySymbolMap, myLimit, refreshMyLimit]);
+        renewSession,
+        getRemainingSeconds,
+    }), [user, loading, login, logout, agencyInfo, agencyCurrency, agencyType, currencySymbolMap, myLimit, refreshMyLimit, renewSession, getRemainingSeconds]);
 
     return (
         <AuthContext.Provider value={value}>

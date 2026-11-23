@@ -6,122 +6,178 @@
 let isRefreshing = false;
 let refreshPromise = null;
 
+// In-flight GET request deduplication: cacheKey -> Promise
+const inFlightRequests = new Map();
+// Short-lived memory cache for GET requests: cacheKey -> { data, expiresAt }
+const memoryCache = new Map();
+const DEFAULT_GET_CACHE_TTL = 3000; // 3 seconds window to eliminate duplicate concurrent/rapid calls
+
 const apiClient = {
+    /**
+     * Clear all cached GET responses
+     */
+    clearCache: () => {
+        memoryCache.clear();
+        inFlightRequests.clear();
+    },
+
     /**
      * Core fetch wrapper
      */
     request: async (url, options = {}) => {
-        let token = localStorage.getItem('accessToken');
+        const method = (options.method || 'GET').toUpperCase();
+        const isGet = method === 'GET';
 
-        const activeLang = localStorage.getItem('language') || localStorage.getItem('i18nextLng') || 'en';
-        // Merge headers
-        const headers = {
-            'Accept-Language': activeLang,
-            ...(options.headers || {})
-        };
-
-        // Add Authorization header if token exists
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        // Mutating requests invalidate GET memory cache
+        if (!isGet) {
+            memoryCache.clear();
         }
 
-        const fetchOptions = {
-            ...options,
-            headers
-        };
+        let token = localStorage.getItem('accessToken');
+        const activeLang = localStorage.getItem('language') || localStorage.getItem('i18nextLng') || 'en';
+        const cacheKey = isGet ? `${url}:${token || ''}:${activeLang}` : null;
 
-        try {
-            let response = await fetch(url, fetchOptions);
+        // Check memory cache for GET
+        if (isGet && !options.noCache && cacheKey) {
+            const cached = memoryCache.get(cacheKey);
+            if (cached && Date.now() < cached.expiresAt) {
+                return cached.data;
+            }
+            // Check in-flight duplicate GET request
+            if (inFlightRequests.has(cacheKey)) {
+                return inFlightRequests.get(cacheKey);
+            }
+        }
 
-            // Handle 401 Unauthorized globally
-            if (response.status === 401) {
-                const refreshToken = localStorage.getItem('refreshToken');
+        const execute = async () => {
+            // Merge headers
+            const headers = {
+                'Accept-Language': activeLang,
+                ...(options.headers || {})
+            };
 
-                if (!refreshToken) {
-                    apiClient.handleLogout();
-                    throw new Error('Your session has expired. Please sign in again.');
-                }
+            // Add Authorization header if token exists
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
 
-                // If a refresh is already in progress, wait for it
-                if (!isRefreshing) {
-                    isRefreshing = true;
-                    refreshPromise = (async () => {
-                        try {
-                            // Use dynamic import to avoid circular dependency with authService
-                            const { authService } = await import('../services/authService');
-                            return await authService.refreshToken();
-                        } finally {
-                            isRefreshing = false;
-                            refreshPromise = null;
-                        }
-                    })();
-                }
+            const fetchOptions = {
+                ...options,
+                headers
+            };
 
-                try {
-                    const newToken = await refreshPromise;
+            try {
+                let response = await fetch(url, fetchOptions);
 
-                    // Retry original request with new token
-                    const retryHeaders = {
-                        ...headers,
-                        'Authorization': `Bearer ${newToken}`
-                    };
+                // Handle 401 Unauthorized globally
+                if (response.status === 401) {
+                    const refreshToken = localStorage.getItem('refreshToken');
 
-                    response = await fetch(url, { ...fetchOptions, headers: retryHeaders });
-
-                    // If still 401, the refresh token was likely invalid or expired too
-                    if (response.status === 401) {
+                    if (!refreshToken) {
                         apiClient.handleLogout();
                         throw new Error('Your session has expired. Please sign in again.');
                     }
-                } catch (refreshError) {
-                    console.error('Token refresh failed:', refreshError);
-                    apiClient.handleLogout();
-                    throw refreshError;
+
+                    // If a refresh is already in progress, wait for it
+                    if (!isRefreshing) {
+                        isRefreshing = true;
+                        refreshPromise = (async () => {
+                            try {
+                                // Use dynamic import to avoid circular dependency with authService
+                                const { authService } = await import('../services/authService');
+                                return await authService.refreshToken();
+                            } finally {
+                                isRefreshing = false;
+                                refreshPromise = null;
+                            }
+                        })();
+                    }
+
+                    try {
+                        const newToken = await refreshPromise;
+
+                        // Retry original request with new token
+                        const retryHeaders = {
+                            ...headers,
+                            'Authorization': `Bearer ${newToken}`
+                        };
+
+                        response = await fetch(url, { ...fetchOptions, headers: retryHeaders });
+
+                        // If still 401, the refresh token was likely invalid or expired too
+                        if (response.status === 401) {
+                            apiClient.handleLogout();
+                            throw new Error('Your session has expired. Please sign in again.');
+                        }
+                    } catch (refreshError) {
+                        console.error('Token refresh failed:', refreshError);
+                        apiClient.handleLogout();
+                        throw refreshError;
+                    }
+                }
+
+                // Handle 403 Forbidden globally
+                if (response.status === 403) {
+                    if (!window.location.pathname.includes('/forbidden') && !window.location.pathname.includes('/403')) {
+                        window.location.href = '/forbidden';
+                    }
+                    let errorData;
+                    try {
+                        errorData = await response.json();
+                    } catch {
+                        errorData = null;
+                    }
+                    const err = new Error(errorData?.message || 'Access Forbidden (403)');
+                    err.status = 403;
+                    err.response = errorData;
+                    throw err;
+                }
+
+                // Handle other non-ok responses
+                if (!response.ok) {
+                    let errorData;
+                    try {
+                        errorData = await response.json();
+                    } catch {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+                    const err = new Error(errorData.message || `API Error: ${response.status}`);
+                    err.response = errorData;
+                    throw err;
+                }
+
+                // Return parsed JSON or null for empty body / 204 No Content
+                if (response.status === 204) {
+                    return null;
+                }
+                const text = await response.text();
+                const data = text ? JSON.parse(text) : null;
+
+                if (isGet && cacheKey && !options.noCache) {
+                    const ttl = typeof options.cacheTtl === 'number' ? options.cacheTtl : DEFAULT_GET_CACHE_TTL;
+                    memoryCache.set(cacheKey, { data, expiresAt: Date.now() + ttl });
+                }
+
+                return data;
+
+            } catch (error) {
+                if (error.name === 'AbortError') throw error;
+                console.error('API Client Error:', error);
+                throw error;
+            } finally {
+                if (cacheKey) {
+                    inFlightRequests.delete(cacheKey);
                 }
             }
+        };
 
-            // Handle 403 Forbidden globally
-            if (response.status === 403) {
-                if (!window.location.pathname.includes('/forbidden') && !window.location.pathname.includes('/403')) {
-                    window.location.href = '/forbidden';
-                }
-                let errorData;
-                try {
-                    errorData = await response.json();
-                } catch {
-                    errorData = null;
-                }
-                const err = new Error(errorData?.message || 'Access Forbidden (403)');
-                err.status = 403;
-                err.response = errorData;
-                throw err;
-            }
-
-            // Handle other non-ok responses
-            if (!response.ok) {
-                let errorData;
-                try {
-                    errorData = await response.json();
-                } catch {
-                    throw new Error(`API Error: ${response.status}`);
-                }
-                const err = new Error(errorData.message || `API Error: ${response.status}`);
-                err.response = errorData;
-                throw err;
-            }
-
-            // Return parsed JSON or null for empty body / 204 No Content
-            if (response.status === 204) {
-                return null;
-            }
-            const text = await response.text();
-            return text ? JSON.parse(text) : null;
-
-        } catch (error) {
-            if (error.name === 'AbortError') throw error;
-            console.error('API Client Error:', error);
-            throw error;
+        if (isGet && cacheKey && !options.noCache) {
+            const reqPromise = execute();
+            inFlightRequests.set(cacheKey, reqPromise);
+            return reqPromise;
         }
+
+        return execute();
     },
 
     handleLogout: () => {

@@ -4708,18 +4708,29 @@ const HotelListing = () => {
                             ref={compactSortRef}
                             className={`relative shrink-0 ml-auto pl-1 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)] ${
                                 isScrolled
-                                    ? 'max-w-[200px] opacity-100 scale-100 pointer-events-auto'
+                                    ? 'max-w-[280px] opacity-100 scale-100 pointer-events-auto'
                                     : 'max-w-0 opacity-0 scale-95 pointer-events-none overflow-hidden'
                             }`}
                         >
                             <button
+                                type="button"
                                 onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 h-8 border border-[#dadce0] dark:border-slate-600 transition-colors font-roboto font-medium shrink-0"
+                                title={tListing('sortPrefix', currentLang) || (currentLang === 'tr' ? 'Sıralama:' : 'Sort:')}
+                                className={`flex items-center gap-1.5 text-[13px] rounded-lg px-2.5 h-8 border transition-colors font-roboto font-medium shrink-0 cursor-pointer ${
+                                    isSortOpen
+                                        ? 'border-[#1a73e8] bg-blue-50/50 dark:bg-blue-900/30 text-[#1a73e8]'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                }`}
                             >
-                                    <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                    <span className="hidden xl:inline text-[13px]">{currentSortOption.label}</span>
-                                    <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
-                                </button>
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>swap_vert</span>
+                                <span className="text-[13px] truncate">
+                                    <span className="text-slate-500 dark:text-slate-400 font-normal mr-1">
+                                        {tListing('sortPrefix', currentLang) || (currentLang === 'tr' ? 'Sıralama:' : 'Sort:')}
+                                    </span>
+                                    <span>{currentSortOption.label}</span>
+                                </span>
+                                <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 shrink-0 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
+                            </button>
                                 {isSortOpen && (
                                     <div className="absolute right-0 top-full mt-1 w-[240px] bg-white dark:bg-[#303134] rounded-2xl border border-[#e8eaed] dark:border-slate-700 shadow-xl z-[200] py-1.5 animate-in fade-in zoom-in-95 duration-150">
                                         {sortOptions.map(opt => {
@@ -5349,11 +5360,17 @@ const HotelListing = () => {
                         {/* Sort dropdown */}
                         <div className="relative shrink-0" ref={sortDropdownRef}>
                             <button
+                                type="button"
                                 onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-1 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors"
+                                className="flex items-center gap-1.5 text-[13px] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 rounded-lg px-2.5 py-1.5 transition-colors cursor-pointer"
                             >
-                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '16px' }}>{currentSortOption.icon}</span>
-                                <span className="hidden sm:inline text-[13px] font-medium">{currentSortOption.label}</span>
+                                <span className="material-symbols-outlined text-[#1a73e8]" style={{ fontSize: '18px' }}>swap_vert</span>
+                                <span className="hidden sm:inline text-[13px] font-medium">
+                                    <span className="text-slate-500 dark:text-slate-400 font-normal mr-1">
+                                        {tListing('sortPrefix', currentLang) || (currentLang === 'tr' ? 'Sıralama:' : 'Sort:')}
+                                    </span>
+                                    {currentSortOption.label}
+                                </span>
                                 <span className={`material-symbols-outlined text-[#70757a] transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`} style={{ fontSize: '18px' }}>expand_more</span>
                             </button>
                             {isSortOpen && (

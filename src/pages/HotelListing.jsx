@@ -2488,6 +2488,19 @@ const HotelListing = () => {
         setSearchParams(newParams);
     };
 
+    const handleClearAmenities = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('facilities');
+        newParams.delete('amenities');
+        newParams.delete('recommended');
+        newParams.delete('stars');
+        newParams.delete('guestRating');
+        newParams.delete('priceMin');
+        newParams.delete('priceMax');
+        handleClearPrice();
+        setSearchParams(newParams);
+    };
+
     const availableFacilities = React.useMemo(() => {
         const raw = dynamicFilters?.hotelFacilityIds || [];
         return raw.map(fac => {
@@ -5132,14 +5145,15 @@ const HotelListing = () => {
                                 {tListing('noFilterMatch', currentLang)}
                             </h3>
                             <p className="text-[13px] text-[#70757a] dark:text-slate-400 mb-4">
-                                {tListing('noFilterMatchDesc', currentLang)}
+                                {selectedFacilities.length > 0 ? tListing('noFilterMatchDesc', currentLang) : (tListing('tryAdjusting', currentLang) || tListing('noFilterMatchDesc', currentLang))}
                             </p>
                             <button
+                                type="button"
                                 onClick={handleClearAmenities}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1558d6] text-white text-[13px] font-medium rounded-full transition-colors"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1558d6] text-white text-[13px] font-medium rounded-full transition-colors cursor-pointer"
                             >
                                 <span className="material-symbols-outlined text-[16px]">close</span>
-                                {tListing('clearAmenities', currentLang)}
+                                {selectedFacilities.length > 0 ? tListing('clearAmenities', currentLang) : (tListing('clearAll', currentLang) || 'Filtreleri Temizle')}
                             </button>
                         </div>
                     )}

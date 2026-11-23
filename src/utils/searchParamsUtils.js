@@ -168,6 +168,7 @@ export const KNOWN_DESTINATIONS = {
     istanbul: { lat: 41.0082, lng: 28.9784 },
     antalya: { lat: 36.8969, lng: 30.7133 },
     ankara: { lat: 39.9334, lng: 32.8597 },
+    cankaya: { lat: 39.8452, lng: 32.9212 },
     izmir: { lat: 38.4237, lng: 27.1428 },
     bodrum: { lat: 37.0344, lng: 27.4305 },
     mugla: { lat: 37.0344, lng: 27.4305 },
@@ -610,10 +611,12 @@ export const getItemPrimaryName = (item, currentLang = 'tr') => {
 /**
  * Normalizes text for comparison (handles Turkish characters like I/İ/ı/i)
  */
-const normalizeTextForCompare = (txt) => {
+export const normalizeTextForCompare = (txt) => {
     if (!txt) return '';
     return String(txt)
         .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .replace(/İ/g, 'i')
         .replace(/I/g, 'ı')
         .toLowerCase();
@@ -622,13 +625,13 @@ const normalizeTextForCompare = (txt) => {
 /**
  * Location types that sit above the country level and must never be shown in breadcrumbs.
  */
-const ABOVE_COUNTRY_TYPES = new Set(['world', 'continent', 'super_region', 'supra_region']);
+export const ABOVE_COUNTRY_TYPES = new Set(['world', 'continent', 'super_region', 'supra_region']);
 
 /**
  * Well-known continent / world-region names (multi-language) used to strip
  * above-country segments from plain-text paths (locationPath, saved history subtitles).
  */
-const ABOVE_COUNTRY_NAMES = new Set([
+export const ABOVE_COUNTRY_NAMES = new Set([
     'world', 'dünya', 'earth',
     'europe', 'avrupa', 'asia', 'asya', 'africa', 'afrika',
     'north america', 'kuzey amerika', 'south america', 'güney amerika',
@@ -647,7 +650,10 @@ const ABOVE_COUNTRY_NAMES = new Set([
     'ευρώπη', 'ασία', 'αφρική', 'μέση ανατολή',
 ]);
 
-const isAboveCountryName = (name) => ABOVE_COUNTRY_NAMES.has(normalizeTextForCompare(name));
+export const isAboveCountryName = (name) => {
+    if (!name) return false;
+    return ABOVE_COUNTRY_NAMES.has(normalizeTextForCompare(name));
+};
 
 /**
  * Removes continent / world-level segments from a comma separated location text
@@ -763,10 +769,10 @@ export const getRegionSubtitle = (item, currentLang = 'tr') => {
     if (!item) return '';
     const parts = getLocationHierarchyParts(item, currentLang);
     if (parts.length > 0) {
-        return parts.join(', ');
+        return stripAboveCountryFromText(parts.join(', '));
     }
     if (item.countryCode) {
-        return item.countryCode;
+        return stripAboveCountryFromText(item.countryCode);
     }
     return '';
 };
@@ -781,16 +787,16 @@ export const formatLocationFullName = (item, currentLang = 'tr') => {
     const hierarchyParts = getLocationHierarchyParts(item, currentLang);
 
     if (!primaryName) {
-        return hierarchyParts.join(', ');
+        return stripAboveCountryFromText(hierarchyParts.join(', '));
     }
     if (hierarchyParts.length === 0) {
         if (item.countryCode && primaryName.toLowerCase() !== item.countryCode.toLowerCase()) {
-            return `${primaryName}, ${item.countryCode}`;
+            return stripAboveCountryFromText(`${primaryName}, ${item.countryCode}`);
         }
-        return primaryName;
+        return stripAboveCountryFromText(primaryName);
     }
 
-    return [primaryName, ...hierarchyParts].join(', ');
+    return stripAboveCountryFromText([primaryName, ...hierarchyParts].join(', '));
 };
 
 /**
@@ -798,6 +804,29 @@ export const formatLocationFullName = (item, currentLang = 'tr') => {
  */
 export const buildLocationSlug = (item, currentLang = 'tr') => {
     if (!item) return 'destination';
+    if (typeof item === 'string') {
+        const clean = stripAboveCountryFromText(item);
+        const parts = clean.split(',').map(s => s.trim()).filter(Boolean);
+        const nonCountry = parts.filter(p => {
+            const lower = p.toLowerCase();
+            return lower !== 'türkiye' && lower !== 'turkey' && lower !== 'tr';
+        });
+        const slugSource = nonCountry.length > 0 ? nonCountry : parts;
+        if (slugSource.length >= 2) {
+            return [...slugSource].reverse()
+                .map(s => s.toLowerCase()
+                    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+                    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '')
+                ).filter(Boolean).join('/');
+        }
+        return (slugSource[0] || 'destination').toLowerCase()
+            .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+            .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
     const primary = getItemPrimaryName(item, currentLang);
     const hierarchy = getLocationHierarchyParts(item, currentLang);
     
@@ -820,6 +849,10 @@ export const buildLocationSlug = (item, currentLang = 'tr') => {
             .filter(Boolean)
             .join('/');
     }
-    return (primary || 'destination').toLowerCase();
+    return (primary || 'destination').toLowerCase()
+        .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+        .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 };
 

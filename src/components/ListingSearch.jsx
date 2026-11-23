@@ -53,9 +53,9 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
     // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
         const urlQ = searchParams.get('q');
-        if (urlQ && !isGenericAreaText(urlQ)) return urlQ;
+        if (urlQ && !isGenericAreaText(urlQ)) return stripAboveCountryFromText(urlQ);
         const saved = localStorage.getItem('dashboard_last_search');
-        if (saved && !isGenericAreaText(saved)) return saved;
+        if (saved && !isGenericAreaText(saved)) return stripAboveCountryFromText(saved);
         return '';
     });
 
@@ -136,20 +136,22 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
 
         const handleSelectHistoryItem = async (item) => {
             const itemType = item.type || item.searchType || 'SEARCH';
-            setQuery(item.query);
+            const cleanQ = stripAboveCountryFromText(item.query);
+            const cleanSub = stripAboveCountryFromText(item.subtitle);
+            setQuery(cleanQ);
             setResults({ hotels: [], regions: [] });
             isUserInteraction.current = false;
             setShowDropdown(false);
-            saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
+            saveSearchHistoryItem(cleanQ, itemType, item.targetId, cleanSub);
 
-            localStorage.setItem('dashboard_last_search', item.query);
+            localStorage.setItem('dashboard_last_search', cleanQ);
             localStorage.setItem('dashboard_last_type', itemType);
 
-            let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
+            let knownCoords = resolveKnownCoordinates(cleanQ) || resolveKnownCoordinates(cleanSub);
 
             if (!knownCoords && itemType !== 'HOTEL') {
                 try {
-                    const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
+                    const res = await autocompleteService.search({ query: cleanQ, page: 0, size: 5 });
                     const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
                     const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
                     if (match) {
@@ -651,37 +653,33 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
                     return;
                 }
 
-                // If query contains commas, try to build a hierarchical slug
-                // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
-                const queryParts = activeQuery.split(',').map(p => p.trim().toLowerCase());
-                let slug = activeQuery.toLowerCase().trim();
+                const cleanQuery = stripAboveCountryFromText(activeQuery).trim();
+                let slug = buildLocationSlug(cleanQuery, currentLang);
 
                 // If currently on hotel search and query has not changed, keep current slug path
                 const currentPath = window.location.pathname;
                 const currentQ = searchParams.get('q');
-                if (currentPath.startsWith('/travel/hotels/search/') && (activeQuery === (currentQ || query))) {
+                if (currentPath.startsWith('/travel/hotels/search/') && (cleanQuery === (currentQ || query))) {
                     const existingSlug = decodeURIComponent(currentPath.replace('/travel/hotels/search/', ''));
                     if (existingSlug && !existingSlug.includes('?')) {
                         slug = existingSlug;
                     }
-                } else if (queryParts.length >= 2) {
-                    // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
-                    // If 2 parts: [City, Country] -> slug "istanbul"
-                    const reversed = [...queryParts].reverse(); // [Country, City, District]
-                    slug = reversed.slice(1).join('/');
                 }
 
                 // Retrieve target parameter (togId or regionId) & coordinates
                 const currentUrlTogId = searchParams.get('togId');
                 const currentUrlRegionId = searchParams.get('regionId') || searchParams.get('locationId');
                 const currentUrlPoiId = searchParams.get('poiId');
-                const isSameQuery = (activeQuery === (currentQ || query));
+                const isSameQuery = (cleanQuery === (currentQ || query));
 
-                const savedParam = opts.searchParam || (isSameQuery ? (localStorage.getItem('dashboard_last_search_param') || (currentUrlTogId ? 'togId' : (currentUrlRegionId ? 'regionId' : null))) : null);
-                const savedId = opts.searchId !== undefined ? opts.searchId : (isSameQuery ? (localStorage.getItem('dashboard_last_search_id') || currentUrlTogId || currentUrlRegionId) : null);
-                const savedTogId = opts.togId || (isSameQuery ? (localStorage.getItem('dashboard_last_togId') || currentUrlTogId) : null);
-                const savedRegionId = opts.regionId || (isSameQuery ? (localStorage.getItem('dashboard_last_regionId') || currentUrlRegionId) : null);
-                const savedPoiId = opts.poiId || (isSameQuery ? (localStorage.getItem('dashboard_last_poiId') || currentUrlPoiId) : null);
+                let savedParam = opts.searchParam || (isSameQuery ? (localStorage.getItem('dashboard_last_search_param') || (currentUrlTogId ? 'togId' : (currentUrlRegionId ? 'regionId' : null))) : null);
+                let savedId = opts.searchId !== undefined ? opts.searchId : (isSameQuery ? (localStorage.getItem('dashboard_last_search_id') || currentUrlTogId || currentUrlRegionId) : null);
+                let savedTogId = opts.togId || (isSameQuery ? (localStorage.getItem('dashboard_last_togId') || currentUrlTogId) : null);
+                let savedRegionId = opts.regionId || (isSameQuery ? (localStorage.getItem('dashboard_last_regionId') || currentUrlRegionId) : null);
+                let savedPoiId = opts.poiId || (isSameQuery ? (localStorage.getItem('dashboard_last_poiId') || currentUrlPoiId) : null);
+
+                let latVal = opts.lat || (isSameQuery ? (searchParams.get('lat') || localStorage.getItem('dashboard_last_lat')) : null);
+                let lngVal = opts.lng || (isSameQuery ? (searchParams.get('lng') || localStorage.getItem('dashboard_last_lng')) : null);
 
                 let targetIdParam = '';
                 if (savedParam && savedId) {
@@ -697,6 +695,9 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
                     const { param: rParam, id: rId } = resolveSearchTargetId(topRegion);
                     if (rParam && rId) {
                         targetIdParam = `&${rParam}=${rId}`;
+                        savedParam = rParam;
+                        savedId = rId;
+                        if (rParam === 'regionId') savedRegionId = rId;
                         if (!latVal || !lngVal) {
                             latVal = topRegion.geoCoordinate?.lat || topRegion.geoCoordinate?.latitude || topRegion.lat;
                             lngVal = topRegion.geoCoordinate?.lon || topRegion.geoCoordinate?.lng || topRegion.lng;
@@ -707,20 +708,23 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
                 const savedType = localStorage.getItem('dashboard_last_type');
                 const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
 
-                let latVal = opts.lat || (isSameQuery ? (searchParams.get('lat') || localStorage.getItem('dashboard_last_lat')) : null);
-                let lngVal = opts.lng || (isSameQuery ? (searchParams.get('lng') || localStorage.getItem('dashboard_last_lng')) : null);
-
-                if (!latVal || !lngVal) {
-                    const known = resolveKnownCoordinates(activeQuery);
-                    if (known) {
+                const known = resolveKnownCoordinates(cleanQuery);
+                if (known) {
+                    if (latVal && lngVal) {
+                        const dist = Math.hypot(parseFloat(latVal) - known.lat, parseFloat(lngVal) - known.lng);
+                        if (dist > 0.8) {
+                            latVal = known.lat;
+                            lngVal = known.lng;
+                        }
+                    } else {
                         latVal = known.lat;
                         lngVal = known.lng;
-                        localStorage.setItem('dashboard_last_lat', known.lat);
-                        localStorage.setItem('dashboard_last_lng', known.lng);
-                    } else if (!isSameQuery) {
-                        localStorage.removeItem('dashboard_last_lat');
-                        localStorage.removeItem('dashboard_last_lng');
                     }
+                    localStorage.setItem('dashboard_last_lat', latVal);
+                    localStorage.setItem('dashboard_last_lng', lngVal);
+                } else if (!isSameQuery) {
+                    localStorage.removeItem('dashboard_last_lat');
+                    localStorage.removeItem('dashboard_last_lng');
                 }
 
                 const geoParam = (latVal && lngVal) ? `&lat=${latVal}&lng=${lngVal}` : '';
@@ -746,8 +750,8 @@ const ListingSearch = ({ isCompact = false, isSingleRow = false, autocompleteWid
         };
 
         const handleSelectLocation = (location) => {
-            const fullName = formatLocationFullName(location, currentLang);
-            const sub = getRegionSubtitle(location, currentLang);
+            const fullName = stripAboveCountryFromText(formatLocationFullName(location, currentLang));
+            const sub = stripAboveCountryFromText(getRegionSubtitle(location, currentLang));
 
             const isPoi = isPoiItem(location);
             const { param: targetParam, id: targetId } = resolveSearchTargetId(location);

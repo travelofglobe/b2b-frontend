@@ -44,7 +44,8 @@ const DashboardSearch = () => {
 
     // Initialize state from URL params or defaults
     const [query, setQuery] = useState(() => {
-        return searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+        const raw = searchParams.get('q') || localStorage.getItem('dashboard_last_search') || '';
+        return stripAboveCountryFromText(raw);
     });
 
     // Nationality State
@@ -124,20 +125,22 @@ const DashboardSearch = () => {
 
         const handleSelectHistoryItem = async (item) => {
             const itemType = item.type || item.searchType || 'SEARCH';
-            setQuery(item.query);
+            const cleanQ = stripAboveCountryFromText(item.query);
+            const cleanSub = stripAboveCountryFromText(item.subtitle);
+            setQuery(cleanQ);
             setResults({ hotels: [], regions: [] });
             isUserInteraction.current = false;
             setShowDropdown(false);
-            saveSearchHistoryItem(item.query, itemType, item.targetId, item.subtitle);
+            saveSearchHistoryItem(cleanQ, itemType, item.targetId, cleanSub);
 
-            localStorage.setItem('dashboard_last_search', item.query);
+            localStorage.setItem('dashboard_last_search', cleanQ);
             localStorage.setItem('dashboard_last_type', itemType);
 
-            let knownCoords = resolveKnownCoordinates(item.query) || resolveKnownCoordinates(item.subtitle);
+            let knownCoords = resolveKnownCoordinates(cleanQ) || resolveKnownCoordinates(cleanSub);
 
             if (!knownCoords && itemType !== 'HOTEL') {
                 try {
-                    const res = await autocompleteService.search({ query: item.query, page: 0, size: 5 });
+                    const res = await autocompleteService.search({ query: cleanQ, page: 0, size: 5 });
                     const content = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
                     const match = content?.find(c => c.geoCoordinate?.lat && (c.geoCoordinate?.lon || c.geoCoordinate?.lng));
                     if (match) {
@@ -459,76 +462,127 @@ const DashboardSearch = () => {
 
 
 
-        const handleSearch = () => {
-            if (!query.trim()) {
+        const handleSearch = async () => {
+            const cleanQuery = stripAboveCountryFromText(query).trim();
+            if (!cleanQuery) {
                 setError(true);
                 return;
             }
 
-            if (query) {
-                const savedLastSearch = localStorage.getItem('dashboard_last_search');
-                const savedLastType = localStorage.getItem('dashboard_last_type');
-                const savedLastHotelId = localStorage.getItem('dashboard_last_hotelId');
+            const savedLastSearch = stripAboveCountryFromText(localStorage.getItem('dashboard_last_search') || '').trim();
+            const isNewQuery = !savedLastSearch || cleanQuery.toLowerCase() !== savedLastSearch.toLowerCase();
 
-                if (query !== savedLastSearch) {
-                    saveSearchHistoryItem(query, 'SEARCH', null, null);
-                    localStorage.setItem('dashboard_last_search', query);
-                    localStorage.setItem('dashboard_last_type', 'SEARCH');
-                    localStorage.removeItem('dashboard_last_hotelId');
-                    localStorage.removeItem('dashboard_last_locationId');
-                    localStorage.removeItem('dashboard_last_search_param');
-                    localStorage.removeItem('dashboard_last_search_id');
-                    localStorage.removeItem('dashboard_last_togId');
-                    localStorage.removeItem('dashboard_last_regionId');
-                }
-
-                // If query contains commas, try to build a hierarchical slug
-                // e.g. "Üsküdar, İstanbul, Türkiye" -> ["Üsküdar", "İstanbul", "Türkiye"]
-                const queryParts = query.split(',').map(p => p.trim().toLowerCase());
-                let slug = query.toLowerCase();
-
-                if (queryParts.length >= 2) {
-                    // If 3 parts: [District, City, Country] -> slug "istanbul/uskudar"
-                    // If 2 parts: [City, Country] -> slug "istanbul"
-                    const reversed = queryParts.reverse(); // [Country, City, District]
-                    slug = reversed.slice(1).join('/');
-                }
-
-                // Retrieve target parameter (togId, poiId, or regionId) & coordinates
-                const savedParam = localStorage.getItem('dashboard_last_search_param');
-                const savedId = localStorage.getItem('dashboard_last_search_id');
-                const savedTogId = localStorage.getItem('dashboard_last_togId');
-                const savedPoiId = localStorage.getItem('dashboard_last_poiId');
-                const savedRegionId = localStorage.getItem('dashboard_last_regionId');
-                const savedType = localStorage.getItem('dashboard_last_type');
-                const savedLat = localStorage.getItem('dashboard_last_lat');
-                const savedLng = localStorage.getItem('dashboard_last_lng');
-
-                let targetIdParam = '';
-                if (savedParam && savedId) {
-                    targetIdParam = `&${savedParam}=${savedId}`;
-                } else if (savedTogId) {
-                    targetIdParam = `&togId=${savedTogId}`;
-                } else if (savedPoiId) {
-                    targetIdParam = `&poiId=${savedPoiId}`;
-                } else if (savedRegionId) {
-                    targetIdParam = `&regionId=${savedRegionId}`;
-                }
-
-                const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
-                const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
-                const searchParamsString = getUrlParams() + targetIdParam + typeParam + geoParam;
-
-                localStorage.setItem('last_hotel_search_slug', slug);
-                localStorage.setItem('last_hotel_search_params', searchParamsString);
-
-                navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
+            if (isNewQuery) {
+                saveSearchHistoryItem(cleanQuery, 'SEARCH', null, null);
+                localStorage.setItem('dashboard_last_search', cleanQuery);
+                localStorage.setItem('dashboard_last_type', 'SEARCH');
+                localStorage.removeItem('dashboard_last_hotelId');
+                localStorage.removeItem('dashboard_last_locationId');
+                localStorage.removeItem('dashboard_last_search_param');
+                localStorage.removeItem('dashboard_last_search_id');
+                localStorage.removeItem('dashboard_last_togId');
+                localStorage.removeItem('dashboard_last_regionId');
+                localStorage.removeItem('dashboard_last_poiId');
+                localStorage.removeItem('dashboard_last_lat');
+                localStorage.removeItem('dashboard_last_lng');
             }
+
+            let savedParam = isNewQuery ? null : localStorage.getItem('dashboard_last_search_param');
+            let savedId = isNewQuery ? null : localStorage.getItem('dashboard_last_search_id');
+            let savedTogId = isNewQuery ? null : localStorage.getItem('dashboard_last_togId');
+            let savedPoiId = isNewQuery ? null : localStorage.getItem('dashboard_last_poiId');
+            let savedRegionId = isNewQuery ? null : localStorage.getItem('dashboard_last_regionId');
+            let savedType = isNewQuery ? null : localStorage.getItem('dashboard_last_type');
+            let savedLat = isNewQuery ? null : localStorage.getItem('dashboard_last_lat');
+            let savedLng = isNewQuery ? null : localStorage.getItem('dashboard_last_lng');
+
+            // If target ID or region ID is missing, try to resolve from current autocomplete results or quick lookup
+            if (!savedParam && !savedTogId && !savedRegionId && !savedPoiId) {
+                let targetRegion = null;
+                if (results.regions && results.regions.length > 0) {
+                    targetRegion = results.regions[0];
+                } else {
+                    try {
+                        const res = await autocompleteService.search({ query: cleanQuery, types: ['GEOGRAPHY_REGION', 'POI', 'PROPERTY'], page: 0, size: 5 });
+                        const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                        targetRegion = items.find(i => i.type === 'GEOGRAPHY_REGION' || i.type === 'POI') || items[0];
+                    } catch (err) {
+                        console.error("Autocomplete search in handleSearch error:", err);
+                    }
+                }
+
+                if (targetRegion) {
+                    const { param: rParam, id: rId } = resolveSearchTargetId(targetRegion);
+                    if (rParam && rId) {
+                        savedParam = rParam;
+                        savedId = rId;
+                        if (rParam === 'togId') savedTogId = rId;
+                        else if (rParam === 'poiId') savedPoiId = rId;
+                        else savedRegionId = rId;
+                    }
+                    const rLat = targetRegion.geoCoordinate?.lat || targetRegion.geoCoordinate?.latitude || targetRegion.lat;
+                    const rLng = targetRegion.geoCoordinate?.lon || targetRegion.geoCoordinate?.lng || targetRegion.geoCoordinate?.longitude || targetRegion.lng;
+                    if (rLat && rLng) {
+                        savedLat = rLat;
+                        savedLng = rLng;
+                    }
+                }
+            }
+
+            // Cross-check coordinates with known destinations for the query
+            const known = resolveKnownCoordinates(cleanQuery);
+            if (known) {
+                if (savedLat && savedLng) {
+                    const dist = Math.hypot(parseFloat(savedLat) - known.lat, parseFloat(savedLng) - known.lng);
+                    // If saved coordinates are from a different city (> 80 km), override with known coordinates
+                    if (dist > 0.8) {
+                        savedLat = known.lat;
+                        savedLng = known.lng;
+                    }
+                } else {
+                    savedLat = known.lat;
+                    savedLng = known.lng;
+                }
+            }
+
+            if (savedParam && savedId) {
+                localStorage.setItem('dashboard_last_search_param', savedParam);
+                localStorage.setItem('dashboard_last_search_id', savedId);
+                if (savedParam === 'regionId') localStorage.setItem('dashboard_last_regionId', savedId);
+                if (savedParam === 'togId') localStorage.setItem('dashboard_last_togId', savedId);
+                if (savedParam === 'poiId') localStorage.setItem('dashboard_last_poiId', savedId);
+            }
+            if (savedLat && savedLng) {
+                localStorage.setItem('dashboard_last_lat', savedLat);
+                localStorage.setItem('dashboard_last_lng', savedLng);
+            }
+
+            const slug = buildLocationSlug(cleanQuery, currentLang);
+
+            let targetIdParam = '';
+            if (savedParam && savedId) {
+                targetIdParam = `&${savedParam}=${savedId}`;
+            } else if (savedTogId) {
+                targetIdParam = `&togId=${savedTogId}`;
+            } else if (savedPoiId) {
+                targetIdParam = `&poiId=${savedPoiId}`;
+            } else if (savedRegionId) {
+                targetIdParam = `&regionId=${savedRegionId}`;
+            }
+
+            const typeParam = (savedType === 'POI' || savedPoiId) ? '&type=POI' : '';
+            const geoParam = (savedLat && savedLng) ? `&lat=${savedLat}&lng=${savedLng}` : '';
+            const searchParamsString = getUrlParams(cleanQuery) + targetIdParam + typeParam + geoParam;
+
+            localStorage.setItem('last_hotel_search_slug', slug);
+            localStorage.setItem('last_hotel_search_params', searchParamsString);
+
+            navigate(`/travel/hotels/search/${slug}?${searchParamsString}`);
         };
 
         const handleSelectLocation = (location) => {
-            const fullName = formatLocationFullName(location, currentLang);
-            const sub = getRegionSubtitle(location, currentLang);
+            const fullName = stripAboveCountryFromText(formatLocationFullName(location, currentLang));
+            const sub = stripAboveCountryFromText(getRegionSubtitle(location, currentLang));
 
             const isPoi = isPoiItem(location);
             const { param: targetParam, id: targetId } = resolveSearchTargetId(location);

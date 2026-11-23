@@ -2514,26 +2514,21 @@ const CheckoutGuestDetails = () => {
                                     </span>
                                 </button>
 
-                                <div className="flex flex-col items-end gap-1.5">
-                                    <button
-                                        type="button"
-                                        onClick={handleNext}
-                                        className="w-full sm:w-auto px-8 py-3.5 bg-[#0b57d0] hover:bg-[#0842a0] text-white rounded-full font-semibold text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98]"
-                                    >
-                                        <span className="material-symbols-outlined text-[18px]">lock</span>
-                                        <span>
-                                            {activeRoomIdx < roomsData.length - 1 ? (
-                                                <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2}</>
-                                            ) : (
-                                                cl.proceedToPayment || "Ödeme Adımına İlerle"
-                                            )}
-                                        </span>
-                                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-                                    </button>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 text-right">
-                                        {cl.securePaymentNote || "Sonraki adımda kart veya Google Pay ile güvenli ödeme yapılır."}
-                                    </p>
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    className="w-full sm:w-auto px-8 py-3.5 bg-[#0b57d0] hover:bg-[#0842a0] text-white rounded-full font-semibold text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2.5 cursor-pointer active:scale-[0.98]"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">lock</span>
+                                    <span>
+                                        {activeRoomIdx < roomsData.length - 1 ? (
+                                            <>{tSummary('nextRoom', currentLang)} {activeRoomIdx + 2}</>
+                                        ) : (
+                                            cl.proceedToPayment || "Ödeme Adımına İlerle"
+                                        )}
+                                    </span>
+                                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                </button>
                             </div>
                         </div>
                     </div>

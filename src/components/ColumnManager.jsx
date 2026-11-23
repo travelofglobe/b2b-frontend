@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const ColumnManager = ({ columns, availableColumns, onColumnsChange, loading }) => {
+const ColumnManager = ({ columns, availableColumns, columnLabels = {}, onColumnsChange, loading }) => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -81,7 +81,7 @@ const ColumnManager = ({ columns, availableColumns, onColumnsChange, loading }) 
                             >
                                 <div className="flex items-center gap-2 truncate">
                                     <span className="material-symbols-outlined text-[#70757a] group-hover:text-[#1a73e8] text-[16px]">drag_indicator</span>
-                                    <span className="text-[13px] font-medium text-[#202124] dark:text-slate-200 truncate">{col}</span>
+                                    <span className="text-[13px] font-medium text-[#202124] dark:text-slate-200 truncate">{columnLabels[col] || col}</span>
                                 </div>
                                 <button 
                                     onClick={() => toggleColumn(col)}
@@ -106,7 +106,7 @@ const ColumnManager = ({ columns, availableColumns, onColumnsChange, loading }) 
                                 key={col} 
                                 className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-[#f1f3f4] dark:hover:bg-[#383a3e] transition-colors"
                             >
-                                <span className="text-[13px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{col}</span>
+                                <span className="text-[13px] font-normal text-[#5f6368] dark:text-slate-300 truncate">{columnLabels[col] || col}</span>
                                 <button 
                                     onClick={() => toggleColumn(col)}
                                     className="size-6 flex items-center justify-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 rounded-full hover:bg-emerald-50 dark:hover:bg-emerald-950/30 cursor-pointer transition-colors"

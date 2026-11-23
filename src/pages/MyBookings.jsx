@@ -62,6 +62,9 @@ const parseInitialFilters = (params) => {
         maxCancellationAmount: params.get('maxCancellationAmount') || '',
         cancelReason: params.get('cancelReason') || '',
         isCancelled: params.get('isCancelled') || '',
+        roomCount: params.get('roomCount') || '',
+        minRoom: params.get('minRoom') || '',
+        maxRoom: params.get('maxRoom') || '',
     };
 };
 
@@ -90,6 +93,37 @@ const MyBookings = () => {
         return () => { i18n.off('languageChanged', handler); };
     }, [i18n]);
     const L = (key) => tMB(currentLang, key);
+    const columnTitleMap = {
+        "Reservation Number": L('colId'),
+        "Voucher": L('colVoucher'),
+        "Reservation Date": L('colCreated'),
+        "Check-in": L('colCheckIn'),
+        "Check-out": L('colCheckOut'),
+        "Hotel": L('colHotel'),
+        "Country": L('country') || "Country",
+        "City": L('city') || "City",
+        "GSA": "GSA",
+        "RSA": "RSA",
+        "Agency": L('colAgencyName'),
+        "Room": L('colRoom') || "Room",
+        "Room Count": L('colRoomCount') || "Room Count",
+        "Board Type": "Board Type",
+        "Guest": "Guest",
+        "Status": L('colStatus'),
+        "Currency": "Currency",
+        "Net Amount": "Net Amount",
+        "Markup": "Markup",
+        "Sale Amount": L('colAmount'),
+        "Profit": "Profit",
+        "Supplier": "Supplier",
+        "Supplier Reservation Number": "Supplier Res. No.",
+        "Cancel Fee": L('colCancelFee'),
+        "UUID": L('colUuid'),
+        "Agency ID": L('colAgencyId'),
+        "Hotel ID": L('colHotelId'),
+        "Client Reference": L('colClRef'),
+        "Cancelled?": L('colCancelled')
+    };
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -150,6 +184,7 @@ const MyBookings = () => {
         if (filters.supplierIds && filters.supplierIds.length > 0) count++;
         if (filters.boardTypes && filters.boardTypes.length > 0) count++;
         if (filters.roomName) count++;
+        if (filters.roomCount || filters.minRoom || filters.maxRoom) count++;
         if (filters.isCancelled) count++;
         if (filters.minCancellationAmount || filters.maxCancellationAmount) count++;
         if (filters.minNetAmount || filters.maxNetAmount) count++;
@@ -178,12 +213,12 @@ const MyBookings = () => {
 
     const AVAILABLE_COLUMNS = [
         "Reservation Number", "Voucher", "Reservation Date", "Check-in", "Check-out", "Hotel", 
-        "Country", "City", "GSA", "RSA", "Agency", "Room", 
+        "Country", "City", "GSA", "RSA", "Agency", "Room", "Room Count",
         "Board Type", "Guest", "Status", "Currency", "Net Amount", "Markup", 
         "Sale Amount", "Profit", "Supplier", "Supplier Reservation Number"
     ];
 
-    const [columns, setColumns] = useState(["Reservation Number", "Voucher", "Reservation Date", "Check-in", "Check-out", "Hotel", "Agency", "Status", "Currency", "Sale Amount"]);
+    const [columns, setColumns] = useState(["Reservation Number", "Voucher", "Reservation Date", "Check-in", "Check-out", "Hotel", "Room Count", "Agency", "Status", "Currency", "Sale Amount"]);
     const [allAgencies, setAllAgencies] = useState([]);
     
     // Location states
@@ -329,7 +364,7 @@ const MyBookings = () => {
             if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
                 filterObj[key] = null;
             } else {
-                if (['id', 'supplierId', 'minAmount', 'maxAmount', 'minCancellationAmount', 'maxCancellationAmount', 'internalHotelId'].includes(key)) {
+                if (['id', 'supplierId', 'minAmount', 'maxAmount', 'minNetAmount', 'maxNetAmount', 'minMarkupAmount', 'maxMarkupAmount', 'minGuest', 'maxGuest', 'roomCount', 'minRoom', 'maxRoom', 'minCancellationAmount', 'maxCancellationAmount', 'internalHotelId'].includes(key)) {
                     filterObj[key] = value === '' ? null : Number(value);
                 } else if (key === 'isCancelled') {
                     filterObj[key] = value === 'true';
@@ -399,6 +434,7 @@ const MyBookings = () => {
         else if (col === "Markup") val = b.markupAmount != null ? Number(b.markupAmount).toFixed(2) : "-";
         else if (col === "Profit") val = b.markupAmount != null ? Number(b.markupAmount).toFixed(2) : "-";
         else if (col === "Room") val = b.roomName || "-";
+        else if (col === "Room Count") val = b.roomCount != null ? b.roomCount : "-";
         else if (col === "Board Type") val = b.boardName || "-";
         else if (col === "Guest") val = b.totalGuests != null ? b.totalGuests : "-";
         else if (col === "Supplier") val = b.supplierName || "-";
@@ -795,6 +831,7 @@ const MyBookings = () => {
                         <ColumnManager 
                             columns={columns} 
                             availableColumns={AVAILABLE_COLUMNS} 
+                            columnLabels={columnTitleMap}
                             onColumnsChange={handleColumnsChange} 
                             loading={loading} 
                         />
@@ -1056,6 +1093,27 @@ const MyBookings = () => {
                                         className="w-full bg-white dark:bg-[#28292c] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1.5 px-2.5 text-xs text-[#202124] dark:text-white outline-none focus:border-[#1a73e8]" 
                                     />
                                 </div>
+                                <div>
+                                    <label className="block text-[11px] text-[#5f6368] dark:text-slate-400 mb-1">{L('colRoomCount')} (Min - Max)</label>
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                        <input 
+                                            type="number" 
+                                            min="1" 
+                                            value={filters.minRoom} 
+                                            onChange={(e) => handleFilterChange('minRoom', e.target.value)} 
+                                            placeholder={L('phMin')} 
+                                            className="w-full bg-white dark:bg-[#28292c] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs text-[#202124] dark:text-white outline-none" 
+                                        />
+                                        <input 
+                                            type="number" 
+                                            min="1" 
+                                            value={filters.maxRoom} 
+                                            onChange={(e) => handleFilterChange('maxRoom', e.target.value)} 
+                                            placeholder={L('phMax')} 
+                                            className="w-full bg-white dark:bg-[#28292c] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-xs text-[#202124] dark:text-white outline-none" 
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Group 3b: Location */}
@@ -1124,36 +1182,7 @@ const MyBookings = () => {
                                 <tr className="bg-[#f8f9fa] dark:bg-[#202124] border-b border-[#dadce0] dark:border-[#3c4043]">
                                     {columns.map(col => {
                                         const key = col;
-                                        const title = {
-                                            "Reservation Number": L('colId'),
-                                            "Voucher": L('colVoucher'),
-                                            "Reservation Date": L('colCreated'),
-                                            "Check-in": L('colCheckIn'),
-                                            "Check-out": L('colCheckOut'),
-                                            "Hotel": L('colHotel'),
-                                            "Country": "Country",
-                                            "City": "City",
-                                            "GSA": "GSA",
-                                            "RSA": "RSA",
-                                            "Agency": L('colAgencyName'),
-                                            "Room": "Room",
-                                            "Board Type": "Board Type",
-                                            "Guest": "Guest",
-                                            "Status": L('colStatus'),
-                                            "Currency": "Currency",
-                                            "Net Amount": "Net Amount",
-                                            "Markup": "Markup",
-                                            "Sale Amount": L('colAmount'),
-                                            "Profit": "Profit",
-                                            "Supplier": "Supplier",
-                                            "Supplier Reservation Number": "Supplier Res. No.",
-                                            "Cancel Fee": L('colCancelFee'),
-                                            "UUID": L('colUuid'),
-                                            "Agency ID": L('colAgencyId'),
-                                            "Hotel ID": L('colHotelId'),
-                                            "Client Reference": L('colClRef'),
-                                            "Cancelled?": L('colCancelled')
-                                        }[key] || key;
+                                        const title = columnTitleMap[key] || key;
                                         return (
                                             <th 
                                                 key={key} 
@@ -1281,6 +1310,12 @@ const MyBookings = () => {
                                                 {col === "Room" && (
                                                     <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
                                                 )}
+                                                {col === "Room Count" && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <input type="number" min="1" value={filters.minRoom} onChange={(e) => handleFilterChange('minRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                        <input type="number" min="1" value={filters.maxRoom} onChange={(e) => handleFilterChange('maxRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                    </div>
+                                                )}
                                                 {col === "Board Type" && (
                                                     <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" alignRight={true} />
                                                 )}
@@ -1301,7 +1336,7 @@ const MyBookings = () => {
                                                     </select>
                                                 )}
                                                 {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Net Amount", "Markup", "Profit", "Room", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
+                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Net Amount", "Markup", "Profit", "Room", "Room Count", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
                                                     <div className="text-[10px] text-slate-400">Filter N/A</div>
                                                 )}
                                             </td>
@@ -1375,6 +1410,7 @@ const MyBookings = () => {
                                                 else if (col === "Markup") val = booking.markupAmount != null ? <div className="font-medium text-[13px] text-[#202124] dark:text-white">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
                                                 else if (col === "Profit") val = booking.markupAmount != null ? <div className="font-semibold text-[13px] text-[#1e8e3e] dark:text-emerald-400">{Number(booking.markupAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div> : "-";
                                                 else if (col === "Room") val = booking.roomName || "-";
+                                                else if (col === "Room Count") val = booking.roomCount != null ? <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-[#f1f3f4] dark:bg-[#303134] text-[#3c4043] dark:text-slate-200">{booking.roomCount} {currentLang === 'tr' ? 'Oda' : (booking.roomCount > 1 ? 'Rooms' : 'Room')}</span> : "-";
                                                 else if (col === "Board Type") val = booking.boardName || "-";
                                                 else if (col === "Guest") val = booking.totalGuests != null ? booking.totalGuests : "-";
                                                 else if (col === "Supplier") val = booking.supplierName || "-";

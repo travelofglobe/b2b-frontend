@@ -1,7 +1,7 @@
 export const LISTING_LOCALES = {
     en: {
         room: "Room", rooms: "Rooms", guest: "Guest", guests: "Guests",
-        searching: "Searching...", propertiesFound: "properties found", sortBy: "SORT BY:",
+        searching: "Searching...", propertiesFound: "properties found", sortBy: "SORT BY:", sortPrefix: "Sort:",
         mapView: "Map View", backToDashboard: "Back to Dashboard", noProperties: "No properties found",
         recommended: "Most Recommended", ratingDesc: "Guest Rating: High to Low", ratingAsc: "Guest Rating: Low to High",
         starDesc: "Star Rating: High to Low", starAsc: "Star Rating: Low to High",
@@ -45,7 +45,7 @@ export const LISTING_LOCALES = {
         },
     tr: {
         room: "Oda", rooms: "Oda", guest: "Misafir", guests: "Misafir",
-        searching: "Aranıyor...", propertiesFound: "tesis bulundu", sortBy: "SIRALAMA:",
+        searching: "Aranıyor...", propertiesFound: "tesis bulundu", sortBy: "SIRALAMA:", sortPrefix: "Sıralama:",
         mapView: "Harita Görünümü", backToDashboard: "Panele Dön", noProperties: "Tesis bulunamadı",
         recommended: "En Çok Önerilen", ratingDesc: "Puan: Yüksekten Düşüğe", ratingAsc: "Puan: Düşükten Yükseğe",
         starDesc: "Yıldız: Yüksekten Düşüğe", starAsc: "Yıldız: Düşükten Yükseğe",

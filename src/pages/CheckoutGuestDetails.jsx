@@ -1483,11 +1483,11 @@ const CheckoutGuestDetails = () => {
                                 updatedGuest.lastName = crmGuest.lastName.replace(/[^a-zA-Z\sğüşıöçĞÜŞİÖÇ]/g, '');
                             }
 
-                            if (crmGuest.email && guest.type === 'Adult' && guestIdx === 0) {
+                            if (crmGuest.email && guest.type === 'Adult' && roomIdx === 0 && guestIdx === 0) {
                                 updatedGuest.email = crmGuest.email;
                             }
 
-                            if (crmGuest.phoneNumber && guest.type === 'Adult' && guestIdx === 0) {
+                            if (crmGuest.phoneNumber && guest.type === 'Adult' && roomIdx === 0 && guestIdx === 0) {
                                 updatedGuest.phone = `${crmGuest.phoneCountryCode || '+90'} ${crmGuest.phoneNumber}`.trim();
                             }
 
@@ -1540,7 +1540,7 @@ const CheckoutGuestDetails = () => {
             return nextErrors;
         });
 
-        if (crmGuest.email && guestIdx === 0) {
+        if (crmGuest.email && roomIdx === 0 && guestIdx === 0) {
             setEmailTouched(prev => ({ ...prev, [errKey]: true }));
         }
 
@@ -1793,6 +1793,25 @@ const CheckoutGuestDetails = () => {
         );
     };
 
+    const isRoomCompleted = (roomIdx) => {
+        const room = roomsData[roomIdx];
+        if (!room || !room.guests || room.guests.length === 0) return false;
+        return room.guests.every((guest, gIdx) => {
+            const hasName = Boolean(guest.firstName && guest.firstName.trim().length > 0 && guest.lastName && guest.lastName.trim().length > 0);
+            const hasGender = Boolean(guest.gender);
+            const hasBirthDate = validateBirthDate(guest.birthDate);
+            let ageOk = true;
+            if (guest.type === 'Child' && guest.birthDate) {
+                ageOk = calculateAge(guest.birthDate, checkInDate) === guest.age;
+            }
+            let contactOk = true;
+            if (roomIdx === 0 && gIdx === 0 && guest.type === 'Adult') {
+                contactOk = validateEmail(guest.email) && Boolean(guest.phone && guest.phone.trim().split(' ').length >= 2 && guest.phone.trim().split(' ')[1].length >= 3);
+            }
+            return hasName && hasGender && hasBirthDate && ageOk && contactOk;
+        });
+    };
+
     const handleNext = async () => {
         const currentRoom = roomsData[activeRoomIdx];
         const newErrors = { ...errors };
@@ -1811,14 +1830,15 @@ const CheckoutGuestDetails = () => {
                 }
             }
 
+            const isLeadGuest = activeRoomIdx === 0 && gIdx === 0 && guest.type === 'Adult';
             const guestErrors = {
                 firstName: !guest.firstName,
                 lastName: !guest.lastName,
-                email: guest.type === 'Adult' && gIdx === 0 && !validateEmail(guest.email),
+                email: isLeadGuest && !validateEmail(guest.email),
                 birthDate: !validateBirthDate(guest.birthDate) || ageMismatch,
                 ageMismatch: ageMismatch,
                 gender: !guest.gender,
-                phone: guest.type === 'Adult' && gIdx === 0 && (!guest.phone || guest.phone.trim().split(' ').length < 2 || guest.phone.trim().split(' ')[1].length < 3)
+                phone: isLeadGuest && (!guest.phone || guest.phone.trim().split(' ').length < 2 || guest.phone.trim().split(' ')[1].length < 3)
             };
             newErrors[key] = guestErrors;
             if (Object.values(guestErrors).some(v => v)) {
@@ -1852,6 +1872,15 @@ const CheckoutGuestDetails = () => {
                 setActiveRoomIdx(prev => prev + 1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             } else {
+                // Check if any previous room is incomplete before submitting
+                for (let rIdx = 0; rIdx < roomsData.length; rIdx++) {
+                    if (!isRoomCompleted(rIdx)) {
+                        setActiveRoomIdx(rIdx);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                }
+
                 // Sync CRM guests in background - non-blocking
                 syncCrmGuests();
 
@@ -2071,34 +2100,6 @@ const CheckoutGuestDetails = () => {
 
                 <div className="flex flex-col lg:flex-row gap-7 items-start">
                     <div className="flex-1 min-w-0 space-y-5">
-                        {/* Hızlı Doldurma Asistanı Banner */}
-                        <div className="rounded-3xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/80 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-                            <div className="flex items-center gap-3.5">
-                                <div className="size-10 rounded-2xl bg-[#0b57d0] text-white flex items-center justify-center shadow-sm shrink-0">
-                                    <span className="material-symbols-outlined text-xl">auto_awesome</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                                        {cl.autoFillAssistant || "Hızlı Doldurma Asistanı"}
-                                    </h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                        {cl.autoFillDesc || "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın."}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setTargetGuestIndex({ roomIdx: 0, guestIdx: 0 });
-                                    setIsCrmModalOpen(true);
-                                }}
-                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-[#0b57d0] dark:text-blue-400 font-medium text-xs border border-blue-200/80 dark:border-blue-800 shadow-xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
-                            >
-                                <span className="material-symbols-outlined text-[16px]">magic_button</span>
-                                <span>{cl.autoFillAction || "Bilgileri Otomatik Doldur"}</span>
-                            </button>
-                        </div>
-
                         {/* Title & Subtitle */}
                         <div>
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
@@ -2114,7 +2115,7 @@ const CheckoutGuestDetails = () => {
                             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1" lang={currentLang}>
                                 {roomsData.map((room, idx) => {
                                     const isCurrent = idx === activeRoomIdx;
-                                    const isDone = idx < activeRoomIdx;
+                                    const isDone = isRoomCompleted(idx);
                                     const adultCount = room.guests.filter(g => g.type === 'Adult').length;
                                     const childCount = room.guests.filter(g => g.type === 'Child').length;
 
@@ -2122,12 +2123,12 @@ const CheckoutGuestDetails = () => {
                                         <button
                                             key={idx}
                                             type="button"
-                                            onClick={() => isDone && setActiveRoomIdx(idx)}
+                                            onClick={() => setActiveRoomIdx(idx)}
                                             className={`flex items-center gap-2 px-4 py-2 rounded-2xl border text-xs font-semibold transition-all shrink-0 cursor-pointer ${isCurrent
                                                     ? 'bg-[#1a73e8] border-[#1a73e8] text-white shadow-xs cursor-default'
                                                     : isDone
                                                         ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800 hover:bg-emerald-100/70'
-                                                        : 'bg-white dark:bg-[#202124] border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-60'
+                                                        : 'bg-white dark:bg-[#202124] border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                                                 }`}
                                         >
                                             <span className="material-symbols-outlined text-[16px]">
@@ -2176,16 +2177,17 @@ const CheckoutGuestDetails = () => {
                                                 {gIdx + 1}
                                             </span>
                                             <h3 className="text-[15px] sm:text-[16px] font-semibold text-slate-900 dark:text-white">
-                                                {gIdx === 0 && guest.type === 'Adult'
+                                                {activeRoomIdx === 0 && gIdx === 0 && guest.type === 'Adult'
                                                     ? (cl.leadGuestTitle || "1. Misafir (Ana İletişim & Rezervasyon Sahibi)")
                                                     : `${gIdx + 1}. Misafir (${guest.type === 'Adult' ? tSummary('adult', currentLang) : `${tSummary('child', currentLang)} (${tSummary('age', currentLang)} ${guest.age})`})`}
                                             </h3>
                                         </div>
-                                        {gIdx === 0 && guest.type === 'Adult' ? (
-                                            <span className="px-3.5 py-1 rounded-full bg-[#e8f0fe] dark:bg-blue-950/60 text-[11px] font-semibold text-[#0b57d0] dark:text-blue-300 tracking-wider uppercase">
-                                                {cl.leadGuestBadge || "ASIL MİSAFİR"}
-                                            </span>
-                                        ) : (
+                                        <div className="flex items-center gap-2">
+                                            {activeRoomIdx === 0 && gIdx === 0 && guest.type === 'Adult' && (
+                                                <span className="px-3.5 py-1 rounded-full bg-[#e8f0fe] dark:bg-blue-950/60 text-[11px] font-semibold text-[#0b57d0] dark:text-blue-300 tracking-wider uppercase">
+                                                    {cl.leadGuestBadge || "ASIL MİSAFİR"}
+                                                </span>
+                                            )}
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -2197,8 +2199,38 @@ const CheckoutGuestDetails = () => {
                                                 <span className="material-symbols-outlined text-[15px]">contact_page</span>
                                                 <span>{cl.selectFromCrm || "Kayıtlı Kişilerden Seç"}</span>
                                             </button>
-                                        )}
+                                        </div>
                                     </div>
+
+                                    {/* Auto-Fill Assistant Banner for Lead Guest */}
+                                    {activeRoomIdx === 0 && gIdx === 0 && (
+                                        <div className="rounded-2xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/80 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/50 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-2xs">
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-9 rounded-xl bg-[#0b57d0] text-white flex items-center justify-center shadow-xs shrink-0">
+                                                    <span className="material-symbols-outlined text-lg">auto_awesome</span>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                                        <span>{cl.autoFillAssistant || "Hızlı Doldurma Asistanı"}</span>
+                                                    </h4>
+                                                    <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                                        {cl.autoFillDesc || "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın."}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setTargetGuestIndex({ roomIdx: 0, guestIdx: 0 });
+                                                    setIsCrmModalOpen(true);
+                                                }}
+                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-[#0b57d0] dark:text-blue-400 font-semibold text-xs border border-blue-200/80 dark:border-blue-800 shadow-2xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">magic_button</span>
+                                                <span>{cl.autoFillAction || "Bilgileri Otomatik Doldur"}</span>
+                                            </button>
+                                        </div>
+                                    )}
 
                                     {/* Form Inputs Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -2325,7 +2357,7 @@ const CheckoutGuestDetails = () => {
                                         </div>
 
                                         {/* Lead Guest Email & Phone */}
-                                        {gIdx === 0 && guest.type === 'Adult' && (
+                                        {activeRoomIdx === 0 && gIdx === 0 && guest.type === 'Adult' && (
                                             <>
                                                 {(() => {
                                                     const emailKey = `${activeRoomIdx}-${gIdx}`;
@@ -2411,7 +2443,7 @@ const CheckoutGuestDetails = () => {
                                     </div>
 
                                     {/* Lead Guest Notice Banner */}
-                                    {gIdx === 0 && guest.type === 'Adult' && (
+                                    {activeRoomIdx === 0 && gIdx === 0 && guest.type === 'Adult' && (
                                         <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 text-xs text-blue-900/90 dark:text-blue-200 font-normal">
                                             <span className="material-symbols-outlined text-[18px] text-[#0b57d0] shrink-0">verified_user</span>
                                             <span>{cl.leadGuestNotice || "Rezervasyon onay belgesi ve giriş bilgileri bu iletişim kanallarına anında gönderilir."}</span>

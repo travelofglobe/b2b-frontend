@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Sidebar from '../components/Sidebar';
-import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, buildLocationSlug } from '../utils/searchParamsUtils';
+import { parseGuestsParam, validateAndSanitizeDates, formatDateForUrl, resolveKnownCoordinates, buildLocationSlug, stripAboveCountryFromText, isAboveCountryName, ABOVE_COUNTRY_TYPES } from '../utils/searchParamsUtils';
 import { hotelService } from '../services/hotelService';
 import { geographyService } from '../services/geographyService';
 import { poiService } from '../services/poiService';
@@ -1560,6 +1560,7 @@ const KNOWN_DESTINATIONS = {
     istanbul: { center: [41.0082, 28.9784], zoom: 11, label: 'İstanbul' },
     antalya: { center: [36.8969, 30.7133], zoom: 11, label: 'Antalya' },
     ankara: { center: [39.9334, 32.8597], zoom: 11, label: 'Ankara' },
+    cankaya: { center: [39.8452, 32.9212], zoom: 12, label: 'Çankaya' },
     izmir: { center: [38.4237, 27.1428], zoom: 11, label: 'İzmir' },
     bodrum: { center: [37.0344, 27.4305], zoom: 12, label: 'Bodrum' },
     mugla: { center: [37.0344, 27.4305], zoom: 10, label: 'Muğla' },
@@ -1728,7 +1729,19 @@ const resolveInitialLocation = (slug, q, searchParams) => {
 
     const lat = parseFloat(searchParams?.get('lat'));
     const lng = parseFloat(searchParams?.get('lng') || searchParams?.get('lon'));
-    if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+    const hasCoords = !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0;
+
+    if (hasCoords && knownDest) {
+        const destLat = knownDest.center ? knownDest.center[0] : knownDest.lat;
+        const destLng = knownDest.center ? knownDest.center[1] : knownDest.lng;
+        const dist = Math.hypot(lat - destLat, lng - destLng);
+        // If URL coords are far from the destination indicated by slug/query (> 80 km), prefer known destination!
+        if (dist > 0.8) {
+            return { center: knownDest.center || [knownDest.lat, knownDest.lng], zoom: knownZoom || defaultZoom, label: knownDest.label || q || '' };
+        }
+    }
+
+    if (hasCoords) {
         return { center: [lat, lng], zoom: defaultZoom, label: q || '' };
     }
 
@@ -4071,12 +4084,20 @@ const HotelListing = () => {
                     );
                 };
 
-                // Helper to detect if a crumb represents Country or Continent
-                const isCountryOrContinent = (crumb) => {
+                // Helper to detect if a crumb represents Continent / World
+                const isContinentOrWorld = (crumb) => {
                     if (!crumb) return false;
                     const t = (crumb.locationType || crumb.type || '').toUpperCase();
                     const n = getLocalizedCrumbName(crumb.name).toLowerCase();
-                    return t.includes('COUNTRY') || t.includes('CONTINENT') || n === 'türkiye' || n === 'turkey';
+                    return t.includes('CONTINENT') || t.includes('WORLD') || t.includes('SUPER_REGION') || t.includes('SUPRA_REGION') || isAboveCountryName(n);
+                };
+
+                // Helper to detect if a crumb represents Country
+                const isCountry = (crumb) => {
+                    if (!crumb || isContinentOrWorld(crumb)) return false;
+                    const t = (crumb.locationType || crumb.type || '').toUpperCase();
+                    const n = getLocalizedCrumbName(crumb.name).toLowerCase();
+                    return t.includes('COUNTRY') || n === 'türkiye' || n === 'turkey';
                 };
 
                 // Build normalized breadcrumb array
@@ -4092,15 +4113,16 @@ const HotelListing = () => {
                     }));
                 }
 
-                let breadcrumbs = [...rawBreadcrumbs];
+                // Filter out continent/world nodes completely from breadcrumbs
+                let breadcrumbs = rawBreadcrumbs.filter(b => !isContinentOrWorld(b));
                 // If breadcrumbs is ordered Leaf-to-Root, normalize to Root-to-Leaf (Country first)
-                if (breadcrumbs.length > 1 && isCountryOrContinent(breadcrumbs[breadcrumbs.length - 1])) {
+                if (breadcrumbs.length > 1 && isCountry(breadcrumbs[breadcrumbs.length - 1])) {
                     breadcrumbs.reverse();
                 }
 
                 // Append hotel city if not already present in breadcrumbs
                 const hotelCity = closestHotel.city || closestHotel.address?.cityName;
-                if (hotelCity && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === hotelCity.toLowerCase())) {
+                if (hotelCity && !isContinentOrWorld({ name: hotelCity }) && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === hotelCity.toLowerCase())) {
                     breadcrumbs.push({
                         locationId: null,
                         locationType: 'CITY',
@@ -4113,7 +4135,7 @@ const HotelListing = () => {
                     const parts = closestHotel.location.split(',').map(p => p.trim()).filter(Boolean);
                     if (parts.length > 1) {
                         const districtPart = parts[0];
-                        if (districtPart && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === districtPart.toLowerCase())) {
+                        if (districtPart && !isContinentOrWorld({ name: districtPart }) && !breadcrumbs.some(b => getLocalizedCrumbName(b.name).toLowerCase() === districtPart.toLowerCase())) {
                             breadcrumbs.push({
                                 locationId: null,
                                 locationType: 'DISTRICT',
@@ -4124,8 +4146,8 @@ const HotelListing = () => {
                 }
 
                 // Filter out Country crumbs to isolate sub-regions (neighborhood, district, city, province)
-                const subRegionCrumbs = breadcrumbs.filter(b => !isCountryOrContinent(b));
-                const countryCrumb = breadcrumbs.find(b => isCountryOrContinent(b)) || { name: 'Türkiye', locationType: 'COUNTRY' };
+                const subRegionCrumbs = breadcrumbs.filter(b => !isCountry(b) && !isContinentOrWorld(b));
+                const countryCrumb = breadcrumbs.find(b => isCountry(b)) || { name: 'Türkiye', locationType: 'COUNTRY' };
 
                 // "En alt bölgeyi set edebilirsin"
                 // Pick the lowest (most granular) sub-region crumb
@@ -4149,7 +4171,7 @@ const HotelListing = () => {
                 const uniqueNames = [];
                 const addUniqueName = (name) => {
                     const trimmed = (name || '').trim();
-                    if (trimmed && !uniqueNames.some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
+                    if (trimmed && !isAboveCountryName(trimmed) && !uniqueNames.some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
                         uniqueNames.push(trimmed);
                     }
                 };
@@ -4162,11 +4184,11 @@ const HotelListing = () => {
                 intermediate.forEach(c => addUniqueName(getLocalizedCrumbName(c.name)));
 
                 // Finally add country
-                if (countryCrumb) {
+                if (countryCrumb && !isContinentOrWorld(countryCrumb)) {
                     addUniqueName(getLocalizedCrumbName(countryCrumb.name));
                 }
 
-                const fullName = uniqueNames.join(', ');
+                const fullName = stripAboveCountryFromText(uniqueNames.join(', '));
 
                 if (fullName) {
                     localStorage.setItem('dashboard_last_search', fullName);
@@ -4176,6 +4198,10 @@ const HotelListing = () => {
                         localStorage.setItem('dashboard_last_regionId', targetLocId);
                         localStorage.removeItem('dashboard_last_locationId');
                         localStorage.removeItem('dashboard_last_togId');
+                    }
+                    if (closestHotel?.lat && closestHotel?.lng) {
+                        localStorage.setItem('dashboard_last_lat', String(closestHotel.lat));
+                        localStorage.setItem('dashboard_last_lng', String(closestHotel.lng));
                     }
                     const currentTargetLoc = searchParams.get('regionId') || searchParams.get('locationId');
                     if (searchParams.get('q') !== fullName || (!isBoundsSearch && targetLocId && currentTargetLoc !== targetLocId)) {
@@ -4335,6 +4361,62 @@ const HotelListing = () => {
         searchParams.get('recommended'),
         initialPoiBounds
     ]);
+
+    // Auto-resolve missing regionId or coordinates from slug or query
+    React.useEffect(() => {
+        const currentRegionId = searchParams.get('regionId') || searchParams.get('locationId');
+        const currentTogId = searchParams.get('togId') || searchParams.get('hotelId');
+        const currentPoiId = searchParams.get('poiId');
+        const currentBounds = searchParams.get('bounds');
+        const qStr = stripAboveCountryFromText(searchParams.get('q') || slug || '').trim();
+
+        if (!currentRegionId && !currentTogId && !currentPoiId && !currentBounds && qStr) {
+            const known = resolveKnownCoordinates(qStr);
+            const currentLat = parseFloat(searchParams.get('lat'));
+            const currentLng = parseFloat(searchParams.get('lng'));
+            const hasCoords = !isNaN(currentLat) && !isNaN(currentLng);
+            const isCoordMismatched = known && hasCoords && Math.hypot(currentLat - known.lat, currentLng - known.lng) > 0.8;
+
+            autocompleteService.search({ query: qStr, types: ['GEOGRAPHY_REGION', 'POI', 'PROPERTY'], page: 0, size: 5 })
+                .then(res => {
+                    const items = res?.data?.content || res?.content || (Array.isArray(res?.data) ? res.data : []);
+                    const match = items.find(i => i.type === 'GEOGRAPHY_REGION' || i.type === 'POI') || items[0];
+                    if (match) {
+                        const { param, id } = resolveSearchTargetId(match);
+                        let lat = match.geoCoordinate?.lat || match.geoCoordinate?.latitude || match.lat;
+                        let lng = match.geoCoordinate?.lon || match.geoCoordinate?.lng || match.geoCoordinate?.longitude || match.lng;
+                        if ((!lat || !lng) && known) {
+                            lat = known.lat;
+                            lng = known.lng;
+                        }
+
+                        if (id && param) {
+                            setSearchParams(prev => {
+                                const next = new URLSearchParams(prev);
+                                next.set(param, String(id));
+                                if (lat && lng && (!hasCoords || isCoordMismatched)) {
+                                    next.set('lat', String(lat));
+                                    next.set('lng', String(lng));
+                                }
+                                const cleanQ = stripAboveCountryFromText(next.get('q') || '');
+                                if (cleanQ) next.set('q', cleanQ);
+                                return next;
+                            }, { replace: true });
+                        }
+                    } else if (known && (!hasCoords || isCoordMismatched)) {
+                        setSearchParams(prev => {
+                            const next = new URLSearchParams(prev);
+                            next.set('lat', String(known.lat));
+                            next.set('lng', String(known.lng));
+                            const cleanQ = stripAboveCountryFromText(next.get('q') || '');
+                            if (cleanQ) next.set('q', cleanQ);
+                            return next;
+                        }, { replace: true });
+                    }
+                })
+                .catch(err => console.error("Error auto-resolving region for listing:", err));
+        }
+    }, [slug, searchParams.get('q'), searchParams.get('regionId'), searchParams.get('togId'), searchParams.get('locationId')]);
 
     // Fast initial map marker fetch as soon as Leaflet map mounts if markers not yet populated
     React.useEffect(() => {

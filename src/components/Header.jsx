@@ -10,10 +10,9 @@ import ConfirmModal from './ConfirmModal';
 
 const Header = () => {
     const { t } = useTranslation();
-    const { user, logout } = useAuth();
+    const { user, logout, agencyInfo } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isConfirmSignOutOpen, setIsConfirmSignOutOpen] = useState(false);
-    const [agencyInfo, setAgencyInfo] = useState(null);
     const menuRef = useRef(null);
 
     React.useEffect(() => {
@@ -28,26 +27,6 @@ const Header = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-
-    React.useEffect(() => {
-        if (user) {
-            const controller = new AbortController();
-            agencyService.getMe(controller.signal)
-                .then(res => {
-                    if (res) {
-                        setAgencyInfo(res);
-                    }
-                })
-                .catch(err => {
-                    if (err?.name !== 'AbortError') {
-                        console.error('Failed to fetch agency info for header:', err);
-                    }
-                });
-            return () => controller.abort();
-        } else {
-            setAgencyInfo(null);
-        }
-    }, [user]);
 
     const userDisplayName = user?.name && user?.surname
         ? `${user.name} ${user.surname}`

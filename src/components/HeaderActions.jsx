@@ -55,29 +55,14 @@ const HeaderActions = ({ activeDrawer: externalActiveDrawer, setActiveDrawer: ex
     const { t, i18n } = useTranslation();
     const currentLang = (i18n.language || 'en').split('-')[0].toLowerCase();
     const L = LABELS[currentLang] || LABELS.en;
-    const { user, logout } = useAuth();
+    const { user, logout, agencyInfo: authAgencyInfo } = useAuth();
     const navigate = useNavigate();
     const [internalActiveDrawer, setInternalActiveDrawer] = useState(null);
     const activeDrawer = externalActiveDrawer !== undefined ? externalActiveDrawer : internalActiveDrawer;
     const setActiveDrawer = externalSetActiveDrawer || setInternalActiveDrawer;
     const [isConfirmSignOutOpen, setIsConfirmSignOutOpen] = useState(false);
-    const [agencyInfo, setAgencyInfo] = useState(null);
+    const agencyInfo = authAgencyInfo;
     const menuRef = useRef(null);
-
-    useEffect(() => {
-        if (!user) return;
-        const controller = new AbortController();
-        agencyService.getMe(controller.signal)
-            .then(res => {
-                if (res) setAgencyInfo(res);
-            })
-            .catch(err => {
-                if (err?.name !== 'AbortError') {
-                    console.error('Failed to fetch agency info:', err);
-                }
-            });
-        return () => controller.abort();
-    }, [user]);
 
     // Compute display name
     const userDisplayName = user?.name && user?.surname

@@ -842,7 +842,7 @@ const PriceMarker = React.memo(({
                                 }}
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    if (onToggleFav) onToggleFav();
+                                    if (onToggleFav) onToggleFav(hotel);
                                 }}
                                 onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.8)'}
                                 onMouseOut={e => e.currentTarget.style.backgroundColor = 'rgba(32,33,36,0.55)'}
@@ -1274,7 +1274,7 @@ const GoogleHotelCard = React.memo(({ hotel, searchParams, isSelected, isHovered
                 )}
                 <button
                     className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur-sm flex items-center justify-center transition-colors z-10"
-                    onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFav?.(); }}
+                    onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleFav?.(hotel); }}
                 >
                     {isFav ? (
                         <span className="material-symbols-outlined text-[#f97316] dark:text-[#fb923c]" style={{ fontSize: '16px', fontVariationSettings: "'FILL' 1" }}>bookmark</span>
@@ -1781,6 +1781,9 @@ const HotelListing = () => {
     const location = useLocation();
 
     const { favorites, isFavorite, toggleFavorite } = useFavorites();
+    const handleToggleFav = React.useCallback((hotel) => {
+        if (hotel) toggleFavorite(hotel);
+    }, [toggleFavorite]);
     const [isFavOpen, setIsFavOpen] = React.useState(false);
     const favOpenTimerRef = React.useRef(null);
     const favCloseTimerRef = React.useRef(null);
@@ -5108,7 +5111,7 @@ const HotelListing = () => {
                             onSelect={handleSelectHotel}
                             currentLang={currentLang}
                             isFav={isFavorite(String(hotel.hotelId || hotel.id))}
-                            onToggleFav={() => toggleFavorite(hotel)}
+                            onToggleFav={handleToggleFav}
                             isCompact={isMapExpanded}
                         />
                     ))}
@@ -5557,24 +5560,21 @@ const HotelListing = () => {
 
 
                             {/* Price markers for hotels with coordinates */}
-                            {effectiveMapMarkers
-                                .filter(h => h.lat && h.lng && !isNaN(parseFloat(h.lat)) && !isNaN(parseFloat(h.lng)))
-                                .map(hotel => (
-                                    <PriceMarker
-                                        key={hotel.id || hotel.hotelId}
-                                        hotel={hotel}
-                                        isSelected={Boolean(selectedHotel && (selectedHotel.id === hotel.id || (selectedHotel.hotelId && hotel.hotelId && selectedHotel.hotelId === hotel.hotelId)))}
-                                        isHovered={hoveredHotel?.id === hotel.id}
-                                        onSelect={handleSelectHotel}
-                                        onHover={setHoveredHotel}
-                                        searchParams={searchParams}
-                                        currencySymbol={getCurrencySymbol(hotel.currency)}
-                                        isFav={isFavorite(String(hotel.hotelId || hotel.id))}
-                                        onToggleFav={() => toggleFavorite(hotel)}
-                                        currentLang={currentLang}
-                                    />
-                                ))
-                            }
+                            {effectiveMapMarkers.map(hotel => (
+                                <PriceMarker
+                                    key={hotel.id || hotel.hotelId}
+                                    hotel={hotel}
+                                    isSelected={Boolean(selectedHotel && (selectedHotel.id === hotel.id || (selectedHotel.hotelId && hotel.hotelId && selectedHotel.hotelId === hotel.hotelId)))}
+                                    isHovered={hoveredHotel?.id === hotel.id}
+                                    onSelect={handleSelectHotel}
+                                    onHover={setHoveredHotel}
+                                    searchParams={searchParams}
+                                    currencySymbol={getCurrencySymbol(hotel.currency)}
+                                    isFav={isFavorite(String(hotel.hotelId || hotel.id))}
+                                    onToggleFav={handleToggleFav}
+                                    currentLang={currentLang}
+                                />
+                            ))}
 
                             {/* Map move detector */}
                             <MapBoundsWatcher

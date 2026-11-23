@@ -2202,36 +2202,6 @@ const CheckoutGuestDetails = () => {
                                         </div>
                                     </div>
 
-                                    {/* Auto-Fill Assistant Banner for Lead Guest */}
-                                    {activeRoomIdx === 0 && gIdx === 0 && (
-                                        <div className="rounded-2xl bg-gradient-to-r from-blue-50/90 via-sky-50/70 to-indigo-50/80 dark:from-blue-950/40 dark:via-sky-950/30 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/50 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 shadow-2xs">
-                                            <div className="flex items-center gap-3">
-                                                <div className="size-9 rounded-xl bg-[#0b57d0] text-white flex items-center justify-center shadow-xs shrink-0">
-                                                    <span className="material-symbols-outlined text-lg">auto_awesome</span>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                                                        <span>{cl.autoFillAssistant || "Hızlı Doldurma Asistanı"}</span>
-                                                    </h4>
-                                                    <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                                        {cl.autoFillDesc || "Google profiliniz veya geçmiş rezervasyon verileriniz ile tek tıkla formu tamamlayın."}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setTargetGuestIndex({ roomIdx: 0, guestIdx: 0 });
-                                                    setIsCrmModalOpen(true);
-                                                }}
-                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-[#0b57d0] dark:text-blue-400 font-semibold text-xs border border-blue-200/80 dark:border-blue-800 shadow-2xs hover:bg-blue-50 dark:hover:bg-slate-700/80 transition-all shrink-0 cursor-pointer"
-                                            >
-                                                <span className="material-symbols-outlined text-[16px]">magic_button</span>
-                                                <span>{cl.autoFillAction || "Bilgileri Otomatik Doldur"}</span>
-                                            </button>
-                                        </div>
-                                    )}
-
                                     {/* Form Inputs Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* First Name */}

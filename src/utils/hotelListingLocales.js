@@ -23,6 +23,9 @@ export const LISTING_LOCALES = {
         loadingMore: "Loading more properties...",
         searchAmenities: "Search amenities...",
         noAmenitiesFound: "No amenities found",
+        propertyType: "Property type",
+        searchPropertyTypes: "Search property types...",
+        noPropertyTypesFound: "No property types found",
         hotelList: "Hotel List",
         showHotelList: "Show hotel list",
         recent: "Recent:",
@@ -64,6 +67,9 @@ export const LISTING_LOCALES = {
         loadingMore: "Daha fazla otel yükleniyor...",
         searchAmenities: "Olanak ara...",
         noAmenitiesFound: "Olanak bulunamadı",
+        propertyType: "Konaklama türü",
+        searchPropertyTypes: "Konaklama türü ara...",
+        noPropertyTypesFound: "Konaklama türü bulunamadı",
         hotelList: "Otel Listesi",
         showHotelList: "Otel listesini göster",
         recent: "Son:",
@@ -554,4 +560,20 @@ export const getAmenityIcon = (label = '') => {
     if (l.includes('tv') || l.includes('televizyon') || l.includes('uydu') || l.includes('satellite')) return 'tv';
     return 'room_service';
 };
+
+export const getPropertyTypeIcon = (typeName = '') => {
+    if (!typeName) return 'apartment';
+    const s = String(typeName).toLowerCase();
+    if (s.includes('resort') || s.includes('tatil köy')) return 'beach_access';
+    if (s.includes('villa')) return 'house';
+    if (s.includes('apart')) return 'domain';
+    if (s.includes('pension') || s.includes('pansiyon') || s.includes('guest') || s.includes('konuk')) return 'cottage';
+    if (s.includes('hostel')) return 'single_bed';
+    if (s.includes('camp') || s.includes('glamp') || s.includes('kamp')) return 'camping';
+    if (s.includes('boutique') || s.includes('butik')) return 'storefront';
+    if (s.includes('motel')) return 'hotel';
+    if (s.includes('otel') || s.includes('hotel')) return 'hotel';
+    return 'apartment';
+};
+
 

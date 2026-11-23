@@ -28,7 +28,8 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing, getAmenityIcon } from '../utils/hotelListingLocales';
+import { LISTING_LOCALES, AMENITY_LOCALES, getAmenityText, getLayerLabel, tListing, getAmenityIcon, getPropertyTypeIcon } from '../utils/hotelListingLocales';
+import { tFilter } from '../utils/filterLocales';
 import PoiMarker from '../components/PoiMarker';
 import HotelQuickLookDrawer from '../components/HotelQuickLookDrawer';
 import { resolveFacility } from '../utils/facilityUtils';
@@ -1926,6 +1927,9 @@ const HotelListing = () => {
     const [isFilterBarAnimated, setIsFilterBarAnimated] = React.useState(false);
     const [isMapStarOpen, setIsMapStarOpen] = React.useState(false);
     const mapStarDropdownRef = React.useRef(null);
+    const [isMapCategoryOpen, setIsMapCategoryOpen] = React.useState(false);
+    const mapCategoryDropdownRef = React.useRef(null);
+    const [mapCategorySearch, setMapCategorySearch] = React.useState('');
     const [recentSearchLocations, setRecentSearchLocations] = React.useState([]);
     const [activePillKey, setActivePillKey] = React.useState(null);
     const isUserPillClickRef = React.useRef(false);
@@ -1996,18 +2000,21 @@ const HotelListing = () => {
         };
     }, [isMapFilterBarOpen]);
 
-    // Outside click listener for expanded map star filter popover
+    // Outside click listener for expanded map star and property type filter popovers
     React.useEffect(() => {
         const handleClickOutside = (e) => {
             if (mapStarDropdownRef.current && !mapStarDropdownRef.current.contains(e.target)) {
                 setIsMapStarOpen(false);
             }
+            if (mapCategoryDropdownRef.current && !mapCategoryDropdownRef.current.contains(e.target)) {
+                setIsMapCategoryOpen(false);
+            }
         };
-        if (isMapStarOpen) {
+        if (isMapStarOpen || isMapCategoryOpen) {
             document.addEventListener('mousedown', handleClickOutside);
             return () => document.removeEventListener('mousedown', handleClickOutside);
         }
-    }, [isMapStarOpen]);
+    }, [isMapStarOpen, isMapCategoryOpen]);
 
     // Fetch user recent search locations when map is expanded (excluding preset cities like Istanbul/Antalya to prevent duplicates)
     React.useEffect(() => {
@@ -2311,6 +2318,130 @@ const HotelListing = () => {
     const priceBtnRef = React.useRef(null);
     const priceDropdownRef = React.useRef(null);
 
+    // ── Quick Filter: Property / Accommodation Type (Konaklama türü) ──
+    const [isCategoryOpen, setIsCategoryOpen] = React.useState(false);
+    const [categoryPosition, setCategoryPosition] = React.useState({ top: 0, left: 0 });
+    const categoryBtnRef = React.useRef(null);
+    const categoryDropdownRef = React.useRef(null);
+    const [categorySearch, setCategorySearch] = React.useState('');
+
+    const urlCategories = React.useMemo(() => {
+        const p = searchParams.get('categories');
+        return p ? p.split(',').map(decodeURIComponent).filter(Boolean) : [];
+    }, [searchParams]);
+
+    const availableCategories = React.useMemo(() => {
+        const raw = dynamicFilters?.categoryName;
+        if (Array.isArray(raw) && raw.length > 0) {
+            return raw.map(item => ({
+                value: item.value,
+                label: item.label || item.value,
+                count: item.count || 0,
+                icon: getPropertyTypeIcon(item.value)
+            }));
+        }
+        // Fallback from loaded hotels if dynamicFilters is not yet present
+        const counts = {};
+        hotels.forEach(h => {
+            const cat = h.categoryName;
+            if (cat) {
+                counts[cat] = (counts[cat] || 0) + 1;
+            }
+        });
+        return Object.entries(counts).map(([value, count]) => ({
+            value,
+            label: value,
+            count,
+            icon: getPropertyTypeIcon(value)
+        })).sort((a, b) => b.count - a.count);
+    }, [dynamicFilters?.categoryName, hotels]);
+
+    const filteredCategories = React.useMemo(() => {
+        let list = [...availableCategories].sort((a, b) => (b.count || 0) - (a.count || 0));
+        if (categorySearch.trim()) {
+            const q = categorySearch.toLowerCase();
+            list = list.filter(c => (c.label || c.value || '').toLowerCase().includes(q));
+        }
+        return list;
+    }, [availableCategories, categorySearch]);
+
+    const filteredMapCategories = React.useMemo(() => {
+        let list = [...availableCategories].sort((a, b) => (b.count || 0) - (a.count || 0));
+        if (mapCategorySearch.trim()) {
+            const q = mapCategorySearch.toLowerCase();
+            list = list.filter(c => (c.label || c.value || '').toLowerCase().includes(q));
+        }
+        return list;
+    }, [availableCategories, mapCategorySearch]);
+
+    const propertyTypeChipLabel = React.useMemo(() => {
+        if (urlCategories.length === 0) {
+            return tListing('propertyType', currentLang) || (currentLang === 'tr' ? 'Konaklama türü' : 'Property type');
+        }
+        if (urlCategories.length === 1) {
+            const found = availableCategories.find(c => c.value === urlCategories[0]);
+            return found ? found.label : urlCategories[0];
+        }
+        return `${urlCategories.length} ${currentLang === 'tr' ? 'Konaklama türü' : 'Property types'}`;
+    }, [urlCategories, availableCategories, currentLang]);
+
+    const updateCategoryPosition = React.useCallback(() => {
+        if (categoryBtnRef.current) {
+            const rect = categoryBtnRef.current.getBoundingClientRect();
+            const rowEl = categoryBtnRef.current.closest('[class*="border-b"]');
+            const rowBottom = rowEl ? rowEl.getBoundingClientRect().bottom : rect.bottom;
+            const popupWidth = 350;
+            let left = rect.left;
+            if (left + popupWidth > window.innerWidth - 16) {
+                left = window.innerWidth - 16 - popupWidth;
+            }
+            setCategoryPosition({
+                top: Math.round(rowBottom),
+                left: Math.round(Math.max(8, left))
+            });
+        }
+    }, []);
+
+    const handleToggleCategoryDropdown = () => {
+        if (!isCategoryOpen) {
+            updateCategoryPosition();
+            setIsStarOpen(false);
+            setIsPriceOpen(false);
+            setIsAmenitiesOpen(false);
+        }
+        setIsCategoryOpen(prev => !prev);
+    };
+
+    React.useEffect(() => {
+        if (!isCategoryOpen) return;
+        updateCategoryPosition();
+        window.addEventListener('resize', updateCategoryPosition);
+        window.addEventListener('scroll', updateCategoryPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateCategoryPosition);
+            window.removeEventListener('scroll', updateCategoryPosition, true);
+        };
+    }, [isCategoryOpen, updateCategoryPosition]);
+
+    const handleToggleCategory = (categoryVal) => {
+        const nextList = urlCategories.includes(categoryVal)
+            ? urlCategories.filter(c => c !== categoryVal)
+            : [...urlCategories, categoryVal];
+        const newParams = new URLSearchParams(searchParams);
+        if (nextList.length > 0) {
+            newParams.set('categories', nextList.join(','));
+        } else {
+            newParams.delete('categories');
+        }
+        setSearchParams(newParams);
+    };
+
+    const handleClearCategories = () => {
+        const newParams = new URLSearchParams(searchParams);
+        newParams.delete('categories');
+        setSearchParams(newParams);
+    };
+
     const urlStars = React.useMemo(() => {
         const p = searchParams.get('stars');
         return p ? p.split(',').map(Number) : [];
@@ -2411,6 +2542,7 @@ const HotelListing = () => {
             updateStarPosition();
             setIsPriceOpen(false);
             setIsAmenitiesOpen(false);
+            setIsCategoryOpen(false);
         }
         setIsStarOpen(prev => !prev);
     };
@@ -2420,6 +2552,7 @@ const HotelListing = () => {
             updatePricePosition();
             setIsStarOpen(false);
             setIsAmenitiesOpen(false);
+            setIsCategoryOpen(false);
         }
         setIsPriceOpen(prev => !prev);
     };
@@ -2497,6 +2630,7 @@ const HotelListing = () => {
         newParams.delete('amenities');
         newParams.delete('recommended');
         newParams.delete('stars');
+        newParams.delete('categories');
         newParams.delete('guestRating');
         newParams.delete('priceMin');
         newParams.delete('priceMax');
@@ -2548,6 +2682,7 @@ const HotelListing = () => {
             updateAmenitiesPosition();
             setIsStarOpen(false);
             setIsPriceOpen(false);
+            setIsCategoryOpen(false);
         }
         setIsAmenitiesOpen(prev => !prev);
     };
@@ -4239,6 +4374,12 @@ const HotelListing = () => {
                 setIsAmenitiesOpen(false);
             }
             if (
+                categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target) &&
+                categoryBtnRef.current && !categoryBtnRef.current.contains(event.target)
+            ) {
+                setIsCategoryOpen(false);
+            }
+            if (
                 starDropdownRef.current && !starDropdownRef.current.contains(event.target) &&
                 starBtnRef.current && !starBtnRef.current.contains(event.target)
             ) {
@@ -4533,6 +4674,32 @@ const HotelListing = () => {
                             )}
                             <span className={`material-symbols-outlined text-[18px] ${selectedFacilities.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
                                 {isAmenitiesOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                            </span>
+                        </button>
+
+                        {/* 6. Property Type (Konaklama türü / Hotel type) Quick Filter Button */}
+                        <button
+                            ref={categoryBtnRef}
+                            type="button"
+                            onClick={handleToggleCategoryDropdown}
+                            className={`flex items-center gap-1.5 border rounded-lg px-3 h-8 text-[13px] whitespace-nowrap shrink-0 transition-colors select-none font-roboto ${urlCategories.length > 0
+                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/30 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                    : isCategoryOpen
+                                        ? 'border-[#dadce0] dark:border-slate-600 bg-white dark:bg-[#303134] text-[#202124] dark:text-white font-medium'
+                                        : 'border-[#dadce0] dark:border-slate-600 text-[#3c4043] dark:text-slate-200 font-medium hover:bg-[#f8f9fa] dark:hover:bg-slate-700'
+                                }`}
+                        >
+                            <span className={`material-symbols-outlined text-[18px] ${urlCategories.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'}`}>
+                                apartment
+                            </span>
+                            <span>{propertyTypeChipLabel}</span>
+                            {urlCategories.length > 0 && (
+                                <span className="bg-[#1a73e8] text-white text-[10px] font-bold rounded-lg min-w-[16px] h-4 flex items-center justify-center px-1">
+                                    {urlCategories.length}
+                                </span>
+                            )}
+                            <span className={`material-symbols-outlined text-[18px] ${urlCategories.length > 0 ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#5f6368] dark:text-slate-400'}`}>
+                                {isCategoryOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
                             </span>
                         </button>
 
@@ -4978,6 +5145,128 @@ const HotelListing = () => {
                         </>
                     )}
 
+                    {/* ════════════════════════════════════════════
+                        POPUP 4: Konaklama Türü (Property Type) Dropdown Popup Overlay
+                    ════════════════════════════════════════════ */}
+                    {isCategoryOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[2400] bg-transparent" onClick={() => setIsCategoryOpen(false)} />
+                            <div
+                                ref={categoryDropdownRef}
+                                style={{
+                                    top: `${categoryPosition.top}px`,
+                                    left: `${categoryPosition.left}px`
+                                }}
+                                className="fixed z-[2500] w-[350px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#303134] rounded-lg shadow-[0_1px_3px_0_rgba(60,64,67,0.3),0_4px_8px_3px_rgba(60,64,67,0.15)] border border-[#dadce0] dark:border-slate-700 flex flex-col animate-in fade-in zoom-in-95 duration-150"
+                            >
+                                {/* Header */}
+                                <div className="flex items-center justify-between pt-3.5 px-5 pb-1 shrink-0">
+                                    <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100 font-roboto">
+                                        {tListing('propertyType', currentLang) || (currentLang === 'tr' ? 'Konaklama türü' : 'Property type')}
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCategoryOpen(false)}
+                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[#5f6368] hover:text-[#202124] dark:text-slate-400 dark:hover:text-white hover:bg-[#f1f3f4] dark:hover:bg-slate-700 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-[18px]">close</span>
+                                    </button>
+                                </div>
+
+                                {/* Search Bar (if more than 6 categories) */}
+                                {availableCategories.length > 6 && (
+                                    <div className="px-5 pt-2 pb-1 shrink-0">
+                                        <div className="relative group/search">
+                                            <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] transition-colors">
+                                                search
+                                            </span>
+                                            <input
+                                                type="text"
+                                                placeholder={tListing('searchPropertyTypes', currentLang) || (currentLang === 'tr' ? 'Konaklama türü ara...' : 'Search property types...')}
+                                                value={categorySearch}
+                                                onChange={(e) => setCategorySearch(e.target.value)}
+                                                className="w-full pl-8 pr-7 py-1.5 bg-[#f1f3f4] dark:bg-slate-700/60 border border-transparent focus:border-blue-500 rounded-lg text-xs text-[#202124] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none transition-all font-roboto"
+                                            />
+                                            {categorySearch && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCategorySearch('')}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined text-[14px]">close</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 2-Column Grid */}
+                                <div className="px-5 py-2 max-h-[380px] overflow-y-auto custom-scrollbar">
+                                    {filteredCategories.length === 0 ? (
+                                        <div className="py-8 text-center text-[#5f6368] dark:text-slate-400 text-xs font-roboto">
+                                            {categorySearch ? (tListing('noPropertyTypesFound', currentLang) || 'Konaklama türü bulunamadı') : (isLoading ? tListing('searching', currentLang) : (tListing('noPropertyTypesFound', currentLang) || 'Konaklama türü bulunamadı'))}
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 border border-[#dadce0] dark:border-slate-700 rounded-xl overflow-hidden">
+                                            {filteredCategories.map((cat, index) => {
+                                                const isSelected = urlCategories.includes(cat.value);
+                                                const isLeftCol = index % 2 === 0;
+                                                const totalRows = Math.ceil(filteredCategories.length / 2);
+                                                const currentRow = Math.floor(index / 2);
+                                                const isLastRow = currentRow === totalRows - 1;
+
+                                                return (
+                                                    <button
+                                                        key={cat.value}
+                                                        type="button"
+                                                        onClick={() => handleToggleCategory(cat.value)}
+                                                        className={`flex flex-col items-center justify-center py-2.5 px-2 text-center cursor-pointer transition-colors select-none min-h-[72px] ${isLeftCol ? 'border-r border-[#dadce0] dark:border-slate-700' : ''
+                                                            } ${!isLastRow ? 'border-b border-[#dadce0] dark:border-slate-700' : ''
+                                                            } ${isSelected
+                                                                ? 'bg-[#e8f0fe] dark:bg-blue-900/40 text-[#1a73e8] dark:text-blue-300 font-medium'
+                                                                : 'bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 hover:bg-[#f8f9fa] dark:hover:bg-slate-700/60'
+                                                            }`}
+                                                    >
+                                                        <span
+                                                            className={`material-symbols-outlined text-[20px] mb-1 transition-colors ${isSelected ? 'text-[#1a73e8] dark:text-blue-300' : 'text-[#3c4043] dark:text-slate-300'
+                                                                }`}
+                                                        >
+                                                            {cat.icon}
+                                                        </span>
+                                                        <span className="text-[12px] leading-snug font-roboto line-clamp-2 px-1">
+                                                            {cat.label}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">
+                                                            ({cat.count})
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                            {filteredCategories.length % 2 !== 0 && (
+                                                <div className="bg-white dark:bg-[#303134]" />
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Footer with Temizle */}
+                                <div className="px-5 pb-3 pt-1 flex justify-end items-center shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearCategories}
+                                        disabled={urlCategories.length === 0}
+                                        className={`text-[13px] font-medium font-roboto transition-colors select-none ${urlCategories.length > 0
+                                                ? 'text-[#1a73e8] hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg px-2.5 py-1 cursor-pointer'
+                                                : 'text-[#bdc1c6] dark:text-slate-600 px-2.5 py-1 cursor-default'
+                                            }`}
+                                    >
+                                        {tListing('clear', currentLang)}
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
                     {/* Filter Popup Overlay */}
                     {isFilterDrawerOpen && (
                         <>
@@ -5390,7 +5679,10 @@ const HotelListing = () => {
                                     <div className="relative shrink-0" ref={mapStarDropdownRef}>
                                         <button
                                             type="button"
-                                            onClick={() => setIsMapStarOpen(prev => !prev)}
+                                            onClick={() => {
+                                                setIsMapCategoryOpen(false);
+                                                setIsMapStarOpen(prev => !prev);
+                                            }}
                                             className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${
                                                 urlStars.length > 0
                                                     ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
@@ -5449,6 +5741,109 @@ const HotelListing = () => {
                                         )}
                                     </div>
 
+                                    {/* Effective Compact Property Type Filter Popover */}
+                                    <div className="relative shrink-0" ref={mapCategoryDropdownRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsMapStarOpen(false);
+                                                setIsMapCategoryOpen(prev => !prev);
+                                            }}
+                                            className={`h-9 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 border transition-all cursor-pointer ${
+                                                urlCategories.length > 0
+                                                    ? 'bg-[#e8f0fe] dark:bg-blue-900/40 border-[#1a73e8]/40 text-[#1a73e8] dark:text-blue-300 shadow-2xs font-semibold'
+                                                    : isMapCategoryOpen
+                                                        ? 'border-[#1a73e8] text-[#1a73e8] bg-white dark:bg-slate-800 ring-2 ring-[#1a73e8]/20'
+                                                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                                            }`}
+                                        >
+                                            <span className="material-symbols-outlined text-[16px] text-indigo-500">apartment</span>
+                                            <span>{propertyTypeChipLabel}</span>
+                                            {urlCategories.length > 0 && (
+                                                <span className="w-4 h-4 rounded-full bg-[#1a73e8] text-white text-[10px] font-bold flex items-center justify-center">
+                                                    {urlCategories.length}
+                                                </span>
+                                            )}
+                                            <span className="material-symbols-outlined text-[16px] text-slate-400">
+                                                {isMapCategoryOpen ? 'arrow_drop_up' : 'arrow_drop_down'}
+                                            </span>
+                                        </button>
+
+                                        {isMapCategoryOpen && (
+                                            <div className="absolute top-full left-0 mt-1.5 w-64 bg-white dark:bg-[#202124] rounded-xl border border-[#dadce0] dark:border-slate-700 shadow-[0_8px_30px_rgba(0,0,0,0.18)] p-3 z-[2150] animate-in fade-in slide-in-from-top-1 duration-150">
+                                                <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                                                    <span className="text-xs font-semibold text-slate-800 dark:text-white">
+                                                        {tListing('propertyType', currentLang)}
+                                                    </span>
+                                                    {urlCategories.length > 0 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleClearCategories}
+                                                            className="text-[11px] font-medium text-[#1a73e8] hover:underline cursor-pointer"
+                                                        >
+                                                            {tListing('clear', currentLang)}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                {availableCategories.length > 6 && (
+                                                    <div className="relative mb-2">
+                                                        <input
+                                                            type="text"
+                                                            value={mapCategorySearch}
+                                                            onChange={(e) => setMapCategorySearch(e.target.value)}
+                                                            placeholder={tListing('searchPropertyTypes', currentLang)}
+                                                            className="w-full h-7 pl-7 pr-2 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-[#1a73e8]"
+                                                        />
+                                                        <span className="material-symbols-outlined text-[14px] text-slate-400 absolute left-2 top-1.5">search</span>
+                                                    </div>
+                                                )}
+                                                <div className="max-h-60 overflow-y-auto space-y-1 custom-scrollbar">
+                                                    {filteredMapCategories.length === 0 ? (
+                                                        <p className="text-xs text-slate-400 dark:text-slate-500 py-3 text-center">
+                                                            {tListing('noPropertyTypesFound', currentLang)}
+                                                        </p>
+                                                    ) : (
+                                                        filteredMapCategories.map(cat => {
+                                                            const active = urlCategories.includes(cat.value);
+                                                            const icon = getPropertyTypeIcon(cat.label || cat.value);
+                                                            return (
+                                                                <button
+                                                                    key={cat.value}
+                                                                    type="button"
+                                                                    onClick={() => handleToggleCategory(cat.value)}
+                                                                    className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center justify-between transition-colors cursor-pointer text-left ${
+                                                                        active
+                                                                            ? 'bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] dark:text-blue-300 font-semibold'
+                                                                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                                    }`}
+                                                                >
+                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                        <span className={`material-symbols-outlined text-[15px] shrink-0 ${active ? 'text-[#1a73e8] dark:text-blue-300' : 'text-slate-400'}`}>
+                                                                            {icon}
+                                                                        </span>
+                                                                        <span className="truncate">{cat.label}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                                                        {cat.count > 0 && (
+                                                                            <span className="text-[10px] text-slate-400 font-normal">
+                                                                                ({cat.count})
+                                                                            </span>
+                                                                        )}
+                                                                        {active && (
+                                                                            <span className="material-symbols-outlined text-[14px] text-[#1a73e8] dark:text-blue-300">
+                                                                                check
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </button>
+                                                            );
+                                                        })
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Most Recommended Toggle */}
                                     <button
                                         type="button"
@@ -5486,6 +5881,7 @@ const HotelListing = () => {
                                                 params.delete('guestRating');
                                                 params.delete('stars');
                                                 params.delete('facilities');
+                                                params.delete('categories');
                                                 params.delete('recommended');
                                                 params.delete('priceMin');
                                                 params.delete('priceMax');
@@ -5504,6 +5900,7 @@ const HotelListing = () => {
                                         onClick={() => {
                                             setIsMapFilterBarOpen(false);
                                             setIsMapStarOpen(false);
+                                            setIsMapCategoryOpen(false);
                                         }}
                                         className="w-7 h-7 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer shrink-0 ml-auto"
                                         title={tListing('close', currentLang)}

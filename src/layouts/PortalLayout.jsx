@@ -85,7 +85,7 @@ const PortalLayout = () => {
                 <div className="flex items-center gap-3 shrink-0 z-10">
                     <button 
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none active:scale-95 cursor-pointer" 
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none active:scale-95 cursor-pointer" 
                         aria-label="Menü"
                     >
                         <span className="material-symbols-outlined text-[22px]">menu</span>

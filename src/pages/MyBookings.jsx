@@ -755,8 +755,8 @@ const MyBookings = () => {
                                     {activeFiltersCount}
                                 </span>
                             )}
-                            <span className="material-symbols-outlined text-[16px]">
-                                {isAdvancedFiltersOpen ? 'expand_less' : 'expand_more'}
+                            <span className={`material-symbols-outlined text-[16px] transition-transform duration-300 ease-in-out ${isAdvancedFiltersOpen ? 'rotate-180' : ''}`}>
+                                expand_more
                             </span>
                         </button>
 
@@ -984,8 +984,15 @@ const MyBookings = () => {
                 })()}
 
                 {/* Collapsible Advanced Filters Drawer */}
-                {isAdvancedFiltersOpen && (
-                    <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-sm space-y-4 animate-in fade-in duration-200">
+                <div
+                    className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-in-out ${
+                        isAdvancedFiltersOpen
+                            ? 'grid-rows-[1fr] opacity-100 my-1'
+                            : 'grid-rows-[0fr] opacity-0 my-0 pointer-events-none'
+                    }`}
+                >
+                    <div className="overflow-hidden">
+                        <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] p-5 shadow-sm space-y-4">
                         <div className="flex items-center justify-between border-b border-[#dadce0] dark:border-[#3c4043] pb-3">
                             <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[20px] text-[#1a73e8] dark:text-[#8ab4f8]">filter_alt</span>
@@ -1172,7 +1179,8 @@ const MyBookings = () => {
                             </button>
                         </div>
                     </div>
-                )}
+                </div>
+            </div>
 
                 {/* Table with Google Material Card Design */}
                 <div className="bg-white dark:bg-[#28292c] rounded-2xl border border-[#dadce0] dark:border-[#3c4043] shadow-xs overflow-hidden">
@@ -1201,148 +1209,156 @@ const MyBookings = () => {
                                     })}
                                 </tr>
 
-                                {/* Conditional In-Table Filter Row */}
-                                {showColumnFilters && (
-                                    <tr className="bg-[#f8f9fa]/70 dark:bg-[#202124]/70 border-b border-[#dadce0] dark:border-[#3c4043] relative z-10">
-                                        {columns.map(col => (
-                                            <td key={col} className="px-2 py-2">
-                                                {col === "Reservation Number" && (
-                                                    <input type="number" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('colId')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
-                                                )}
-                                                {col === "Voucher" && (
-                                                    <input type="text" value={filters.voucher} onChange={(e) => handleFilterChange('voucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phVoucher')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
-                                                )}
-                                                {col === "Hotel" && (
-                                                    <input type="text" value={filters.hotelName} onChange={(e) => handleFilterChange('hotelName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phHotelName')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
-                                                )}
-                                                {col === "Reservation Date" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.createDateStart} onChange={(e) => handleFilterChange('createDateStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
-                                                        <input type="date" value={filters.createDateEnd} onChange={(e) => handleFilterChange('createDateEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                {/* Animated In-Table Column Filter Row */}
+                                <tr className={`bg-[#f8f9fa]/80 dark:bg-[#202124]/80 border-b border-[#dadce0] dark:border-[#3c4043] relative z-10 transition-all duration-300 ease-in-out ${
+                                    showColumnFilters ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                                }`}>
+                                    {columns.map(col => (
+                                        <td key={col} className="p-0 border-none">
+                                            <div className={`grid transition-[grid-template-rows] duration-300 ease-in-out ${
+                                                showColumnFilters ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                                            }`}>
+                                                <div className="overflow-hidden">
+                                                    <div className="p-2">
+                                                        {col === "Reservation Number" && (
+                                                            <input type="number" value={filters.id} onChange={(e) => handleFilterChange('id', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('colId')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
+                                                        )}
+                                                        {col === "Voucher" && (
+                                                            <input type="text" value={filters.voucher} onChange={(e) => handleFilterChange('voucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phVoucher')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
+                                                        )}
+                                                        {col === "Hotel" && (
+                                                            <input type="text" value={filters.hotelName} onChange={(e) => handleFilterChange('hotelName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phHotelName')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
+                                                        )}
+                                                        {col === "Reservation Date" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="date" value={filters.createDateStart} onChange={(e) => handleFilterChange('createDateStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                                <input type="date" value={filters.createDateEnd} onChange={(e) => handleFilterChange('createDateEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Check-in" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="date" value={filters.checkInStart} onChange={(e) => handleFilterChange('checkInStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                                <input type="date" value={filters.checkInEnd} onChange={(e) => handleFilterChange('checkInEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Check-out" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="date" value={filters.checkOutStart} onChange={(e) => handleFilterChange('checkOutStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                                <input type="date" value={filters.checkOutEnd} onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Sale Amount" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minAmount} onChange={(e) => handleFilterChange('minAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxAmount} onChange={(e) => handleFilterChange('maxAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Payment" && (
+                                                            <select value={filters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
+                                                                <option value="">{L('all')}</option>
+                                                                <option value="PENDING_PAYMENT">{L('pyPending')}</option>
+                                                                <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
+                                                                <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
+                                                                <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
+                                                                <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
+                                                                <option value="FAILED">{L('pyFailed')}</option>
+                                                            </select>
+                                                        )}
+                                                        {col === "Status" && (
+                                                            <StatusMultiSelect selectedValues={filters.bookingStatuses} onChange={(values) => handleFilterChange('bookingStatuses', values)} />
+                                                        )}
+                                                        {col === "Cancel Fee" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minCancellationAmount} onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxCancellationAmount} onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "UUID" && (
+                                                            <input type="text" value={filters.bookingUuid} onChange={(e) => handleFilterChange('bookingUuid', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phUuid')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
+                                                        )}
+                                                        {col === "GSA" && (
+                                                            <GenericMultiSelect options={gsaOptions} selectedValues={filters.gsaIds} onChange={(values) => handleFilterChange('gsaIds', values)} placeholder="Select GSA" />
+                                                        )}
+                                                        {col === "RSA" && (
+                                                            <GenericMultiSelect options={rsaOptions} selectedValues={filters.rsaIds} onChange={(values) => handleFilterChange('rsaIds', values)} placeholder="Select RSA" disabled={filters.gsaIds.length > 0 && rsaOptions.length === 0} />
+                                                        )}
+                                                        {col === "Agency" && (
+                                                            <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder="Select Agency" disabled={filters.rsaIds.length > 0 && agencyOptions.length === 0} />
+                                                        )}
+                                                        {col === "Hotel ID" && (
+                                                            <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                        )}
+                                                        {col === "Supplier" && (
+                                                            <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" alignRight={true} />
+                                                        )}
+                                                        {col === "Supplier Reservation Number" && (
+                                                            <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                        )}
+                                                        {col === "Country" && (
+                                                            <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
+                                                        )}
+                                                        {col === "City" && (
+                                                            <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" alignRight={true} />
+                                                        )}
+                                                        {col === "Currency" && (
+                                                            <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />
+                                                        )}
+                                                        {col === "Net Amount" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Markup" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Profit" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Room" && (
+                                                            <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                        )}
+                                                        {col === "Room Count" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" min="1" value={filters.minRoom} onChange={(e) => handleFilterChange('minRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" min="1" value={filters.maxRoom} onChange={(e) => handleFilterChange('maxRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Board Type" && (
+                                                            <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" alignRight={true} />
+                                                        )}
+                                                        {col === "Guest" && (
+                                                            <div className="flex flex-col gap-1">
+                                                                <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                                <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                            </div>
+                                                        )}
+                                                        {col === "Client Reference" && (
+                                                            <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
+                                                        )}
+                                                        {col === "Cancelled?" && (
+                                                            <select value={filters.isCancelled} onChange={(e) => handleFilterChange('isCancelled', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
+                                                                <option value="">{L('all')}</option>
+                                                                <option value="true">{L('yes')}</option>
+                                                                <option value="false">{L('no')}</option>
+                                                            </select>
+                                                        )}
+                                                        {/* Fallback for other columns */}
+                                                        {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Net Amount", "Markup", "Profit", "Room", "Room Count", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
+                                                            <div className="text-[10px] text-slate-400">Filter N/A</div>
+                                                        )}
                                                     </div>
-                                                )}
-                                                {col === "Check-in" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.checkInStart} onChange={(e) => handleFilterChange('checkInStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
-                                                        <input type="date" value={filters.checkInEnd} onChange={(e) => handleFilterChange('checkInEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Check-out" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="date" value={filters.checkOutStart} onChange={(e) => handleFilterChange('checkOutStart', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
-                                                        <input type="date" value={filters.checkOutEnd} onChange={(e) => handleFilterChange('checkOutEnd', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Sale Amount" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minAmount} onChange={(e) => handleFilterChange('minAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxAmount} onChange={(e) => handleFilterChange('maxAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Payment" && (
-                                                    <select value={filters.paymentStatus} onChange={(e) => handleFilterChange('paymentStatus', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                        <option value="">{L('all')}</option>
-                                                        <option value="PENDING_PAYMENT">{L('pyPending')}</option>
-                                                        <option value="PAID_CREDIT_CARD">{L('pyPaidCard')}</option>
-                                                        <option value="PAID_ACCOUNT">{L('pyPaidAcc')}</option>
-                                                        <option value="REFUNDED_CREDIT_CARD">{L('pyRefCard')}</option>
-                                                        <option value="REFUNDED_ACCOUNT">{L('pyRefAcc')}</option>
-                                                        <option value="FAILED">{L('pyFailed')}</option>
-                                                    </select>
-                                                )}
-                                                {col === "Status" && (
-                                                    <StatusMultiSelect selectedValues={filters.bookingStatuses} onChange={(values) => handleFilterChange('bookingStatuses', values)} />
-                                                )}
-                                                {col === "Cancel Fee" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minCancellationAmount} onChange={(e) => handleFilterChange('minCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxCancellationAmount} onChange={(e) => handleFilterChange('maxCancellationAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "UUID" && (
-                                                    <input type="text" value={filters.bookingUuid} onChange={(e) => handleFilterChange('bookingUuid', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phUuid')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none" />
-                                                )}
-                                                {col === "GSA" && (
-                                                    <GenericMultiSelect options={gsaOptions} selectedValues={filters.gsaIds} onChange={(values) => handleFilterChange('gsaIds', values)} placeholder="Select GSA" />
-                                                )}
-                                                {col === "RSA" && (
-                                                    <GenericMultiSelect options={rsaOptions} selectedValues={filters.rsaIds} onChange={(values) => handleFilterChange('rsaIds', values)} placeholder="Select RSA" disabled={filters.gsaIds.length > 0 && rsaOptions.length === 0} />
-                                                )}
-                                                {col === "Agency" && (
-                                                    <GenericMultiSelect options={agencyOptions} selectedValues={filters.agencyIds} onChange={(values) => handleFilterChange('agencyIds', values)} placeholder="Select Agency" disabled={filters.rsaIds.length > 0 && agencyOptions.length === 0} />
-                                                )}
-                                                {col === "Hotel ID" && (
-                                                    <input type="number" value={filters.internalHotelId} onChange={(e) => handleFilterChange('internalHotelId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Hotel ID" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                )}
-                                                {col === "Supplier" && (
-                                                    <GenericMultiSelect options={supplierOptions} selectedValues={filters.supplierIds || []} onChange={(values) => handleFilterChange('supplierIds', values)} placeholder="Select Supplier" alignRight={true} />
-                                                )}
-                                                {col === "Supplier Reservation Number" && (
-                                                    <input type="text" value={filters.supplierVoucher || ''} onChange={(e) => handleFilterChange('supplierVoucher', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Res. No." className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                )}
-                                                {col === "Country" && (
-                                                    <GenericMultiSelect options={countryOptions} selectedValues={filters.countryIds || []} onChange={(values) => handleFilterChange('countryIds', values)} placeholder="Select Country" alignRight={true} />
-                                                )}
-                                                {col === "City" && (
-                                                    <GenericMultiSelect options={cityOptions} selectedValues={filters.cityIds || []} onChange={(values) => handleFilterChange('cityIds', values)} placeholder="Select City" alignRight={true} />
-                                                )}
-                                                {col === "Currency" && (
-                                                    <GenericMultiSelect options={currencyOptions} selectedValues={filters.currencies || []} onChange={(values) => handleFilterChange('currencies', values)} placeholder="Select Currency" alignRight={true} />
-                                                )}
-                                                {col === "Net Amount" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minNetAmount} onChange={(e) => handleFilterChange('minNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxNetAmount} onChange={(e) => handleFilterChange('maxNetAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Markup" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Profit" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minMarkupAmount} onChange={(e) => handleFilterChange('minMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxMarkupAmount} onChange={(e) => handleFilterChange('maxMarkupAmount', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Room" && (
-                                                    <input type="text" value={filters.roomName} onChange={(e) => handleFilterChange('roomName', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Room" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                )}
-                                                {col === "Room Count" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" min="1" value={filters.minRoom} onChange={(e) => handleFilterChange('minRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMin')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" min="1" value={filters.maxRoom} onChange={(e) => handleFilterChange('maxRoom', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phMax')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Board Type" && (
-                                                    <GenericMultiSelect options={boardTypeOptions} selectedValues={filters.boardTypes || []} onChange={(values) => handleFilterChange('boardTypes', values)} placeholder="Select Board" alignRight={true} />
-                                                )}
-                                                {col === "Guest" && (
-                                                    <div className="flex flex-col gap-1">
-                                                        <input type="number" value={filters.minGuest} onChange={(e) => handleFilterChange('minGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Min" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                        <input type="number" value={filters.maxGuest} onChange={(e) => handleFilterChange('maxGuest', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Max" className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-1.5 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                    </div>
-                                                )}
-                                                {col === "Client Reference" && (
-                                                    <input type="text" value={filters.clientReferenceId} onChange={(e) => handleFilterChange('clientReferenceId', e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder={L('phClRef')} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 placeholder-[#70757a] focus:border-[#1a73e8] outline-none" />
-                                                )}
-                                                {col === "Cancelled?" && (
-                                                    <select value={filters.isCancelled} onChange={(e) => handleFilterChange('isCancelled', e.target.value)} className="w-full bg-white dark:bg-[#202124] border border-[#dadce0] dark:border-[#5f6368] rounded-lg py-1 px-2 text-[13px] font-normal text-[#202124] dark:text-slate-200 focus:border-[#1a73e8] outline-none cursor-pointer">
-                                                        <option value="">{L('all')}</option>
-                                                        <option value="true">{L('yes')}</option>
-                                                        <option value="false">{L('no')}</option>
-                                                    </select>
-                                                )}
-                                                {/* Fallback for other columns */}
-                                                {!["Reservation Number", "Voucher", "Hotel", "Reservation Date", "Check-in", "Check-out", "Sale Amount", "Payment", "Status", "Cancel Fee", "UUID", "GSA", "RSA", "Agency", "Hotel ID", "Supplier", "Currency", "Net Amount", "Markup", "Profit", "Room", "Room Count", "Board Type", "Guest", "Client Reference", "Cancelled?", "Country", "City", "Supplier Reservation Number"].includes(col) && (
-                                                    <div className="text-[10px] text-slate-400">Filter N/A</div>
-                                                )}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                )}
+                                                </div>
+                                            </div>
+                                        </td>
+                                    ))}
+                                </tr>
                             </thead>
                             <tbody>
                                 {loading ? (

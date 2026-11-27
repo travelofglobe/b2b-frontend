@@ -136,7 +136,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                         onClick={onClose}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all"
                     >
-                        <span className="material-icons-round text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
 
@@ -145,7 +145,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                     <form id="group-form" onSubmit={handleSubmit} className="space-y-4">
                         {error && (
                             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg text-xs font-semibold text-red-500 flex items-center gap-2">
-                                <span className="material-icons-round text-base">error_outline</span>
+                                <span className="material-symbols-outlined text-base">error_outline</span>
                                 {error}
                             </div>
                         )}
@@ -178,7 +178,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                             </div>
                             
                             <div className="relative">
-                                <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
                                 <input 
                                     type="text" 
                                     placeholder="Search agencies..." 
@@ -206,7 +206,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                                                     >
                                                         <div className="flex items-center gap-2.5">
                                                             <div className={`size-4 rounded border flex items-center justify-center transition-all ${form.agencyIds.includes(agency.id) ? 'bg-primary border-primary text-white' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                                {form.agencyIds.includes(agency.id) && <span className="material-icons-round text-xs">check</span>}
+                                                                {form.agencyIds.includes(agency.id) && <span className="material-symbols-outlined text-xs">check</span>}
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{agency.name}</span>
@@ -227,7 +227,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                                         </div>
                                     ) : (
                                         <div className="p-8 text-center text-slate-400">
-                                            <span className="material-icons-round text-2xl mb-1">person_search</span>
+                                            <span className="material-symbols-outlined text-2xl mb-1">person_search</span>
                                             <p className="text-xs font-medium">No agencies found</p>
                                         </div>
                                     )}
@@ -253,7 +253,7 @@ const AddAgencyGroupModal = ({ isOpen, onClose, onSuccess, initialData = null, m
                             <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         ) : (
                             <>
-                                <span className="material-icons-round text-base">{mode === 'edit' ? 'save' : 'add'}</span>
+                                <span className="material-symbols-outlined text-base">{mode === 'edit' ? 'save' : 'add'}</span>
                                 {mode === 'edit' ? 'Save Changes' : 'Create Group'}
                             </>
                         )}

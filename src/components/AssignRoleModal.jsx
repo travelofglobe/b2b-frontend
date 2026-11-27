@@ -64,7 +64,7 @@ const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
                         onClick={onClose}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all"
                     >
-                        <span className="material-icons-round text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
 
@@ -88,7 +88,7 @@ const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
                                         <div className={`size-7 rounded-md flex items-center justify-center transition-all ${
                                             isSelected ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                                         }`}>
-                                            <span className="material-icons-round text-base">
+                                            <span className="material-symbols-outlined text-base">
                                                 {isSelected ? 'verified_user' : 'security'}
                                             </span>
                                         </div>
@@ -106,7 +106,7 @@ const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
                                             ? 'border-primary bg-primary text-white' 
                                             : 'border-slate-300 dark:border-slate-700'
                                     }`}>
-                                        {isSelected && <span className="material-icons-round text-[10px]">check</span>}
+                                        {isSelected && <span className="material-symbols-outlined text-[10px]">check</span>}
                                     </div>
                                 </button>
                             );
@@ -130,7 +130,7 @@ const AssignRoleModal = ({ isOpen, onClose, user, roles, onUpdate }) => {
                         {isSaving ? (
                             <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : (
-                            <span className="material-icons-round text-base">save</span>
+                            <span className="material-symbols-outlined text-base">save</span>
                         )}
                         Update Permissions
                     </button>

@@ -387,7 +387,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                         <p className="text-[11px] font-medium text-slate-400">Define pricing rules and conditions</p>
                     </div>
                     <button onClick={onClose} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all">
-                        <span className="material-icons-round text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
 
@@ -398,7 +398,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                 >
                     {apiError && (
                         <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-500/30 rounded-lg p-3 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                            <span className="material-icons-round text-rose-500 text-lg">error_outline</span>
+                            <span className="material-symbols-outlined text-rose-500 text-lg">error_outline</span>
                             <div className="flex-1">
                                 <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">{apiError}</p>
                             </div>
@@ -407,7 +407,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 onClick={() => setApiError(null)}
                                 className="text-rose-400 hover:text-rose-600 transition-colors"
                             >
-                                <span className="material-icons-round text-base">close</span>
+                                <span className="material-symbols-outlined text-base">close</span>
                             </button>
                         </div>
                     )}
@@ -416,7 +416,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                     <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-sm">badge</span>
+                                <span className="material-symbols-outlined text-sm">badge</span>
                             </div>
                             <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Identity & Value</h3>
                         </div>
@@ -446,7 +446,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                             <option key={p} value={p}>{p}</option>
                                         ))}
                                     </select>
-                                    <span className="material-icons-round absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base">expand_more</span>
+                                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base">expand_more</span>
                                 </div>
                             </div>
                             
@@ -483,7 +483,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                         <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="size-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                    <span className="material-icons-round text-sm">corporate_fare</span>
+                                    <span className="material-symbols-outlined text-sm">corporate_fare</span>
                                 </div>
                                 <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Target Agencies</h3>
                             </div>
@@ -501,7 +501,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                     <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="size-6 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
-                                <span className="material-icons-round text-sm">public</span>
+                                <span className="material-symbols-outlined text-sm">public</span>
                             </div>
                             <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Nationalities</h3>
                         </div>
@@ -514,11 +514,11 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                     selectedNationalities.map(n => (
                                         <span key={n.id} className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded text-[10px] font-semibold flex items-center gap-1">
                                             {n.name}
-                                            <span onClick={(e) => { e.stopPropagation(); toggleNationality(n.id, n.name); }} className="material-icons-round text-[12px] cursor-pointer hover:text-rose-500">close</span>
+                                            <span onClick={(e) => { e.stopPropagation(); toggleNationality(n.id, n.name); }} className="material-symbols-outlined text-[12px] cursor-pointer hover:text-rose-500">close</span>
                                         </span>
                                     ))
                                 ) : <span className="text-xs text-slate-400 font-medium">Select nationalities...</span>}
-                                <span className={`material-icons-round text-slate-400 text-sm ml-auto transition-transform ${showNationalities ? 'rotate-180' : ''}`}>expand_more</span>
+                                <span className={`material-symbols-outlined text-slate-400 text-sm ml-auto transition-transform ${showNationalities ? 'rotate-180' : ''}`}>expand_more</span>
                             </div>
                             
                             {showNationalities && (
@@ -527,7 +527,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                     <div className="absolute top-full left-0 right-0 mt-1 max-h-64 overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl z-50 flex flex-col animate-in fade-in slide-in-from-top-2">
                                         <div className="p-2 border-b border-slate-100 dark:border-slate-800">
                                             <div className="relative">
-                                                <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                                                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
                                                 <input 
                                                     type="text" 
                                                     placeholder="Search nationalities..." 
@@ -548,7 +548,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                                         className={`px-2.5 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors flex items-center justify-between mb-0.5 ${formData.nationalityIds.includes(c.dbId) ? 'bg-primary text-white' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                                                     >
                                                         {getLocalizedName(c.name)}
-                                                        {formData.nationalityIds.includes(c.dbId) && <span className="material-icons-round text-xs">check</span>}
+                                                        {formData.nationalityIds.includes(c.dbId) && <span className="material-symbols-outlined text-xs">check</span>}
                                                     </div>
                                                 ))}
                                             {countries.filter(c => getLocalizedName(c.name).toLowerCase().includes(nationalitySearch.toLowerCase())).length === 0 && (
@@ -566,7 +566,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                         <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="size-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                    <span className="material-icons-round text-sm">calendar_today</span>
+                                    <span className="material-symbols-outlined text-sm">calendar_today</span>
                                 </div>
                                 <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Sales Period</h3>
                             </div>
@@ -595,7 +595,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                         <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                             <div className="flex items-center gap-2">
                                 <div className="size-6 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
-                                    <span className="material-icons-round text-sm">hotel</span>
+                                    <span className="material-symbols-outlined text-sm">hotel</span>
                                 </div>
                                 <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Stay Period</h3>
                             </div>
@@ -626,7 +626,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                     <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="size-6 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-500">
-                                <span className="material-icons-round text-sm">location_city</span>
+                                <span className="material-symbols-outlined text-sm">location_city</span>
                             </div>
                             <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Hotels & Destinations</h3>
                         </div>
@@ -638,7 +638,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 {selectedHotels.map(h => (
                                     <span key={h.id} className="px-2 py-0.5 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-300 rounded text-[10px] font-semibold flex items-center gap-1">
                                         {h.name}
-                                        <span onClick={() => removeHotel(h.id)} className="material-icons-round text-[12px] cursor-pointer hover:text-rose-700">close</span>
+                                        <span onClick={() => removeHotel(h.id)} className="material-symbols-outlined text-[12px] cursor-pointer hover:text-rose-700">close</span>
                                     </span>
                                 ))}
                                 <input 
@@ -691,7 +691,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                             )}
                                             <span
                                                 onClick={() => removeLocation(loc.regionId)}
-                                                className="material-icons-round text-[12px] cursor-pointer hover:text-rose-500 ml-0.5"
+                                                className="material-symbols-outlined text-[12px] cursor-pointer hover:text-rose-500 ml-0.5"
                                             >close</span>
                                         </span>
                                     ))}
@@ -699,7 +699,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                             )}
                             {/* Search input */}
                             <div className="relative">
-                                <span className="material-icons-round absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">search</span>
+                                <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none">search</span>
                                 <input
                                     type="text"
                                     value={locationSearch}
@@ -753,7 +753,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                                         }`}
                                                     >
                                                         <div className="flex items-center gap-2 min-w-0">
-                                                            <span className="material-icons-round text-slate-300 text-sm shrink-0">location_on</span>
+                                                            <span className="material-symbols-outlined text-slate-300 text-sm shrink-0">location_on</span>
                                                             <div className="min-w-0">
                                                                 <div className="flex items-center gap-1.5">
                                                                     <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">
@@ -771,7 +771,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                                             </div>
                                                         </div>
                                                         {isSelected && (
-                                                            <span className="material-icons-round text-blue-500 text-sm shrink-0">check_circle</span>
+                                                            <span className="material-symbols-outlined text-blue-500 text-sm shrink-0">check_circle</span>
                                                         )}
                                                     </div>
                                                 );
@@ -790,7 +790,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="size-6 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-500">
-                                    <span className="material-icons-round text-sm">price_change</span>
+                                    <span className="material-symbols-outlined text-sm">price_change</span>
                                 </div>
                                 <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Price Ranges</h3>
                                 <span className="text-[10px] font-medium text-slate-400">(optional)</span>
@@ -800,14 +800,14 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 onClick={addPriceRange}
                                 className="h-7 px-2.5 rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400 text-[11px] font-semibold flex items-center gap-1 hover:bg-teal-100 dark:hover:bg-teal-900/40 transition-all"
                             >
-                                <span className="material-icons-round text-sm">add</span>
+                                <span className="material-symbols-outlined text-sm">add</span>
                                 Add Range
                             </button>
                         </div>
 
                         {formData.priceRanges.length === 0 ? (
                             <div className="flex items-center justify-center gap-2 py-4 border border-dashed border-slate-200 dark:border-slate-700 rounded-lg">
-                                <span className="material-icons-round text-slate-300 text-lg">tune</span>
+                                <span className="material-symbols-outlined text-slate-300 text-lg">tune</span>
                                 <span className="text-[11px] font-medium text-slate-400">No price ranges defined — markup applies to all prices</span>
                             </div>
                         ) : (
@@ -857,7 +857,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                             onClick={() => removePriceRange(idx)}
                                             className="size-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 hover:text-rose-500 transition-all"
                                         >
-                                            <span className="material-icons-round text-sm">delete_outline</span>
+                                            <span className="material-symbols-outlined text-sm">delete_outline</span>
                                         </button>
                                     </div>
                                 ))}
@@ -869,7 +869,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                     <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl border border-slate-100 dark:border-white/5 space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="size-6 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
-                                <span className="material-icons-round text-sm">policy</span>
+                                <span className="material-symbols-outlined text-sm">policy</span>
                             </div>
                             <h3 className="text-xs font-semibold text-slate-800 dark:text-white">Cancel Policy</h3>
                             <span className="text-[10px] font-medium text-slate-400">(optional)</span>
@@ -896,7 +896,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                                 : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800'
                                         }`}
                                     >
-                                        <span className={`material-icons-round text-base ${
+                                        <span className={`material-symbols-outlined text-base ${
                                             isSelected
                                                 ? opt.color === 'emerald' ? 'text-emerald-500' : 'text-rose-500'
                                                 : 'text-slate-400'
@@ -926,7 +926,7 @@ const AddMarkupModal = ({ isOpen, onClose, onSuccess, editData, hideAgencySelect
                                 <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
                                 <>
-                                    <span className="material-icons-round text-base">auto_awesome</span>
+                                    <span className="material-symbols-outlined text-base">auto_awesome</span>
                                     {editData ? 'Update Rule' : 'Publish Rule'}
                                 </>
                             )}

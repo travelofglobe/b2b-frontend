@@ -327,13 +327,13 @@ const SubAgencyMarkups = () => {
                                                 className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-400 transition-all"
                                                 title="Revision History"
                                             >
-                                                <span className="material-icons-round text-sm">history</span>
+                                                <span className="material-symbols-outlined text-sm">history</span>
                                             </button>
                                             <button onClick={() => handleEditMarkup(m)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-500 transition-all">
-                                                <span className="material-icons-round text-sm">edit</span>
+                                                <span className="material-symbols-outlined text-sm">edit</span>
                                             </button>
                                             <button onClick={() => handleDeleteMarkup(m)} className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all">
-                                                <span className="material-icons-round text-sm">delete_outline</span>
+                                                <span className="material-symbols-outlined text-sm">delete_outline</span>
                                             </button>
                                         </div>
                                     </td>
@@ -342,7 +342,7 @@ const SubAgencyMarkups = () => {
                                 <tr>
                                     <td colSpan="8" className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-2 text-slate-300">
-                                            <span className="material-icons-round text-4xl">analytics</span>
+                                            <span className="material-symbols-outlined text-4xl">analytics</span>
                                             <span className="text-xs font-semibold text-slate-400">{L('noRules')}</span>
                                         </div>
                                     </td>
@@ -363,7 +363,7 @@ const SubAgencyMarkups = () => {
                             onClick={() => handlePageChange(filters.page - 1)}
                             className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                         >
-                            <span className="material-icons-round text-sm">chevron_left</span>
+                            <span className="material-symbols-outlined text-sm">chevron_left</span>
                         </button>
                         <div className="flex items-center gap-1">
                             {[...Array(Math.min(5, totalPages))].map((_, i) => {
@@ -387,7 +387,7 @@ const SubAgencyMarkups = () => {
                             onClick={() => handlePageChange(filters.page + 1)}
                             className="size-7 rounded-lg border border-slate-200 dark:border-white/5 flex items-center justify-center text-slate-400 disabled:opacity-30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                         >
-                            <span className="material-icons-round text-sm">chevron_right</span>
+                            <span className="material-symbols-outlined text-sm">chevron_right</span>
                         </button>
                     </div>
                 </div>
@@ -395,7 +395,7 @@ const SubAgencyMarkups = () => {
 
             {toast.show && (
                 <div className={`fixed bottom-8 right-8 z-[50000] flex items-center gap-3 px-5 py-3 rounded-lg shadow-xl animate-in slide-in-from-right-10 duration-300 ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-[#202124] text-white border border-[#3c4043]'}`}>
-                    <span className="material-icons-round text-xl">{toast.type === 'error' ? 'error_outline' : 'check_circle_outline'}</span>
+                    <span className="material-symbols-outlined text-xl">{toast.type === 'error' ? 'error_outline' : 'check_circle_outline'}</span>
                     <p className="text-xs font-semibold">{toast.message}</p>
                 </div>
             )}

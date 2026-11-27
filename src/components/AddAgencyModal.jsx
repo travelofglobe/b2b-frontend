@@ -236,7 +236,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
     const SectionHeader = ({ icon, title, color = "blue" }) => (
         <div className="flex items-center gap-2 mb-3">
             <div className={`size-6 bg-${color}-500/10 rounded-lg flex items-center justify-center text-${color}-500 shadow-xs border border-${color}-500/20`}>
-                <span className="material-icons-round text-sm">{icon}</span>
+                <span className="material-symbols-outlined text-sm">{icon}</span>
             </div>
             <h3 className="text-xs font-semibold text-slate-800 dark:text-white leading-none">{title}</h3>
         </div>
@@ -262,7 +262,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                         onClick={onClose}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all"
                     >
-                        <span className="material-icons-round text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
 
@@ -270,12 +270,12 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                 <form id="agency-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-6">
                     {error && (
                         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg flex items-center gap-3 animate-in slide-in-from-top-2 duration-200">
-                            <span className="material-icons-round text-red-500 text-lg">error_outline</span>
+                            <span className="material-symbols-outlined text-red-500 text-lg">error_outline</span>
                             <div className="flex-1">
                                 <p className="text-xs font-semibold text-red-600 dark:text-red-400">{error}</p>
                             </div>
                             <button onClick={() => setError(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
-                                <span className="material-icons-round text-base">close</span>
+                                <span className="material-symbols-outlined text-base">close</span>
                             </button>
                         </div>
                     )}
@@ -583,7 +583,7 @@ const AddAgencyModal = ({ isOpen, onClose, onSuccess, initialData = null, mode =
                             </>
                         ) : (
                             <>
-                                <span className="material-icons-round text-base">{mode === 'edit' ? 'save' : 'check'}</span>
+                                <span className="material-symbols-outlined text-base">{mode === 'edit' ? 'save' : 'check'}</span>
                                 {mode === 'edit' ? 'Update Agency' : 'Complete Registration'}
                             </>
                         )}

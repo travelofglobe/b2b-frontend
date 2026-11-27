@@ -1,8 +1,8 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import PortalLayout from './layouts/PortalLayout';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { FavoritesProvider } from './context/FavoritesContext';
 import './index.css';
 
@@ -32,12 +32,25 @@ const VoucherPage = lazy(() => import('./pages/VoucherPage'));
 const B2BTaskList = lazy(() => import('./pages/B2BTaskList'));
 const B2BTaskDetail = lazy(() => import('./pages/B2BTaskDetail'));
 const ForbiddenPage = lazy(() => import('./pages/ForbiddenPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh] w-full">
     <div className="w-8 h-8 border-3 border-blue-500/30 border-t-blue-600 rounded-full animate-spin" />
   </div>
 );
+
+const OptionalPortalLayout = () => {
+  const { user, loading } = useAuth();
+  if (loading) return <PageLoader />;
+  return user ? (
+    <PortalLayout />
+  ) : (
+    <div className="min-h-screen flex flex-col">
+      <Outlet />
+    </div>
+  );
+};
 
 function App() {
   return (
@@ -122,6 +135,12 @@ function App() {
 
                 {/* Redirect root to travel hotels (ProtectedRoute will handle auth check) */}
                 <Route path="/" element={<Navigate to="/travel/hotels" replace />} />
+
+                {/* 404 Not Found (inside PortalLayout when authenticated, standalone otherwise) */}
+                <Route element={<OptionalPortalLayout />}>
+                  <Route path="/404" element={<NotFoundPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
               </Routes>
             </Suspense>
           </div>

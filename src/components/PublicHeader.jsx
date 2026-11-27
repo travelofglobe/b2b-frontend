@@ -35,14 +35,20 @@ const PublicHeader = () => {
                 </div>
             ) : (
                 <div 
-                    className="flex items-center select-none cursor-pointer group py-1" 
+                    className="flex flex-col cursor-pointer select-none group mr-1 py-0.5 justify-center" 
                     onClick={() => navigate('/')}
                 >
                     <img 
                         src={logoSvg} 
                         alt="Travel of Globe" 
-                        className="h-7 sm:h-8 w-auto max-w-[190px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm" 
+                        className="h-6 sm:h-6.5 w-auto max-w-[155px] sm:max-w-[170px] object-contain transition-transform duration-300 group-hover:scale-105 drop-shadow-sm" 
                     />
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                        <div className="h-[1px] w-2.5 bg-[#137fec]/60"></div>
+                        <p className="text-[7.5px] sm:text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap leading-none">
+                            B2B Agency Workspace
+                        </p>
+                    </div>
                 </div>
             )}
 

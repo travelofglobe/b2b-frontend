@@ -20,8 +20,8 @@ const PublicHeader = () => {
                     className="flex items-center gap-2.5 sm:gap-3 select-none cursor-pointer group py-1" 
                     onClick={() => navigate('/')}
                 >
-                    <div className="w-8.5 h-8.5 rounded-xl bg-gradient-to-tr from-[#137fec] to-blue-500 text-white flex items-center justify-center shadow-md shadow-[#137fec]/20 border border-white/20 transition-transform duration-300 group-hover:scale-105">
-                        <span className="material-symbols-outlined text-[19px]">travel_explore</span>
+                    <div className="w-[22px] h-[22px] rounded-lg bg-gradient-to-tr from-[#137fec] to-blue-500 text-white flex items-center justify-center shadow-sm border border-white/20 transition-transform duration-300 group-hover:scale-105">
+                        <span className="material-symbols-outlined text-[19px]" style={{ fontSize: '19px' }}>travel_explore</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-black uppercase tracking-[0.16em] text-slate-800 dark:text-white">

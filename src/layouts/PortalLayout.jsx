@@ -82,16 +82,29 @@ const PortalLayout = () => {
             {/* Header (Google Flights style) */}
             <header className={`relative flex items-center justify-between px-4 h-16 shrink-0 bg-white dark:bg-[#202124] z-[1000] border-b border-slate-200 dark:border-slate-800 transition-all duration-200 ${isScrolled ? 'shadow-md' : ''}`}>
                 {/* Left: Hamburger & Logo */}
-                <div className="flex items-center gap-4 z-10">
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none" aria-label="Menü">
-                        <span className="material-symbols-outlined text-xl">menu</span>
+                <div className="flex items-center gap-3 shrink-0 z-10">
+                    <button 
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                        className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none active:scale-95 cursor-pointer" 
+                        aria-label="Menü"
+                    >
+                        <span className="material-symbols-outlined text-[22px]">menu</span>
                     </button>
-                    <div className="flex items-center cursor-pointer select-none py-1 group mr-1" onClick={() => navigate('/travel/hotels')}>
+                    <div 
+                        className="flex flex-col cursor-pointer select-none group mr-1 py-0.5 justify-center" 
+                        onClick={() => navigate('/travel/hotels')}
+                    >
                         <img 
                             src={logoSvg} 
                             alt="Travel of Globe" 
-                            className="h-7 sm:h-8 w-auto max-w-[190px] object-contain transition-transform duration-300 group-hover:scale-105" 
+                            className="h-6 sm:h-6.5 w-auto max-w-[155px] sm:max-w-[170px] object-contain transition-transform duration-300 group-hover:scale-105" 
                         />
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                            <div className="h-[1px] w-2.5 bg-[#137fec]/60"></div>
+                            <p className="text-[7.5px] sm:text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] whitespace-nowrap leading-none">
+                                B2B Agency Workspace
+                            </p>
+                        </div>
                     </div>
                 </div>
 

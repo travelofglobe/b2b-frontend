@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { agencyService } from '../services/agencyService';
 import ConfirmModal from './ConfirmModal';
+import logoSvg from '../assets/logo.svg';
 
 const Header = () => {
     const { t } = useTranslation();
@@ -36,19 +37,12 @@ const Header = () => {
         <header className="sticky top-0 z-[1100] w-full border-b border-solid border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/40 backdrop-blur-xl px-4 py-2.5 shadow-sm shadow-slate-200/5 dark:shadow-none">
             <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-4">
                 <div className="flex items-center gap-6 flex-grow">
-                    <Link to="/" className="w-[224px] flex-shrink-0 flex items-center gap-3 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 ltr:pr-4 rtl:pl-4 group">
-                        <div className="size-9 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-all duration-500 group-hover:rotate-[15deg] group-hover:scale-105">
-                            <span className="material-symbols-outlined text-xl fill-1">travel</span>
-                        </div>
-                        <div className="flex flex-col">
-                            <h2 className="text-slate-900 dark:text-white text-[13px] font-bold leading-none tracking-tighter uppercase whitespace-nowrap">
-                                Travel <span className="text-primary">of</span> Globe
-                            </h2>
-                            <div className="flex items-center gap-1.5 mt-1">
-                                <div className="h-[1px] w-2 bg-primary/40"></div>
-                                <p className="text-[7px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap leading-none">Global B2B Solutions</p>
-                            </div>
-                        </div>
+                    <Link to="/" className="w-auto flex-shrink-0 flex items-center py-1 ltr:border-r rtl:border-l border-slate-200/50 dark:border-slate-800/50 ltr:pr-4 rtl:pl-4 group">
+                        <img 
+                            src={logoSvg} 
+                            alt="Travel of Globe" 
+                            className="h-7 sm:h-8 w-auto max-w-[190px] object-contain transition-transform duration-300 group-hover:scale-105" 
+                        />
                     </Link>
                     {/* Search Bar in Header */}
                     <HeaderSearch />

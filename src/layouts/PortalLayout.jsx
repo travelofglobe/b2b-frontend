@@ -5,6 +5,7 @@ import HeaderActions from '../components/HeaderActions';
 import LanguageModal from '../components/LanguageModal';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import { useAuth } from '../context/AuthContext';
+import logoSvg from '../assets/logo.svg';
 
 /**
  * Returns the sidebar label for the management section based on agencyType and current language.
@@ -85,16 +86,12 @@ const PortalLayout = () => {
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none" aria-label="Menü">
                         <span className="material-symbols-outlined text-xl">menu</span>
                     </button>
-                    <div className="flex flex-col cursor-pointer select-none" onClick={() => navigate('/travel/hotels')}>
-                        <span className="text-[14px] font-black text-[#0f172a] dark:text-white tracking-tight leading-none flex items-center">
-                            TRAVEL <span className="text-blue-500 mx-1">OF</span> GLOBE
-                        </span>
-                        <div className="flex items-center gap-1 mt-1">
-                            <div className="h-[1.5px] w-3 bg-blue-300 dark:bg-blue-500/50 rounded-full"></div>
-                            <span className="text-[7px] font-bold tracking-[0.12em] text-slate-400 dark:text-slate-500 leading-none mt-[1px]">
-                                GLOBAL B2B SOLUTIONS
-                            </span>
-                        </div>
+                    <div className="flex items-center cursor-pointer select-none py-1 group mr-1" onClick={() => navigate('/travel/hotels')}>
+                        <img 
+                            src={logoSvg} 
+                            alt="Travel of Globe" 
+                            className="h-7 sm:h-8 w-auto max-w-[190px] object-contain transition-transform duration-300 group-hover:scale-105" 
+                        />
                     </div>
                 </div>
 

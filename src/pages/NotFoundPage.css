@@ -1,0 +1,253 @@
+/* Google Lineless Flat Vector + Interactive Animated Compass 404 Page */
+.notfound-root {
+  --nf-line-art: #c5d3e3;
+  --nf-four-blue-fill: #e8f0fe;
+  --nf-four-red-fill: #fce8e6;
+  --nf-compass-bg: #ffffff;
+  --nf-compass-ring-inner: #d2e3fc;
+  --nf-pole-fill: #d8dee6;
+  --nf-pole-shade: #b9c4d2;
+  --nf-cardinal-muted: #5f6368;
+}
+
+.dark .notfound-root {
+  --nf-line-art: #4b5a6e;
+  --nf-four-blue-fill: rgba(26, 115, 232, 0.22);
+  --nf-four-red-fill: rgba(234, 67, 53, 0.22);
+  --nf-compass-bg: #262930;
+  --nf-compass-ring-inner: #3c4f6b;
+  --nf-pole-fill: #4b5563;
+  --nf-pole-shade: #374151;
+  --nf-cardinal-muted: #9aa0a6;
+}
+
+.nf-hero-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.08fr 0.96fr 0.92fr;
+  align-items: end;
+  gap: 0;
+  padding-top: 12px;
+}
+
+.nf-hero-stage::after {
+  content: '';
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: 6px;
+  height: 1.5px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--nf-line-art) 8%,
+    var(--nf-line-art) 92%,
+    transparent 100%
+  );
+  opacity: 0.72;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.nf-flight-arc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  overflow: visible;
+}
+
+.nf-traveler-side {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.nf-traveler-side img {
+  width: 100%;
+  height: auto;
+  display: block;
+  user-select: none;
+  transition: filter 0.3s ease;
+}
+
+.nf-traveler-left img {
+  transform: translateX(12px);
+}
+
+.nf-traveler-right img {
+  transform: translateX(-8px);
+}
+
+.dark .nf-traveler-side img {
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35)) brightness(0.96);
+}
+
+.nf-center-stage {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5px;
+}
+
+.nf-center-svg {
+  width: 100%;
+  max-width: 375px;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+/* Compass & Paper Airplane Keyframes */
+@keyframes nfCompassFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes nfNeedleHunt {
+  0% {
+    transform: rotate(-28deg);
+  }
+  18% {
+    transform: rotate(42deg);
+  }
+  34% {
+    transform: rotate(15deg);
+  }
+  52% {
+    transform: rotate(-52deg);
+  }
+  68% {
+    transform: rotate(26deg);
+  }
+  84% {
+    transform: rotate(-12deg);
+  }
+  100% {
+    transform: rotate(-28deg);
+  }
+}
+
+@keyframes nfBubbleBob {
+  0%,
+  100% {
+    transform: translate(236px, 42px) rotate(-4deg);
+  }
+  50% {
+    transform: translate(236px, 34px) rotate(6deg);
+  }
+}
+
+@keyframes nfRingPulse {
+  0%,
+  100% {
+    opacity: 0.28;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.08;
+    transform: scale(1.13);
+  }
+}
+
+@keyframes nfPlaneGlide {
+  0% {
+    offset-distance: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+}
+
+.nf-compass-float {
+  animation: nfCompassFloat 4.2s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.nf-compass-float:hover .nf-compass-outer-ring {
+  filter: drop-shadow(0 6px 18px rgba(26, 115, 232, 0.28));
+}
+
+.nf-compass-pulse {
+  transform-origin: 190px 104px;
+  animation: nfRingPulse 3.2s ease-in-out infinite;
+}
+
+.nf-needle-user {
+  transform-origin: 190px 104px;
+  transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nf-needle-auto {
+  transform-origin: 190px 104px;
+  animation: nfNeedleHunt 5.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.nf-question-bubble {
+  animation: nfBubbleBob 3.4s ease-in-out infinite;
+}
+
+.nf-gliding-plane {
+  offset-path: path('M 260 118 Q 555 -28 840 108');
+  offset-rotate: auto 12deg;
+  animation: nfPlaneGlide 7.5s ease-in-out -2.6s infinite;
+}
+
+@media (max-width: 900px) {
+  .nf-hero-stage {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 8px;
+  }
+
+  .nf-center-stage {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .nf-center-svg {
+    max-width: 300px;
+  }
+
+  .nf-flight-arc {
+    display: none;
+  }
+
+  .nf-traveler-left img,
+  .nf-traveler-right img {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-compass-float,
+  .nf-compass-pulse,
+  .nf-needle-auto,
+  .nf-question-bubble,
+  .nf-gliding-plane {
+    animation: none;
+  }
+}

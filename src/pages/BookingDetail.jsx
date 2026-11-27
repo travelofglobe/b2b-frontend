@@ -757,11 +757,6 @@ const BookingDetail = () => {
                             <span className="text-sm font-bold text-[#202124] dark:text-white">
                                 #{booking.orderId}
                             </span>
-                            <BookingStatusBadge status={getOverallDisplayStatus()} showIcon />
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${paymentBadge.classes}`}>
-                                <span className="material-symbols-outlined text-[14px]">{paymentBadge.icon}</span>
-                                {paymentBadge.label}
-                            </span>
                         </div>
                     </div>
 

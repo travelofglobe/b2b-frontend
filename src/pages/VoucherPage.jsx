@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import {
+    Printer,
+    ArrowLeft,
+    Building2,
+    Calendar,
+    User,
+    Phone,
+    MapPin,
+    Utensils,
+    CheckCircle2,
+    Compass,
+    AlertCircle,
+    FileText
+} from 'lucide-react';
 import { bookingService } from '../services/bookingService';
 import { hotelService } from '../services/hotelService';
-import BookingStatusBadge from '../components/BookingStatusBadge';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 
 const VoucherPage = () => {
@@ -23,16 +36,16 @@ const VoucherPage = () => {
         try {
             setLoading(true);
             setError(null);
-            
+
             const bookingData = await bookingService.getBookingDetail(voucherId, signal);
             if (!signal?.aborted) {
-                if (!bookingData?.voucher) {
-                    setError('This reservation does not have a generated voucher yet. Please contact support or wait for confirmation.');
+                if (!bookingData) {
+                    setError('Booking details could not be found.');
                     return;
                 }
 
                 setBooking(bookingData);
-                
+
                 if (bookingData?.hotel?.internalHotelId) {
                     try {
                         const hDetails = await hotelService.getHotelDetail(bookingData.hotel.internalHotelId, signal);
@@ -45,7 +58,7 @@ const VoucherPage = () => {
         } catch (err) {
             if (err.name !== 'AbortError') {
                 console.error('Error fetching voucher data:', err);
-                setError(err.message);
+                setError(err.message || 'Error fetching voucher details');
             }
         } finally {
             if (!signal?.aborted) {
@@ -59,14 +72,15 @@ const VoucherPage = () => {
     };
 
     const formatDateObject = (dateString) => {
-        if (!dateString) return { day: '00', month: '---', year: '0000', full: 'N/A' };
+        if (!dateString) return { day: '—', month: '—', year: '', weekday: '', full: '—' };
         const d = new Date(dateString);
         const activeLang = localStorage.getItem('language') || 'en';
         return {
             day: String(d.getDate()).padStart(2, '0'),
-            month: d.toLocaleDateString(activeLang, { month: 'short' }).toUpperCase(),
+            month: d.toLocaleDateString(activeLang, { month: 'short' }),
             year: d.getFullYear(),
-            full: d.toLocaleDateString(activeLang, { month: 'long', day: 'numeric', year: 'numeric' })
+            weekday: d.toLocaleDateString(activeLang, { weekday: 'short' }),
+            full: d.toLocaleDateString(activeLang, { month: 'short', day: 'numeric', year: 'numeric' })
         };
     };
 
@@ -75,19 +89,16 @@ const VoucherPage = () => {
         const d1 = new Date(start);
         const d2 = new Date(end);
         const diff = Math.abs(d2 - d1);
-        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+        return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     };
 
     const formatDateTime = (dateTimeString) => {
-        if (!dateTimeString) return 'N/A';
-
+        if (!dateTimeString) return '—';
         try {
-            // Remove the [timezone] part for parsing
-            let cleanDateString = dateTimeString.replace(/\[([^\]]+)\]/, '');
+            const cleanDateString = dateTimeString.replace(/\[([^\]]+)\]/, '');
             const date = new Date(cleanDateString);
             const activeLang = localStorage.getItem('language') || 'en';
-
-            if (isNaN(date.getTime())) return 'Invalid Date';
+            if (isNaN(date.getTime())) return '—';
 
             return date.toLocaleDateString(activeLang, {
                 month: 'short',
@@ -95,39 +106,44 @@ const VoucherPage = () => {
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true
+                hour12: false
             });
-        } catch (error) {
-            return 'N/A';
+        } catch {
+            return '—';
         }
     };
 
     const handleBack = () => {
-        navigate(`/travel/hotels/bookings/${voucherId}`);
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/travel/hotels/bookings');
+        }
     };
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 animate-in fade-in duration-300 select-none">
-                <div className="w-14 h-14 border-4 border-slate-100 border-t-primary rounded-full animate-spin"></div>
-                <h3 className="mt-6 text-base font-black text-slate-800 tracking-tight">Generating Premium Voucher</h3>
-                <p className="mt-1 text-xs text-slate-400 font-medium">Please wait a moment...</p>
+            <div className="min-h-screen bg-sky-50/40 flex flex-col items-center justify-center p-6 select-none">
+                <div className="w-10 h-10 border-2 border-sky-200 border-t-sky-600 rounded-full animate-spin"></div>
+                <h3 className="mt-4 text-xs font-semibold text-slate-600 tracking-wider uppercase">Loading Voucher</h3>
             </div>
         );
     }
 
     if (error || !booking) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 select-none">
-                <div className="bg-white border border-slate-200/80 p-8 rounded-[32px] max-w-md text-center shadow-2xl">
-                    <span className="material-symbols-outlined text-red-500 text-5xl mb-4">gpp_maybe</span>
-                    <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">Voucher Unavailable</h3>
-                    <p className="text-sm text-slate-600 mb-6 font-medium">{error || 'Booking details not available'}</p>
+            <div className="min-h-screen bg-sky-50/30 flex flex-col items-center justify-center p-6 select-none">
+                <div className="bg-white border border-slate-200 p-8 rounded-2xl max-w-sm w-full text-center shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-3">
+                        <AlertCircle className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-base font-semibold text-slate-900 mb-1">Voucher Unavailable</h3>
+                    <p className="text-xs text-slate-500 mb-5">{error || 'Booking details not available'}</p>
                     <button
-                        onClick={() => navigate('/travel/hotels/bookings')}
-                        className="w-full py-3.5 bg-slate-900 text-white hover:bg-slate-800 rounded-2xl font-black text-xs transition active:scale-95 shadow-xl shadow-slate-900/10"
+                        onClick={handleBack}
+                        className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-medium text-xs transition cursor-pointer"
                     >
-                        Go back to Bookings
+                        Back to Bookings
                     </button>
                 </div>
             </div>
@@ -138,316 +154,434 @@ const VoucherPage = () => {
     const checkOutDate = formatDateObject(booking.checkOut);
     const nightsCount = getDaysBetween(booking.checkIn, booking.checkOut);
 
+    const rooms = (() => {
+        const rawRooms = booking.hotel?.rooms || [];
+        if (!Array.isArray(rawRooms) || rawRooms.length === 0) return [];
+
+        const deduplicated = [];
+        const seenSignatures = new Set();
+
+        rawRooms.forEach((room) => {
+            const primaryRate = room.rates?.[0] || {};
+            const rateCode = primaryRate.rateCode || room.rateCode || '';
+
+            const guestSig = (room.occupancies || [])
+                .map(g => `${(g.name || '').trim().toLowerCase()}_${(g.surname || '').trim().toLowerCase()}_${g.birthDate || ''}`)
+                .sort()
+                .join('|');
+
+            const rateSig = (room.rates || [])
+                .map(r => `${r.totalAmount || 0}_${r.boardType || ''}_${r.rateCode || ''}`)
+                .join('|');
+
+            const signature = `${rateCode}_${room.roomId || ''}_${room.roomName || ''}_${guestSig}_${rateSig}`;
+
+            if (!seenSignatures.has(signature)) {
+                seenSignatures.add(signature);
+                deduplicated.push(room);
+            }
+        });
+
+        return deduplicated;
+    })();
+
+    const firstOccupant = rooms[0]?.occupancies?.[0];
+    const leadGuestName = booking.hotel?.contact?.name
+        ? `${booking.hotel.contact.name} ${booking.hotel.contact.surname || ''}`.trim()
+        : booking.customer?.name
+            ? `${booking.customer.name} ${booking.customer.surname || ''}`.trim()
+            : firstOccupant
+                ? `${firstOccupant.name || ''} ${firstOccupant.surname || ''}`.trim()
+                : 'Guest';
+
+    const voucherNumber = booking.voucher || booking.uuid?.slice(0, 10).toUpperCase() || voucherId || '—';
+    const supplierConfirmation = booking.hotel?.supplierVoucher || booking.hotel?.confirmationCode || booking.supplierBookingCode;
+    const bookingDateStr = booking.createdAt || booking.bookingDate || booking.insertDate;
+    const formattedBookingDate = bookingDateStr ? formatDateTime(bookingDateStr) : null;
+    const starCount = parseInt(hotelDetails?.hotelStar?.names?.en || booking.hotel?.star || '0', 10);
+    const agencyName = booking.agencyHierarchyInfo?.agencyName || booking.agencyHierarchyInfo?.principalAgency?.agencyName || booking.salesChannelName || 'Travel of Globe';
+    const rawStatus = (booking.hotel?.bookingStatus || booking.status || 'CONFIRMED').toUpperCase();
+
     return (
-        <div className="min-h-screen bg-[#F8FAFC] p-4 sm:p-8 md:p-10 select-none antialiased transition-all duration-200 overflow-x-hidden">
-            {/* Professional Business Fonts & Base Styles */}
+        <div className="min-h-screen bg-slate-50/70 py-8 px-4 sm:px-6 antialiased text-slate-700">
+            {/* Print Styles */}
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
-                @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
-                
-                .voucher-root {
-                    font-family: 'Outfit', sans-serif !important;
-                }
-
-                .font-mono {
-                    font-family: 'JetBrains+Mono', monospace !important;
-                }
-
                 @media print {
                     .no-print { display: none !important; }
-                    body { background: #fff !important; margin: 0 !important; color: #000 !important; }
-                    .print-area {
+                    body { background: #ffffff !important; margin: 0 !important; color: #1e293b !important; }
+                    .voucher-sheet {
                         box-shadow: none !important;
-                        border: 1px solid #E2E8F0 !important;
+                        border: 1px solid #e2e8f0 !important;
                         max-width: 100% !important;
-                        padding: 1.25rem !important;
+                        padding: 0 !important;
                         margin: 0 !important;
-                        background: #fff !important;
-                        border-radius: 0 !important;
-                    }
-                    .print-accent {
-                        background: #F1F5F9 !important;
-                        -webkit-print-color-adjust: exact;
+                        background: #ffffff !important;
                     }
                     .avoid-break {
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                     }
-                    .force-print-row {
-                        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-                    }
                 }
-
-                .bg-blue-mesh {
-                    background-image: radial-gradient(at 0% 0%, hsla(217,100%,97%,1) 0, transparent 50%), 
-                                      radial-gradient(at 100% 100%, hsla(217,100%,97%,1) 0, transparent 50%);
-                }
-
-                .text-deep-blue { color: #1E40AF; }
-                .bg-deep-blue { background-color: #1E40AF; }
-                .border-deep-blue { border-color: #1E40AF; }
             `}</style>
 
-            <div className="voucher-root max-w-4xl mx-auto space-y-6">
-                {/* 1. Professional Navigation Bar */}
-                <div className="no-print flex items-center justify-between gap-6 px-1">
+            <div className="max-w-[820px] mx-auto space-y-4">
+                {/* 1. Header Toolbar (Hidden in Print) */}
+                <div className="no-print flex items-center justify-between px-1">
                     <button
                         onClick={handleBack}
-                        className="group flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-700 transition-all duration-300"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-sky-700 bg-white hover:bg-sky-50/50 border border-slate-200/80 px-3 py-1.5 rounded-lg shadow-2xs transition cursor-pointer"
                     >
-                        <span className="material-symbols-outlined text-lg">arrow_back</span>
-                        <span className="tracking-tight uppercase">Back</span>
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Back</span>
                     </button>
-                    
-                    <div className="flex gap-3">
+
+                    <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
+                            A4 Standard Format
+                        </span>
                         <button
                             onClick={handlePrint}
-                            className="flex items-center gap-2 h-10 px-5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-bold text-[12px] tracking-wide transition-all active:scale-95 shadow-md shadow-blue-700/10 group"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-medium text-xs tracking-wide shadow-xs shadow-sky-600/20 active:scale-98 transition cursor-pointer"
                         >
-                            <span className="material-symbols-outlined text-lg">print</span>
+                            <Printer className="w-3.5 h-3.5" />
                             <span>Print Voucher</span>
                         </button>
                     </div>
                 </div>
 
-                {/* 2. The Voucher Document */}
-                <div className="print-area relative bg-white border border-slate-200 shadow-[0_10px_40px_-10px_rgba(30,64,175,0.05)] overflow-hidden rounded-2xl">
+                {/* 2. The Voucher Document Sheet */}
+                <div className="voucher-sheet bg-white border border-sky-100 rounded-2xl shadow-sm overflow-hidden">
                     
-                    {/* Header: Clean & Data Rich */}
-                    <div className="relative p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 bg-slate-50/50">
-                        <div className="flex items-center gap-4">
-                            <div className="size-12 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-                                <span className="material-symbols-outlined text-2xl fill-1">travel</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-                                    Travel <span className="text-blue-700">of</span> Globe
-                                </h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Official Reservation Voucher</p>
-                            </div>
-                        </div>
+                    {/* Top Soft Brand Accent Line */}
+                    <div className="h-1 bg-gradient-to-r from-sky-400 via-sky-500 to-indigo-400" />
 
-                        <div className="flex flex-col md:items-end gap-2 w-full md:w-auto">
-                            <div className="flex flex-col md:items-end">
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">Reference ID</span>
-                                <span className="text-2xl font-black font-mono tracking-tighter text-blue-800 select-all leading-none">
-                                    {booking.voucher || booking.uuid?.slice(0, 8).toUpperCase() || 'N/A'}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="px-2.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                    Confirmed
-                                </span>
-                                <span className="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border border-blue-100 bg-blue-50 text-blue-600">
-                                    Paid
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Content Body */}
-                    <div className="p-6 md:p-8 space-y-8">
-                        
-                        {/* 3. Itinerary Summary Grid */}
-                        <div className="avoid-break grid grid-cols-1 sm:grid-cols-3 force-print-row gap-1 bg-slate-100 border border-slate-100 rounded-xl overflow-hidden">
-                            {/* Check-in */}
-                            <div className="bg-white p-5 flex flex-col gap-1">
-                                <span className="text-[9px] font-black text-blue-700/60 uppercase tracking-widest">Check-In</span>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-black text-slate-900 tracking-tighter">{checkInDate.day}</span>
-                                    <span className="text-sm font-bold text-slate-800 uppercase">{checkInDate.month} {checkInDate.year}</span>
+                    <div className="p-8 sm:p-10 space-y-7">
+                        {/* Header: Brand, Title & Reference */}
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-5 pb-6 border-b border-slate-100">
+                            <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100/80 flex items-center justify-center text-sky-600 flex-shrink-0 mt-0.5">
+                                    <Compass className="w-5 h-5 stroke-[2.2]" />
                                 </div>
-                                <p className="text-[10px] font-medium text-slate-400 mt-1">From 14:00 PM</p>
-                            </div>
-                            {/* Stay */}
-                            <div className="bg-slate-50/50 p-5 flex flex-col items-center justify-center gap-1 border-x border-slate-100">
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Duration</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-blue-600 text-lg">nights_stay</span>
-                                    <span className="text-xl font-black text-blue-800 tracking-tight">{nightsCount} NIGHTS</span>
-                                </div>
-                            </div>
-                            {/* Check-out */}
-                            <div className="bg-white p-5 flex flex-col sm:items-end text-right gap-1">
-                                <span className="text-[9px] font-black text-blue-700/60 uppercase tracking-widest">Check-Out</span>
-                                <div className="flex items-baseline gap-2 justify-end">
-                                    <span className="text-3xl font-black text-slate-900 tracking-tighter">{checkOutDate.day}</span>
-                                    <span className="text-sm font-bold text-slate-800 uppercase">{checkOutDate.month} {checkOutDate.year}</span>
-                                </div>
-                                <p className="text-[10px] font-medium text-slate-400 mt-1">Before 11:00 AM</p>
-                            </div>
-                        </div>
-
-                        {/* 4. Primary Information Section (Restructured for Equal Heights) */}
-                        <div className="space-y-8">
-                            
-                            {/* Row 1: Property & Financials */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                                {/* Left: Hotel Card (8 cols) */}
-                                <div className="lg:col-span-7 avoid-break space-y-3 flex flex-col">
-                                    <div className="flex items-center gap-2 px-1 h-6">
-                                        <span className="material-symbols-outlined text-blue-700 text-[18px] w-5 flex justify-center">location_on</span>
-                                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Property Information</h2>
+                                <div>
+                                    <div className="flex items-center gap-2.5">
+                                        <span className="text-lg font-black tracking-tight text-slate-800 uppercase">
+                                            TRAVEL OF GLOBE
+                                        </span>
+                                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                            {rawStatus}
+                                        </span>
                                     </div>
-                                    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 flex-1">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-lg font-black text-slate-900 leading-tight">{booking.hotel?.hotelName || 'N/A'}</h3>
-                                                {booking.hotel?.isRecommended && (
-                                                    <span className="bg-gradient-to-r from-teal-400 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-xs flex items-center gap-0.5 border border-cyan-400/50">
-                                                        <span className="material-symbols-outlined text-[10px] fill-1">thumb_up</span>
-                                                        REC
-                                                    </span>
-                                                )}
+                                    <p className="text-xs font-medium text-slate-400 mt-0.5 tracking-wide">
+                                        Accommodation Reservation Voucher
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="sm:text-right">
+                                <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-0.5">
+                                    Voucher Code
+                                </span>
+                                <span className="font-mono text-xl sm:text-2xl font-bold tracking-tight text-sky-700 select-all">
+                                    {voucherNumber}
+                                </span>
+                                {formattedBookingDate && (
+                                    <span className="text-[11px] text-slate-400 block mt-0.5">
+                                        Issued: {formattedBookingDate}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Quick Reference Strip (Soft Pastel Blue Tint) */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-3.5 px-4 rounded-xl bg-sky-50/50 border border-sky-100/70 text-xs">
+                            <div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Lead Guest</span>
+                                <span className="font-semibold text-slate-800 truncate block mt-0.5">{leadGuestName}</span>
+                            </div>
+                            {supplierConfirmation && (
+                                <div>
+                                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Supplier Ref</span>
+                                    <span className="font-mono font-semibold text-slate-800 truncate block mt-0.5">{supplierConfirmation}</span>
+                                </div>
+                            )}
+                            <div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Agency / Channel</span>
+                                <span className="font-medium text-slate-700 truncate block mt-0.5">{agencyName}</span>
+                            </div>
+                            <div>
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Billing Status</span>
+                                <span className="font-semibold text-emerald-700 block mt-0.5">Prepaid</span>
+                            </div>
+                        </div>
+
+                        {/* Itinerary Timeline */}
+                        <div className="avoid-break grid grid-cols-3 rounded-xl border border-sky-100 divide-x divide-sky-100 overflow-hidden bg-white">
+                            {/* Check-In */}
+                            <div className="p-4 sm:p-5">
+                                <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-sky-600 mb-1">
+                                    <Calendar className="w-3.5 h-3.5 text-sky-500" />
+                                    <span>Check-In</span>
+                                </div>
+                                <div className="flex items-baseline gap-1.5">
+                                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                                        {checkInDate.day}
+                                    </span>
+                                    <span className="text-xs font-semibold text-slate-600 uppercase">
+                                        {checkInDate.month} {checkInDate.year}
+                                    </span>
+                                </div>
+                                <div className="mt-2 text-[11px] text-slate-400 font-medium">
+                                    From 14:00
+                                </div>
+                            </div>
+
+                            {/* Duration */}
+                            <div className="p-4 sm:p-5 bg-sky-50/30 flex flex-col items-center justify-center text-center">
+                                <span className="text-base sm:text-lg font-extrabold text-sky-800 tracking-tight">
+                                    {nightsCount} {nightsCount === 1 ? 'Night' : 'Nights'}
+                                </span>
+                                <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 mt-0.5">
+                                    Stay Duration
+                                </span>
+                            </div>
+
+                            {/* Check-Out */}
+                            <div className="p-4 sm:p-5 text-right">
+                                <div className="flex items-center justify-end gap-1.5 text-[10px] uppercase font-bold tracking-wider text-sky-600 mb-1">
+                                    <span>Check-Out</span>
+                                    <Calendar className="w-3.5 h-3.5 text-sky-500" />
+                                </div>
+                                <div className="flex items-baseline gap-1.5 justify-end">
+                                    <span className="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                                        {checkOutDate.day}
+                                    </span>
+                                    <span className="text-xs font-semibold text-slate-600 uppercase">
+                                        {checkOutDate.month} {checkOutDate.year}
+                                    </span>
+                                </div>
+                                <div className="mt-2 text-[11px] text-slate-400 font-medium">
+                                    Until 11:00
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Hotel Information & Total Rate Section */}
+                        <div className="avoid-break grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+                            {/* Hotel Details (Col 8) */}
+                            <div className="md:col-span-8 p-5 rounded-xl border border-sky-100/90 bg-white flex flex-col justify-between space-y-4">
+                                <div>
+                                    <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-sky-600 mb-1.5">
+                                        <Building2 className="w-3.5 h-3.5 text-sky-500" />
+                                        <span>Property</span>
+                                    </div>
+                                    <div className="flex items-start justify-between gap-3">
+                                        <h2 className="text-base sm:text-lg font-bold text-slate-800 leading-snug">
+                                            {booking.hotel?.hotelName || 'Hotel Reservation'}
+                                        </h2>
+                                        {starCount > 0 && (
+                                            <div className="flex items-center gap-0.5 text-amber-400 flex-shrink-0 pt-0.5" title={`${starCount} Stars`}>
+                                                {[...Array(Math.min(5, starCount))].map((_, i) => (
+                                                    <span key={i} className="text-xs">★</span>
+                                                ))}
                                             </div>
-                                            <p className="text-xs font-bold text-slate-500 leading-relaxed">
-                                                {hotelDetails?.address?.street || booking.hotel?.address?.street || 'No address'},{' '}
-                                                {hotelDetails?.address?.cityName || booking.hotel?.address?.cityName}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-4 pt-1">
-                                            {(hotelDetails?.phone || booking.hotel?.phone) && (
-                                                <div className="flex items-center gap-2 text-slate-700">
-                                                    <span className="material-symbols-outlined text-[16px] text-blue-600">call</span>
-                                                    <span className="text-xs font-bold">{hotelDetails?.phone || booking.hotel?.phone}</span>
-                                                </div>
-                                            )}
-                                            {hotelDetails?.hotelStar?.names?.en && (
-                                                <div className="flex items-center gap-0.5">
-                                                    {[...Array(5)].map((_, i) => (
-                                                        <span key={i} className={`material-symbols-outlined text-[14px] ${i < parseInt(hotelDetails.hotelStar.names.en) ? 'text-amber-400 fill-1' : 'text-slate-100'}`}>star</span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-2 flex items-start gap-2 text-xs text-slate-600">
+                                        <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" />
+                                        <span className="leading-relaxed">
+                                            {[
+                                                hotelDetails?.address?.street || booking.hotel?.address?.street,
+                                                hotelDetails?.address?.cityName || booking.hotel?.address?.cityName,
+                                                hotelDetails?.address?.countryName || booking.hotel?.address?.countryName
+                                            ].filter(Boolean).join(', ') || 'Address on file'}
+                                        </span>
                                     </div>
                                 </div>
 
-                                {/* Right: Summary Card (5 cols) */}
-                                <div className="lg:col-span-5 avoid-break space-y-3 flex flex-col">
-                                    <div className="flex items-center gap-2 px-1 h-6">
-                                        <span className="material-symbols-outlined text-blue-700 text-[18px] w-5 flex justify-center">payments</span>
-                                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Financial Summary</h2>
+                                {(hotelDetails?.phone || booking.hotel?.phone) && (
+                                    <div className="pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-700">
+                                        <Phone className="w-3.5 h-3.5 text-sky-500" />
+                                        <span className="font-medium">{hotelDetails?.phone || booking.hotel?.phone}</span>
                                     </div>
-                                    <div className="bg-blue-900 rounded-xl p-6 text-white shadow-lg shadow-blue-900/10 relative overflow-hidden flex-1 flex flex-col justify-center">
-                                        <div className="absolute top-0 right-0 size-20 bg-white/5 rounded-full -mr-8 -mt-8"></div>
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-blue-300/60 mb-3 block">Total Value</span>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-3xl font-black tracking-tighter">
-                                                {booking.totalAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                            </span>
-                                            <span className="text-sm font-bold text-blue-300">{booking.currency}</span>
+                                )}
+                            </div>
+
+                            {/* Total Charges (Col 4) - Pastel Blue Soft Card */}
+                            <div className="md:col-span-4 p-5 rounded-xl border border-sky-100 bg-sky-50/40 flex flex-col justify-between space-y-3">
+                                <div>
+                                    <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                                        <span>Total Amount</span>
+                                        <span className="text-emerald-700 font-semibold">Prepaid</span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <div className="text-2xl font-black tracking-tight text-slate-800">
+                                            {booking.totalAmount != null
+                                                ? Number(booking.totalAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                                : '0.00'}
+                                            <span className="text-xs font-semibold text-sky-700 ml-1.5">{booking.currency || 'EUR'}</span>
                                         </div>
-                                        <p className="mt-3 text-[9px] font-bold text-blue-200/80 leading-relaxed uppercase tracking-wider">
-                                            Includes taxes & applicable fees
+                                        <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                                            Taxes & fees included
                                         </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Row 2: Guests & Policies/Remarks */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-                                {/* Left: Detailed Guest List (8 cols) */}
-                                <div className="lg:col-span-7 avoid-break space-y-3 flex flex-col">
-                                    <div className="flex items-center gap-2 px-1 h-6">
-                                        <span className="material-symbols-outlined text-blue-700 text-[18px] w-5 flex justify-center">groups</span>
-                                        <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Accommodation & Guests</h2>
-                                    </div>
-                                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex-1">
-                                        {booking.hotel?.rooms?.map((room, idx) => (
-                                            <div key={idx} className="border-b border-slate-100 last:border-0 p-6 bg-slate-50/30">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-black text-blue-800 uppercase tracking-tight">{room.roomName || 'Standard Room'}</span>
-                                                        {room.rates?.[0] && (
-                                                            <RefundPolicyTooltip
-                                                                isRefundable={room.rates[0].refundable}
-                                                                className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-wider ${room.rates[0].refundable ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-orange-500/10 text-orange-500 border border-orange-500/20'}`}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                    <span className="text-[10px] font-bold text-slate-400">UNIT 0{idx + 1}</span>
-                                                </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
-                                                    {room.occupancies?.map((guest, gIdx) => (
-                                                        <div key={gIdx} className="flex items-center justify-between py-1.5 border-b border-slate-100/50">
-                                                            <span className="text-xs font-bold text-slate-700">{guest.name} {guest.surname}</span>
-                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{guest.guestType || 'Adult'}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                {room.roomConfirmationCode && (
-                                                    <div className="mt-3 text-[10px] font-bold text-slate-500 bg-white border border-slate-100 px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
-                                                        <span>Conf. Code:</span>
-                                                        <span className="text-blue-700 font-mono font-black">{room.roomConfirmationCode}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Right: Policies & Remarks (5 cols) */}
-                                <div className="lg:col-span-5 avoid-break space-y-3 flex flex-col">
-                                    {/* Cancellation Policies */}
-                                    {booking.hotel?.rooms?.some(r => r.rates?.some(rate => rate.cancellationPolicies?.length > 0)) && (
-                                        <div className="flex-1 flex flex-col space-y-3">
-                                            <div className="flex items-center gap-2 px-1 h-6">
-                                                <span className="material-symbols-outlined text-blue-700 text-[18px] w-5 flex justify-center">policy</span>
-                                                <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Policy Details</h2>
-                                            </div>
-                                            <div className="bg-white border border-slate-200 rounded-xl overflow-hidden flex-1">
-                                                <table className="w-full text-left">
-                                                    <thead className="bg-slate-50 border-b border-slate-200">
-                                                        <tr>
-                                                            <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase">Until Date</th>
-                                                            <th className="px-4 py-2.5 text-[9px] font-black text-slate-400 uppercase text-right">Penalty</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {booking.hotel.rooms.flatMap(r => r.rates || []).flatMap(rate => rate.cancellationPolicies || []).map((policy, pIdx) => (
-                                                            <tr key={pIdx} className="border-b border-slate-100 last:border-0">
-                                                                <td className="px-4 py-3 text-[10px] font-bold text-slate-600">
-                                                                    {formatDateTime(policy.toDate)}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-[10px] font-black text-rose-600 text-right">
-                                                                    {policy.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {policy.currency}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Remarks (Compact) */}
-                                    {booking.remark && (
-                                        <div className="avoid-break bg-slate-50 border border-slate-200 rounded-xl p-5 mt-auto">
-                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Agent Remarks</span>
-                                            <p className="text-[11px] text-slate-600 font-medium leading-relaxed italic">"{booking.remark}"</p>
-                                        </div>
-                                    )}
+                                <div className="pt-3 border-t border-sky-100/90 flex items-center justify-between text-xs text-slate-600">
+                                    <span>Accommodation</span>
+                                    <span className="font-semibold text-slate-800">{rooms.length || 1} Room(s)</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* 5. Footer Data: Network Details */}
-                        <div className="avoid-break pt-4 border-t border-slate-100 flex flex-col items-center justify-center text-center gap-1">
-                            <div className="flex flex-col items-center text-center gap-1 opacity-60">
-                                <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Travel Of Globe Network</span>
-                                <p className="text-[8px] font-bold text-slate-400">© 2026. All rights reserved. Powered by TOG Reservation Engine.</p>
-                                <span className="text-[8px] font-mono text-slate-300 mt-1">{booking.uuid || 'N/A'}</span>
+                        {/* Room & Occupancy Section */}
+                        <div className="avoid-break space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                                    Room & Guest Allocations
+                                </span>
+                                <span className="text-xs text-slate-500 font-medium">
+                                    {rooms.reduce((acc, r) => acc + (r.occupancies?.length || 1), 0)} Guest(s) total
+                                </span>
+                            </div>
+
+                            <div className="border border-sky-100 rounded-xl divide-y divide-slate-100 overflow-hidden bg-white">
+                                {rooms.map((room, idx) => {
+                                    const primaryRate = room.rates?.[0] || {};
+                                    const boardBasis = primaryRate.boardType || room.boardType || room.boardName || 'Room Only';
+
+                                    return (
+                                        <div key={idx} className="p-5 space-y-3.5">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-100">
+                                                        Room {idx + 1}
+                                                    </span>
+                                                    <h3 className="font-bold text-sm text-slate-800">
+                                                        {room.roomName || 'Standard Room'}
+                                                    </h3>
+                                                    {primaryRate && (
+                                                        <RefundPolicyTooltip
+                                                            isRefundable={primaryRate.refundable}
+                                                            className={`text-[9px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider ${
+                                                                primaryRate.refundable
+                                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                                            }`}
+                                                        />
+                                                    )}
+                                                </div>
+
+                                                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 text-sky-800 border border-sky-100/80 text-xs font-medium self-start sm:self-auto">
+                                                    <Utensils className="w-3.5 h-3.5 text-sky-600" />
+                                                    <span>{boardBasis}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Registered Guests */}
+                                            <div className="bg-slate-50/60 rounded-lg p-3 border border-slate-100">
+                                                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-2">
+                                                    Registered Guests
+                                                </span>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                                                    {room.occupancies && room.occupancies.length > 0 ? (
+                                                        room.occupancies.map((guest, gIdx) => (
+                                                            <div key={gIdx} className="flex items-center gap-2">
+                                                                <div className="w-5 h-5 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                                                                    <User className="w-3 h-3" />
+                                                                </div>
+                                                                <span className="font-medium text-slate-800 truncate">
+                                                                    {guest.name} {guest.surname}
+                                                                </span>
+                                                                <span className="text-[10px] text-slate-400">
+                                                                    ({guest.guestType || 'Adult'})
+                                                                </span>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <span className="text-slate-400 italic">To be registered at check-in</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {room.roomConfirmationCode && (
+                                                <div className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                                                    <span className="text-slate-400 font-medium">Room Confirmation:</span>
+                                                    <span className="font-mono font-semibold text-sky-700">{room.roomConfirmationCode}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Cancellation Policy & Special Requests */}
+                        {(rooms.some(r => r.rates?.some(rate => rate.cancellationPolicies?.length > 0)) || booking.remark) && (
+                            <div className="avoid-break grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+                                {rooms.some(r => r.rates?.some(rate => rate.cancellationPolicies?.length > 0)) && (
+                                    <div className={`${booking.remark ? 'lg:col-span-7' : 'lg:col-span-12'} space-y-2`}>
+                                        <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                                            <FileText className="w-3.5 h-3.5 text-sky-600" />
+                                            <span>Cancellation Conditions</span>
+                                        </div>
+                                        <div className="border border-sky-100 rounded-xl overflow-hidden bg-white text-xs">
+                                            <table className="w-full text-left">
+                                                <thead className="bg-sky-50/40 text-[10px] font-bold text-slate-500 uppercase border-b border-sky-100">
+                                                    <tr>
+                                                        <th className="py-2 px-3.5">Cancel By</th>
+                                                        <th className="py-2 px-3.5 text-right">Fee / Penalty</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {rooms.flatMap(r => r.rates || []).flatMap(rate => rate.cancellationPolicies || []).map((policy, pIdx) => (
+                                                        <tr key={pIdx}>
+                                                            <td className="py-2 px-3.5 text-slate-700 font-medium">
+                                                                {formatDateTime(policy.toDate)}
+                                                            </td>
+                                                            <td className="py-2 px-3.5 text-right font-semibold text-rose-600">
+                                                                {policy.amount?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {policy.currency}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {booking.remark && (
+                                    <div className={`${rooms.some(r => r.rates?.some(rate => rate.cancellationPolicies?.length > 0)) ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-2`}>
+                                        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">
+                                            Special Remarks
+                                        </span>
+                                        <div className="p-3.5 bg-sky-50/30 rounded-xl border border-sky-100 text-xs text-slate-700 leading-relaxed italic">
+                                            "{booking.remark}"
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="avoid-break pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+                            <div>
+                                <span className="font-semibold text-slate-600">Travel of Globe</span>
+                                <span className="mx-2">•</span>
+                                <span>support@travelofglobe.com</span>
+                            </div>
+                            <div className="font-mono text-[10px] text-slate-400">
+                                {booking.uuid || ''}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Print Tip */}
-                <div className="no-print text-center">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-sm">info</span>
-                        For best results, print on A4 paper using Portrait orientation
+                {/* Footer Print Tip */}
+                <div className="no-print text-center py-2">
+                    <p className="text-[11px] text-slate-400">
+                        Print in portrait mode on standard A4 paper.
                     </p>
                 </div>
             </div>

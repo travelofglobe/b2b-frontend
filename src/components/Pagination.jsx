@@ -111,7 +111,7 @@ const Pagination = ({
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
                     title={t('pagination.firstPage', 'İlk Sayfa')}
                 >
-                    <span className="material-icons-round text-sm">first_page</span>
+                    <span className="material-symbols-outlined text-sm">first_page</span>
                 </button>
 
                 {/* Previous button */}
@@ -122,7 +122,7 @@ const Pagination = ({
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
                     title={t('pagination.previousPage', 'Önceki Sayfa')}
                 >
-                    <span className="material-icons-round text-sm">chevron_left</span>
+                    <span className="material-symbols-outlined text-sm">chevron_left</span>
                 </button>
 
                 {/* Page Numbers */}
@@ -130,7 +130,7 @@ const Pagination = ({
                     if (typeof page === 'string') {
                         return (
                             <div key={page} className="size-8 flex items-center justify-center text-slate-400">
-                                <span className="material-icons-round text-sm">more_horiz</span>
+                                <span className="material-symbols-outlined text-sm">more_horiz</span>
                             </div>
                         );
                     }
@@ -160,7 +160,7 @@ const Pagination = ({
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
                     title={t('pagination.nextPage', 'Sonraki Sayfa')}
                 >
-                    <span className="material-icons-round text-sm">chevron_right</span>
+                    <span className="material-symbols-outlined text-sm">chevron_right</span>
                 </button>
 
                 {/* Last page button */}
@@ -171,7 +171,7 @@ const Pagination = ({
                     className="size-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-30 disabled:pointer-events-none hover:bg-primary hover:text-white dark:hover:bg-primary transition-all text-slate-600 dark:text-slate-300"
                     title={t('pagination.lastPage', 'Son Sayfa')}
                 >
-                    <span className="material-icons-round text-sm">last_page</span>
+                    <span className="material-symbols-outlined text-sm">last_page</span>
                 </button>
             </div>
 

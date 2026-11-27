@@ -196,7 +196,7 @@ const Dashboard = () => {
                                     </p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                                    <span className="material-icons-round text-base">confirmation_number</span>
+                                    <span className="material-symbols-outlined text-base">confirmation_number</span>
                                 </div>
                             </div>
                             
@@ -211,7 +211,7 @@ const Dashboard = () => {
                             {/* Bottom trend & ratio label */}
                             <div className="flex items-center justify-between">
                                 <span className={`flex items-center gap-0.5 text-[10px] font-bold ${summary.bookingsTrend >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
-                                    <span className="material-icons-round text-xs">{summary.bookingsTrend >= 0 ? 'trending_up' : 'trending_down'}</span>
+                                    <span className="material-symbols-outlined text-xs">{summary.bookingsTrend >= 0 ? 'trending_up' : 'trending_down'}</span>
                                     {statsLoading ? '...' : (summary.bookingsTrend >= 0 ? `+${summary.bookingsTrend}%` : `${summary.bookingsTrend}%`)}
                                 </span>
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">VS YESTERDAY</span>
@@ -236,7 +236,7 @@ const Dashboard = () => {
                                     </p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-amber-100/80 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-white transition-all">
-                                    <span className="material-icons-round text-base">bolt</span>
+                                    <span className="material-symbols-outlined text-base">bolt</span>
                                 </div>
                             </div>
 
@@ -251,7 +251,7 @@ const Dashboard = () => {
                             {/* Bottom trend & ratio label */}
                             <div className="flex items-center justify-between">
                                 <span className="flex items-center gap-0.5 text-[10px] font-bold text-rose-500">
-                                    <span className="material-icons-round text-xs">trending_up</span>
+                                    <span className="material-symbols-outlined text-xs">trending_up</span>
                                     {statsLoading ? '...' : `%${summary.errorRate || '0.00'}`}
                                 </span>
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">ERROR RATE</span>
@@ -266,7 +266,7 @@ const Dashboard = () => {
                                     <p className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">{statsLoading ? '...' : summary.totalUsers}</p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                                    <span className="material-icons-round text-base">supervised_user_circle</span>
+                                    <span className="material-symbols-outlined text-base">supervised_user_circle</span>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
@@ -285,7 +285,7 @@ const Dashboard = () => {
                                     <p className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">{statsLoading ? '...' : summary.activeUsers}</p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                                    <span className="material-icons-round text-base">bolt</span>
+                                    <span className="material-symbols-outlined text-base">bolt</span>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
@@ -304,13 +304,13 @@ const Dashboard = () => {
                                     <p className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-0.5">{statsLoading ? '...' : summary.totalGuests}</p>
                                 </div>
                                 <div className="size-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-                                    <span className="material-icons-round text-base">group</span>
+                                    <span className="material-symbols-outlined text-base">group</span>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 dark:border-[#3c4043]">
                                 <span className="text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">SYSTEM</span>
                                 <span className="px-1.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[8.5px] font-semibold uppercase tracking-wider border border-purple-500/20 flex items-center gap-1">
-                                    <span className="material-icons-round text-[9px]">people</span> CRM
+                                    <span className="material-symbols-outlined text-[9px]">people</span> CRM
                                 </span>
                             </div>
                         </div>
@@ -320,7 +320,7 @@ const Dashboard = () => {
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <span className="material-icons-round text-primary text-base">public</span>
+                                    <span className="material-symbols-outlined text-primary text-base">public</span>
                                 </div>
                                 <div>
                                     <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">{t('dashboard.popularDestinations')}</h2>
@@ -329,10 +329,10 @@ const Dashboard = () => {
                             </div>
                             <div className="flex gap-2">
                                 <button className="size-9 rounded-xl bg-white/40 dark:bg-[#28292c] border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-[#383a3e] transition-all flex items-center justify-center text-slate-400 hover:text-primary">
-                                    <span className="material-icons-round text-lg">chevron_left</span>
+                                    <span className="material-symbols-outlined text-lg">chevron_left</span>
                                 </button>
                                 <button className="size-9 rounded-xl bg-white/40 dark:bg-[#28292c] border border-white/60 dark:border-white/10 hover:bg-white/60 dark:hover:bg-[#383a3e] transition-all flex items-center justify-center text-primary">
-                                    <span className="material-icons-round text-lg">chevron_right</span>
+                                    <span className="material-symbols-outlined text-lg">chevron_right</span>
                                 </button>
                             </div>
                         </div>
@@ -341,7 +341,7 @@ const Dashboard = () => {
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Dubai skyline" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA44V5Rw3n0d1IRUftf6z8_vB3HBwcJuZJYvR8YmMatQ44JJKuoVOOMZcc324K7w5t1CEj7rrbmQfvu5_L2C40dYKtEcaBr5ly0T2kK_jkA4AEB8UFmJdh9tBTYpY2-EwDPlKBK-hSxTlvOGKO0anJ6RtGIuOBD2wgcngOYuLJCxcsptvI1yl_q818XSF4LsNWF3KF9TlwuW10-EZRTff2f_RLRbTnjZryGus-MPJEtchv29FeLBwrrvu5twYK6Gksekuw7rc8BfLAE" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
-                                        <span className="material-icons-round text-primary text-xs">trending_up</span>
+                                        <span className="material-symbols-outlined text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
@@ -366,7 +366,7 @@ const Dashboard = () => {
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Eiffel Tower Paris" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAKaysBHtmgeqbCgI0hzy0BjMTk-ihUbfPvkwXOo8168DpEmYK3ZwUxnws0XTpi6CmcD9AxZbd3_eEML6dtpH1U4UclGEab2N3lvPHR2NF83mJEoRDl4abqV9dzSRQSgW_hG8DnDAIF2poS3q0EGj7EQwR269k2fBX9DwMIy5gLNy3CNjSgGuy6g3et73S__a185-hjz_rlYOqQXd3J9xxPDU6VuTKmnr7sPPCcfG7YmvzEi-Tg2SmIcvAqYG0Sbd2-iebgBNPsKU_" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
-                                        <span className="material-icons-round text-primary text-xs">trending_up</span>
+                                        <span className="material-symbols-outlined text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
@@ -391,7 +391,7 @@ const Dashboard = () => {
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="Tokyo tower" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0NEc0GKKnW3d7mB9bVdbYwFNBEpY_nhmkIekHSBPSWraDNin1ulHT4_q9cfhMIcqrg51KW03dH7sambalU3BYZ7y1HYErTyF-Wv08E5_ZTcGFZrbVQoaAWGSJJ-DT_LoEtPdZ6dZ8UDyuHbzkGiRdIafWF85YxePToZg0rHlnEcE09fDEybxGYm1CEGPO7UT-q-ghVu23XP5EZBmMWGnaKFbxyGO7P11p_zKZAvKsILFOdCL3gMmFS3S-e5qWTr12LhS_aHMTOtlm" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
-                                        <span className="material-icons-round text-primary text-xs">trending_up</span>
+                                        <span className="material-symbols-outlined text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
@@ -416,7 +416,7 @@ const Dashboard = () => {
                                 <div className="relative h-40 overflow-hidden">
                                     <img alt="New York City" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtxEUChP8HguBV_GFxz8TEk3Dssxi8xSCtI9Z9T9odllNiM91Ak0hyIkth1y8h7fVd-SgwSm4HxyJenSQHfxcK0mRSw03MGbXy9awP6fWL9o2E6w2zJuTizyr02IqQyZd6m73Z9CBZkHOiHgr0UxqaQ0otgONM7xlmX8jdsLkvqO6E3iPFxcpO5oCVYD2Oeq35OrYztM-6PMWjIP3b1DOmvxfBWs1CLP1K2ycUZSlNdQ7d-ig6xdBpLeQU4BjENmJ-TBFNTw8OLQXD" />
                                     <div className="absolute top-3 right-3 bg-white/60 dark:bg-[#303134] backdrop-blur-xl px-2.5 py-1 rounded-xl border border-white/60 dark:border-white/20 flex items-center gap-1.5 shadow-sm">
-                                        <span className="material-icons-round text-primary text-xs">trending_up</span>
+                                        <span className="material-symbols-outlined text-primary text-xs">trending_up</span>
                                         <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-900 dark:text-white">{t('dashboard.destinations.trending')}</span>
                                     </div>
                                 </div>
@@ -445,7 +445,7 @@ const Dashboard = () => {
                             <div className="p-5 border-b border-white/40 dark:border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <span className="material-icons-round text-primary text-base">history</span>
+                                        <span className="material-symbols-outlined text-primary text-base">history</span>
                                     </div>
                                     <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">{t('dashboard.recentBookings')}</h2>
                                 </div>
@@ -536,7 +536,7 @@ const Dashboard = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-xl">verified_user</span>
+                                <span className="material-symbols-outlined text-xl">verified_user</span>
                             </div>
                             <div>
                                 <p className="text-xs font-bold">{t('dashboard.securePayment')}</p>
@@ -545,7 +545,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-xl">loyalty</span>
+                                <span className="material-symbols-outlined text-xl">loyalty</span>
                             </div>
                             <div>
                                 <p className="text-xs font-bold">{t('dashboard.bestPrice')}</p>
@@ -554,7 +554,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-xl">support_agent</span>
+                                <span className="material-symbols-outlined text-xl">support_agent</span>
                             </div>
                             <div>
                                 <p className="text-xs font-bold">{t('dashboard.support247')}</p>
@@ -563,7 +563,7 @@ const Dashboard = () => {
                         </div>
                         <div className="flex items-center gap-3 p-4 bg-white/50 dark:bg-[#303134] rounded-2xl border border-slate-100 dark:border-[#3c4043]">
                             <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-primary">
-                                <span className="material-icons-round text-xl">reviews</span>
+                                <span className="material-symbols-outlined text-xl">reviews</span>
                             </div>
                             <div>
                                 <p className="text-xs font-bold">{t('dashboard.verifiedReviews')}</p>

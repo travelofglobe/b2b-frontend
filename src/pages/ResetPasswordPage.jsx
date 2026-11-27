@@ -91,7 +91,7 @@ const ResetPasswordPage = () => {
                 {!token ? (
                     <div className="text-center space-y-6">
                         <div className="size-16 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto">
-                            <span className="material-icons-round text-3xl">link_off</span>
+                            <span className="material-symbols-outlined text-3xl">link_off</span>
                         </div>
                         <div className="space-y-2">
                             <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('resetPassword.invalidLinkTitle')}</h2>
@@ -109,7 +109,7 @@ const ResetPasswordPage = () => {
                 ) : success ? (
                     <div className="text-center space-y-6 animate-in fade-in duration-500">
                         <div className="size-16 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 mx-auto">
-                            <span className="material-icons-round text-3xl">task_alt</span>
+                            <span className="material-symbols-outlined text-3xl">task_alt</span>
                         </div>
                         <div className="space-y-2">
                             <h2 className="text-xl font-bold text-slate-800 dark:text-white">{t('resetPassword.successTitle')}</h2>
@@ -122,7 +122,7 @@ const ResetPasswordPage = () => {
                             className="w-full bg-primary text-white p-3.5 rounded-2xl font-bold text-xs tracking-wider uppercase hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                         >
                             {t('resetPassword.backToLogin')}
-                            <span className="material-icons-round text-sm">arrow_forward</span>
+                            <span className="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>
                     </div>
                 ) : (
@@ -151,7 +151,7 @@ const ResetPasswordPage = () => {
                                         onClick={() => setShowNewPassword(!showNewPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center text-slate-400 hover:text-primary transition-colors"
                                     >
-                                        <span className="material-icons-round text-lg">
+                                        <span className="material-symbols-outlined text-lg">
                                             {showNewPassword ? 'visibility_off' : 'visibility'}
                                         </span>
                                     </button>
@@ -174,7 +174,7 @@ const ResetPasswordPage = () => {
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                         className="absolute right-3 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center text-slate-400 hover:text-primary transition-colors"
                                     >
-                                        <span className="material-icons-round text-lg">
+                                        <span className="material-symbols-outlined text-lg">
                                             {showConfirmPassword ? 'visibility_off' : 'visibility'}
                                         </span>
                                     </button>
@@ -195,7 +195,7 @@ const ResetPasswordPage = () => {
                                         const isValid = validation[rule.key];
                                         return (
                                             <div key={rule.key} className="flex items-center gap-2">
-                                                <span className={`material-icons-round text-sm transition-colors duration-200 ${isValid ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`}>
+                                                <span className={`material-symbols-outlined text-sm transition-colors duration-200 ${isValid ? 'text-emerald-500' : 'text-slate-300 dark:text-slate-600'}`}>
                                                     check
                                                 </span>
                                                 <span className={`text-[11px] font-bold transition-colors duration-200 ${isValid ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
@@ -209,7 +209,7 @@ const ResetPasswordPage = () => {
 
                             {error && (
                                 <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-100/50 dark:border-red-900/30 rounded-2xl flex items-center gap-3 text-red-500 animate-in fade-in slide-in-from-top-2">
-                                    <span className="material-icons-round text-lg shrink-0">error_outline</span>
+                                    <span className="material-symbols-outlined text-lg shrink-0">error_outline</span>
                                     <span className="text-xs font-bold leading-normal">{error}</span>
                                 </div>
                             )}

@@ -120,7 +120,7 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                         onClick={onClose}
                         className="size-7 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-white transition-all"
                     >
-                        <span className="material-icons-round text-lg">close</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                 </div>
 
@@ -224,7 +224,7 @@ const EditSubAgencyUserModal = ({ isOpen, onClose, user, agency, onUpdate }) => 
                             {isSaving ? (
                                 <div className="size-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                <span className="material-icons-round text-base">check</span>
+                                <span className="material-symbols-outlined text-base">check</span>
                             )}
                             {isEdit ? 'Save Changes' : 'Create User'}
                         </button>

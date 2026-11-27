@@ -159,7 +159,7 @@ const PortalLayout = () => {
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
                                         <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                        <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                        <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                     </button>
                                 );
                             })}
@@ -177,7 +177,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>book_online</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.bookings')}</span>
+                                <span className="text-sm font-[450] text-left leading-snug flex-1">{t('sidebar.bookings')}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isBookingsOpen ? 'rotate-90' : ''} ${(location.pathname.startsWith('/travel') && location.pathname.includes('/bookings')) || location.pathname === '/travel/bookings' ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
@@ -196,7 +196,7 @@ const PortalLayout = () => {
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
                                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                                <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -216,7 +216,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>corporate_fare</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.myOffice')}</span>
+                                <span className="text-sm font-[450] text-left leading-snug flex-1">{t('sidebar.myOffice')}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isMyOfficeOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/my-office') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
@@ -236,7 +236,7 @@ const PortalLayout = () => {
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
                                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                                <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -250,7 +250,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>tune</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.definitions')}</span>
+                                <span className="text-sm font-[450] text-left leading-snug flex-1">{t('sidebar.definitions')}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isDefinitionsOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/definitions') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
@@ -262,7 +262,7 @@ const PortalLayout = () => {
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
                                         <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname === '/definitions/markup' ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>trending_up</span>
-                                        <span className="text-sm font-medium text-left leading-snug">{t('sidebar.markupManagement')}</span>
+                                        <span className="text-sm font-[450] text-left leading-snug">{t('sidebar.markupManagement')}</span>
                                     </button>
                                 </div>
                             )}
@@ -281,7 +281,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${location.pathname.startsWith('/finance') ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>account_balance_wallet</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{t('sidebar.finance')}</span>
+                                <span className="text-sm font-[450] text-left leading-snug flex-1">{t('sidebar.finance')}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isFinanceOpen ? 'rotate-90' : ''} ${location.pathname.startsWith('/finance') ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
@@ -303,7 +303,7 @@ const PortalLayout = () => {
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
                                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                                <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -323,7 +323,7 @@ const PortalLayout = () => {
                                             : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                     >
                                         <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                        <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                        <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                     </button>
                                 );
                             })}
@@ -341,7 +341,7 @@ const PortalLayout = () => {
                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                             >
                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isGSAPath ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>admin_panel_settings</span>
-                                <span className="text-sm font-medium text-left leading-snug flex-1">{managementLabel}</span>
+                                <span className="text-sm font-[450] text-left leading-snug flex-1">{managementLabel}</span>
                                 <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isGSAManagementOpen ? 'rotate-90' : ''} ${isGSAPath ? 'text-[#1a73e8]' : 'text-[#70757a]'}`}>chevron_right</span>
                             </button>
 
@@ -361,7 +361,7 @@ const PortalLayout = () => {
                                                     : 'text-[#3c4043] dark:text-slate-300 hover:bg-[#f1f3f4] dark:hover:bg-slate-800'}`}
                                             >
                                                 <span className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white'}`}>{icon}</span>
-                                                <span className="text-sm font-medium text-left leading-snug">{label}</span>
+                                                <span className="text-sm font-[450] text-left leading-snug">{label}</span>
                                             </button>
                                         );
                                     })}
@@ -381,7 +381,7 @@ const PortalLayout = () => {
                             >
                                 <div className="flex items-center gap-4 min-w-0">
                                     <span className="material-symbols-outlined text-[20px] flex-shrink-0 text-[#70757a] dark:text-slate-400 group-hover:text-[#3c4043] dark:group-hover:text-white">language</span>
-                                    <span className="text-sm font-medium text-left leading-snug">{t('nav.changeLanguage')}</span>
+                                    <span className="text-sm font-[450] text-left leading-snug">{t('nav.changeLanguage')}</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[12px] font-medium text-slate-600 dark:text-slate-300">
                                     <span>{currentLanguage?.flag}</span>

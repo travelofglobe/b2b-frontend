@@ -150,8 +150,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Explore",
+        "hotel": "Hotel",
         "hotels": "Hotels",
+        "flight": "Flight",
         "flights": "Flights",
+        "transfer": "Transfer",
+        "rentACar": "Rent A Car",
         "vacationRentals": "Vacation Rentals",
         "changeLanguage": "Change language",
         "close": "Close"
@@ -490,8 +494,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Keşfet",
+        "hotel": "Otel",
         "hotels": "Oteller",
+        "flight": "Uçuş",
         "flights": "Uçuşlar",
+        "transfer": "Transfer",
+        "rentACar": "Araç Kiralama",
         "vacationRentals": "Kiralık yerler",
         "changeLanguage": "Dili değiştir",
         "close": "Kapat"
@@ -826,8 +834,12 @@ export const resources = {
       },
       "nav": {
         "explore": "استكشف",
+        "hotel": "فندق",
         "hotels": "فنادق",
+        "flight": "طيران",
         "flights": "رحلات طيران",
+        "transfer": "توصيل",
+        "rentACar": "تأجير سيارات",
         "vacationRentals": "إيجارات العطلات",
         "changeLanguage": "تغيير اللغة",
         "close": "إغلاق"
@@ -1158,8 +1170,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Explorar",
+        "hotel": "Hotel",
         "hotels": "Hoteles",
+        "flight": "Vuelo",
         "flights": "Vuelos",
+        "transfer": "Traslado",
+        "rentACar": "Alquiler de Coches",
         "vacationRentals": "Alquileres Vacacionales",
         "changeLanguage": "Cambiar idioma",
         "close": "Cerrar"
@@ -1490,8 +1506,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Исследовать",
+        "hotel": "Отель",
         "hotels": "Отели",
+        "flight": "Перелет",
         "flights": "Рейсы",
+        "transfer": "Трансфер",
+        "rentACar": "Аренда авто",
         "vacationRentals": "Аренда жилья",
         "changeLanguage": "Изменить язык",
         "close": "Закрыть"
@@ -1822,8 +1842,12 @@ export const resources = {
       },
       "nav": {
         "explore": "探索",
+        "hotel": "酒店",
         "hotels": "酒店",
+        "flight": "机票",
         "flights": "航班",
+        "transfer": "接送",
+        "rentACar": "租车",
         "vacationRentals": "度假短租",
         "changeLanguage": "更改语言",
         "close": "关闭"
@@ -2154,8 +2178,12 @@ export const resources = {
       },
       "nav": {
         "explore": "探索",
+        "hotel": "ホテル",
         "hotels": "ホテル",
+        "flight": "フライト",
         "flights": "航空券",
+        "transfer": "送迎",
+        "rentACar": "レンタカー",
         "vacationRentals": "バケーションレンタル",
         "changeLanguage": "言語を変更",
         "close": "閉じる"
@@ -2486,8 +2514,12 @@ export const resources = {
       },
       "nav": {
         "explore": "کاوش",
+        "hotel": "هتل",
         "hotels": "هتل‌ها",
+        "flight": "پرواز",
         "flights": "پروازها",
+        "transfer": "ترانسفر",
+        "rentACar": "اجاره خودرو",
         "vacationRentals": "اجاره تعطیلات",
         "changeLanguage": "تغییر زبان",
         "close": "بستن"
@@ -2818,8 +2850,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Explorer",
+        "hotel": "Hôtel",
         "hotels": "Hôtels",
+        "flight": "Vol",
         "flights": "Vols",
+        "transfer": "Transfert",
+        "rentACar": "Location de Voiture",
         "vacationRentals": "Locations de vacances",
         "changeLanguage": "Changer de langue",
         "close": "Fermer"
@@ -3150,8 +3186,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Esplora",
+        "hotel": "Hotel",
         "hotels": "Hotel",
+        "flight": "Volo",
         "flights": "Voli",
+        "transfer": "Trasferimento",
+        "rentACar": "Noleggio Auto",
         "vacationRentals": "Case Vacanza",
         "changeLanguage": "Cambia lingua",
         "close": "Chiudi"
@@ -3482,8 +3522,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Εξερεύνηση",
+        "hotel": "Ξενοδοχείο",
         "hotels": "Ξενοδοχεία",
+        "flight": "Πτήση",
         "flights": "Πτήσεις",
+        "transfer": "Μεταφορά",
+        "rentACar": "Ενοικίαση Αυτοκινήτου",
         "vacationRentals": "Ενοικιάσεις διακοπών",
         "changeLanguage": "Αλλαγή γλώσσας",
         "close": "Κλείσιμο"
@@ -3814,8 +3858,12 @@ export const resources = {
       },
       "nav": {
         "explore": "Explorar",
+        "hotel": "Hotel",
         "hotels": "Hotéis",
+        "flight": "Voo",
         "flights": "Voos",
+        "transfer": "Transfer",
+        "rentACar": "Aluguel de Carros",
         "vacationRentals": "Aluguéis de Temporada",
         "changeLanguage": "Mudar idioma",
         "close": "Fechar"

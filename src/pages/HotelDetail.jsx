@@ -2514,9 +2514,14 @@ const HotelDetail = () => {
                         const quickHighlights = extractHighlightAmenities(hotel.facilities || [], currentLang, 6);
                         if (quickHighlights.length > 0) {
                             return quickHighlights.map((item, i) => (
-                                <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
-                                    <AmenityLucideIcon name={item.lucideIcon} className="w-3.5 h-3.5 text-[#1a73e8] dark:text-blue-400 shrink-0" strokeWidth={2} />
-                                    <span>{item.label}</span>
+                                <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#202124] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
+                                    <AmenityLucideIcon name={item.lucideIcon} className="w-3.5 h-3.5 text-[#3c4043] dark:text-slate-300 shrink-0" strokeWidth={1.8} />
+                                    <span>{item.displayLabel}</span>
+                                    {item.badges?.[0] && (
+                                        <span className="px-1.5 py-[1px] rounded-[4px] bg-[#e8eaed] dark:bg-slate-700 text-[#3c4043] dark:text-slate-200 text-[10.5px]">
+                                            {item.badges[0]}
+                                        </span>
+                                    )}
                                 </span>
                             ));
                         }
@@ -3390,7 +3395,7 @@ const HotelDetail = () => {
                                         facilities={hotel.facilities || []}
                                         currentLang={currentLang}
                                         variant="detail"
-                                        showHeader={false}
+                                        showHeader={true}
                                     />
                                 )}
 

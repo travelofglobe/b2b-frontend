@@ -88,7 +88,9 @@ const PortalLayout = () => {
                         className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors focus:outline-none active:scale-95 cursor-pointer" 
                         aria-label="Menü"
                     >
-                        <span className="material-symbols-outlined text-[22px]">menu</span>
+                        <span className="material-symbols-outlined text-[22px]">
+                            {isSidebarOpen ? 'close' : 'menu'}
+                        </span>
                     </button>
                     <div 
                         className="flex flex-col cursor-pointer select-none group mr-1 py-0.5 justify-center" 
@@ -108,29 +110,37 @@ const PortalLayout = () => {
                     </div>
                 </div>
 
-                {/* Center: Tabs (True Center) */}
-                <div className="hidden lg:flex items-center gap-2 font-roboto absolute left-1/2 -translate-x-1/2 z-0 pointer-events-auto">
-                    {[
-                        { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
-                        { path: '/travel/hotels', icon: 'bed', label: t('nav.hotels'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
-                        { path: '/travel/flights', icon: 'flight', label: t('nav.flights'), isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
-                        { path: '/travel/vacation-rentals', icon: 'home_work', label: t('nav.vacationRentals'), isCurrent: location.pathname === '/travel/vacation-rentals' || location.pathname === '/vacation-rentals' },
-                    ].map(({ path, icon, label, isCurrent }) => (
-                        <button
-                            key={path}
-                            onClick={() => navigate(path)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer select-none ${
-                                isCurrent
-                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border border-transparent dark:bg-[#4285f4]/20 dark:text-[#8ab4f8]'
-                                    : 'text-[#3c4043] bg-white border border-[#dadce0] hover:bg-[#f8f9fa] dark:text-slate-300 dark:bg-[#303134] dark:border-[#5f6368] dark:hover:bg-slate-800'
-                            }`}
-                        >
-                            <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>
-                                {icon}
-                            </span>
-                            {label}
-                        </button>
-                    ))}
+                {/* Center: Frameless Minimal Product Selector (matching admin-frontend TopBar) */}
+                <div className="hidden sm:flex flex-1 items-center justify-center px-1 sm:px-3 min-w-0">
+                    <nav className="flex items-center gap-0.5 sm:gap-1.5 max-w-full overflow-x-auto no-scrollbar">
+                        {[
+                            { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore', 'Explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
+                            { path: '/travel/hotels', icon: 'hotel', label: t('nav.hotel', 'Hotel'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
+                            { path: '/travel/flights', icon: 'flight', label: t('nav.flight', 'Flight'), isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
+                            { path: '/travel/transfer', icon: 'airport_shuttle', label: t('nav.transfer', 'Transfer'), isCurrent: location.pathname.startsWith('/travel/transfer') || location.pathname.startsWith('/transfer') },
+                            { path: '/travel/rent-a-car', icon: 'directions_car', label: t('nav.rentACar', 'Rent A Car'), isCurrent: location.pathname.startsWith('/travel/rent-a-car') || location.pathname.startsWith('/rent-a-car') },
+                        ].map(({ path, icon, label, isCurrent }) => (
+                            <button
+                                key={path}
+                                onClick={() => navigate(path)}
+                                title={label}
+                                className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs select-none cursor-pointer whitespace-nowrap transition-colors duration-200 focus:outline-none ${
+                                    isCurrent
+                                        ? 'bg-slate-100/90 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 font-medium'
+                                }`}
+                            >
+                                <span className={`material-symbols-outlined text-[18px] transition-colors duration-200 ${
+                                    isCurrent ? 'text-[#137fec] dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
+                                }`}>
+                                    {icon}
+                                </span>
+                                <span className={`text-xs tracking-tight ${isCurrent ? 'inline' : 'hidden md:inline'}`}>
+                                    {label}
+                                </span>
+                            </button>
+                        ))}
+                    </nav>
                 </div>
 
                 {/* Right: Actions */}
@@ -157,14 +167,15 @@ const PortalLayout = () => {
                     {/* --- Navigation Tabs (same as header) --- */}
                     <div className="space-y-0.5 mb-1">
                             {[
-                                { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore') },
-                                { path: '/travel/flights', icon: 'flight', label: t('nav.flights') },
-                                { path: '/travel/hotels', icon: 'bed', label: t('nav.hotels') },
-                                { path: '/travel/vacation-rentals', icon: 'home_work', label: t('nav.vacationRentals') },
+                                { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore', 'Explore') },
+                                { path: '/travel/hotels', icon: 'hotel', label: t('nav.hotel', 'Hotel') },
+                                { path: '/travel/flights', icon: 'flight', label: t('nav.flight', 'Flight') },
+                                { path: '/travel/transfer', icon: 'airport_shuttle', label: t('nav.transfer', 'Transfer') },
+                                { path: '/travel/rent-a-car', icon: 'directions_car', label: t('nav.rentACar', 'Rent A Car') },
                             ].map(({ path, icon, label }) => {
                                 const isActive = path === '/travel/hotels'
                                     ? (location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard')
-                                    : (location.pathname === path || (path === '/travel/explore' && location.pathname === '/explore') || (path === '/travel/flights' && (location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights'))) || (path === '/travel/vacation-rentals' && location.pathname === '/vacation-rentals'));
+                                    : (location.pathname === path || (path === '/travel/explore' && location.pathname === '/explore') || (path === '/travel/flights' && (location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights'))) || (path === '/travel/transfer' && (location.pathname.startsWith('/travel/transfer') || location.pathname.startsWith('/transfer'))) || (path === '/travel/rent-a-car' && (location.pathname.startsWith('/travel/rent-a-car') || location.pathname.startsWith('/rent-a-car'))));
                                 return (
                                     <button key={path} onClick={() => { setIsSidebarOpen(false); navigate(path); }}
                                         className={`w-full flex items-center gap-4 -ml-2 pl-6 pr-4 py-2.5 rounded-r-full transition-colors group cursor-pointer ${isActive
@@ -198,7 +209,7 @@ const PortalLayout = () => {
                                 <div className="space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                                     {[
                                         { path: '/travel/bookings', icon: 'list_alt', label: t('sidebar.allBookings') },
-                                        { path: '/travel/hotels/bookings', icon: 'bed', label: t('sidebar.hotelBookings') },
+                                        { path: '/travel/hotels/bookings', icon: 'hotel', label: t('sidebar.hotelBookings') },
                                         { path: '/travel/flights/bookings', icon: 'flight', label: t('sidebar.flightBookings') },
                                     ].map(({ path, icon, label }) => {
                                         const isActive = location.pathname === path;

@@ -93,6 +93,10 @@ function App() {
                   <Route path="/flights/search" element={<Navigate to="/travel/flights/search" replace />} />
                   <Route path="/travel/flights" element={<Flights />} />
                   <Route path="/flights" element={<Navigate to="/travel/flights" replace />} />
+                  <Route path="/travel/transfer" element={<UnderConstruction titleKey="nav.transfer" title="Transfer" icon="airport_shuttle" />} />
+                  <Route path="/transfer" element={<Navigate to="/travel/transfer" replace />} />
+                  <Route path="/travel/rent-a-car" element={<UnderConstruction titleKey="nav.rentACar" title="Rent A Car" icon="directions_car" />} />
+                  <Route path="/rent-a-car" element={<Navigate to="/travel/rent-a-car" replace />} />
                   <Route path="/travel/vacation-rentals" element={<UnderConstruction titleKey="nav.vacationRentals" title="Kiralık Yerler" icon="home_work" />} />
                   <Route path="/vacation-rentals" element={<Navigate to="/travel/vacation-rentals" replace />} />
                   <Route path="/flight-deals" element={<UnderConstruction title="Uçuş Fırsatları" icon="auto_awesome" />} />

@@ -110,37 +110,30 @@ const PortalLayout = () => {
                     </div>
                 </div>
 
-                {/* Center: Frameless Minimal Product Selector (matching admin-frontend TopBar) */}
-                <div className="hidden sm:flex flex-1 items-center justify-center px-1 sm:px-3 min-w-0">
-                    <nav className="flex items-center gap-0.5 sm:gap-1.5 max-w-full overflow-x-auto no-scrollbar">
-                        {[
-                            { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore', 'Explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
-                            { path: '/travel/hotels', icon: 'hotel', label: t('nav.hotel', 'Hotel'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
-                            { path: '/travel/flights', icon: 'flight', label: t('nav.flight', 'Flight'), isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
-                            { path: '/travel/transfer', icon: 'airport_shuttle', label: t('nav.transfer', 'Transfer'), isCurrent: location.pathname.startsWith('/travel/transfer') || location.pathname.startsWith('/transfer') },
-                            { path: '/travel/rent-a-car', icon: 'directions_car', label: t('nav.rentACar', 'Rent A Car'), isCurrent: location.pathname.startsWith('/travel/rent-a-car') || location.pathname.startsWith('/rent-a-car') },
-                        ].map(({ path, icon, label, isCurrent }) => (
-                            <button
-                                key={path}
-                                onClick={() => navigate(path)}
-                                title={label}
-                                className={`relative flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs select-none cursor-pointer whitespace-nowrap transition-colors duration-200 focus:outline-none ${
-                                    isCurrent
-                                        ? 'bg-slate-100/90 dark:bg-slate-800/80 text-slate-900 dark:text-white font-bold'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 font-medium'
-                                }`}
-                            >
-                                <span className={`material-symbols-outlined text-[18px] transition-colors duration-200 ${
-                                    isCurrent ? 'text-[#137fec] dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
-                                }`}>
-                                    {icon}
-                                </span>
-                                <span className={`text-xs tracking-tight ${isCurrent ? 'inline' : 'hidden md:inline'}`}>
-                                    {label}
-                                </span>
-                            </button>
-                        ))}
-                    </nav>
+                {/* Center: Tabs (True Center) */}
+                <div className="hidden lg:flex items-center gap-2 font-roboto absolute left-1/2 -translate-x-1/2 z-0 pointer-events-auto">
+                    {[
+                        { path: '/travel/explore', icon: 'travel_explore', label: t('nav.explore', 'Explore'), isCurrent: location.pathname === '/travel/explore' || location.pathname === '/explore' },
+                        { path: '/travel/hotels', icon: 'hotel', label: t('nav.hotel', 'Hotel'), isCurrent: location.pathname.startsWith('/travel/hotels') || location.pathname.startsWith('/hotel') || location.pathname.startsWith('/map') || location.pathname === '/travel/search' || location.pathname === '/dashboard' },
+                        { path: '/travel/flights', icon: 'flight', label: t('nav.flight', 'Flight'), isCurrent: location.pathname.startsWith('/travel/flights') || location.pathname.startsWith('/flights') },
+                        { path: '/travel/transfer', icon: 'airport_shuttle', label: t('nav.transfer', 'Transfer'), isCurrent: location.pathname.startsWith('/travel/transfer') || location.pathname.startsWith('/transfer') },
+                        { path: '/travel/rent-a-car', icon: 'directions_car', label: t('nav.rentACar', 'Rent A Car'), isCurrent: location.pathname.startsWith('/travel/rent-a-car') || location.pathname.startsWith('/rent-a-car') },
+                    ].map(({ path, icon, label, isCurrent }) => (
+                        <button
+                            key={path}
+                            onClick={() => navigate(path)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer select-none whitespace-nowrap ${
+                                isCurrent
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border border-transparent dark:bg-[#4285f4]/20 dark:text-[#8ab4f8]'
+                                    : 'text-[#3c4043] bg-white border border-[#dadce0] hover:bg-[#f8f9fa] dark:text-slate-300 dark:bg-[#303134] dark:border-[#5f6368] dark:hover:bg-slate-800'
+                            }`}
+                        >
+                            <span className={`material-symbols-outlined text-[18px] ${isCurrent ? 'text-[#1a73e8] dark:text-[#8ab4f8]' : 'text-[#70757a] dark:text-slate-400'}`}>
+                                {icon}
+                            </span>
+                            {label}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Right: Actions */}

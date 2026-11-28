@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { hotelService } from '../services/hotelService';
 import { getBoardTypeLabel, BOARD_TYPES } from '../utils/boardTypeUtils';
-import { extractHighlightAmenities, getAmenityCategoryMeta } from '../utils/facilityUtils';
+import { extractHighlightAmenities } from '../utils/facilityUtils';
 import PropertyAmenitiesSection, { AmenityLucideIcon } from './PropertyAmenitiesSection';
 import RefundPolicyTooltip from './RefundPolicyTooltip';
 import GoogleFilterDropdown from './GoogleFilterDropdown';
@@ -1736,39 +1736,34 @@ const HotelQuickLookDrawer = ({
                                 )}
                             </div>
                             {overviewHighlights.length > 0 ? (
-                                <div className="grid grid-cols-2 gap-2.5 text-[13px] text-[#3c4043] dark:text-slate-300">
-                                    {overviewHighlights.map((item, idx) => {
-                                        const accent = getAmenityCategoryMeta(item.category)?.accent;
-                                        return (
-                                            <div key={idx} className="flex items-center gap-2.5 min-w-0" title={item.label}>
-                                                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${accent?.itemBg || 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-500/15 dark:text-blue-400'}`}>
-                                                    <AmenityLucideIcon name={item.lucideIcon} className="w-[15px] h-[15px]" strokeWidth={1.9} />
-                                                </div>
-                                                <span className="truncate">{item.label}</span>
-                                            </div>
-                                        );
-                                    })}
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13.5px] text-[#202124] dark:text-slate-200">
+                                    {overviewHighlights.map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-2.5 min-w-0" title={item.label}>
+                                            <AmenityLucideIcon name={item.lucideIcon} className="w-[18px] h-[18px] text-[#3c4043] dark:text-slate-300 shrink-0" strokeWidth={1.7} />
+                                            <span className="truncate">{item.displayLabel}</span>
+                                            {item.badges?.[0] && (
+                                                <span className="px-1.5 py-[1px] rounded-[4px] bg-[#e8eaed] dark:bg-slate-700/80 text-[#3c4043] dark:text-slate-200 text-[11px] font-normal leading-tight shrink-0">
+                                                    {item.badges[0]}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-2 gap-2.5 text-[13px] text-[#3c4043] dark:text-slate-300">
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[13.5px] text-[#202124] dark:text-slate-200">
                                     {[
-                                        { icon: 'Wifi', label: t('freeWifi'), cat: 'internet' },
-                                        { icon: 'Waves', label: t('pool'), cat: 'pool_beach' },
-                                        { icon: 'Sparkles', label: t('spa'), cat: 'wellness' },
-                                        { icon: 'CircleParking', label: t('parking'), cat: 'parking_transport' },
-                                        { icon: 'Utensils', label: t('restaurant'), cat: 'dining' },
-                                        { icon: 'Snowflake', label: t('airConditioning'), cat: 'general' }
-                                    ].map((item, idx) => {
-                                        const accent = getAmenityCategoryMeta(item.cat)?.accent;
-                                        return (
-                                            <div key={idx} className="flex items-center gap-2.5 min-w-0">
-                                                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${accent?.itemBg || 'bg-[#f1f3f4] text-[#5f6368]'}`}>
-                                                    <AmenityLucideIcon name={item.icon} className="w-[15px] h-[15px]" strokeWidth={1.9} />
-                                                </div>
-                                                <span className="truncate">{item.label}</span>
-                                            </div>
-                                        );
-                                    })}
+                                        { icon: 'Wifi', label: t('freeWifi') },
+                                        { icon: 'Waves', label: t('pool') },
+                                        { icon: 'Sparkles', label: t('spa') },
+                                        { icon: 'SquareParking', label: t('parking') },
+                                        { icon: 'Utensils', label: t('restaurant') },
+                                        { icon: 'Snowflake', label: t('airConditioning') }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="flex items-center gap-2.5 min-w-0">
+                                            <AmenityLucideIcon name={item.icon} className="w-[18px] h-[18px] text-[#3c4043] dark:text-slate-300 shrink-0" strokeWidth={1.7} />
+                                            <span className="truncate">{item.label}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -2616,14 +2611,13 @@ const HotelQuickLookDrawer = ({
                         </div>
 
                         {/* All Hotel Facilities / Amenities */}
-                        <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700">
+                        <div className="pt-1">
                             <PropertyAmenitiesSection
                                 sectionId="quicklook-amenities-section"
                                 facilities={effectiveFacilities}
                                 currentLang={currentLang}
                                 isLoading={isRoomsLoading}
                                 variant="drawer"
-                                title={t('facilitiesAndServices')}
                             />
                         </div>
 

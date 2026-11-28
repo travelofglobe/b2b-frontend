@@ -1,5 +1,5 @@
 /**
- * Facility & Amenity resolution, icon mapping, and category grouping utilities.
+ * Facility & Amenity resolution, icon mapping, display badge parsing, and category grouping utilities.
  * Supports Expedia Rapid API amenities, legacy numeric facility IDs,
  * backend category slugs (when present), and multilingual keyword classification.
  */
@@ -35,6 +35,123 @@ export const decodeAmenityText = (text) => {
     return decoded.trim();
 };
 
+const BADGE_LOCALES = {
+    tr: { free: 'ücretsiz', surcharge: 'ek ücret', h24: '24 saat' },
+    en: { free: 'free', surcharge: 'extra charge', h24: '24-hour' },
+    de: { free: 'kostenlos', surcharge: 'Aufpreis', h24: '24 Std.' },
+    ar: { free: 'مجاني', surcharge: 'رسوم إضافية', h24: '24 ساعة' },
+    es: { free: 'gratis', surcharge: 'cargo extra', h24: '24 h' },
+    ru: { free: 'бесплатно', surcharge: 'доп. плата', h24: '24 часа' },
+    fr: { free: 'gratuit', surcharge: 'en supplément', h24: '24 h/24' },
+    it: { free: 'gratis', surcharge: 'a pagamento', h24: '24 ore' },
+    pt: { free: 'grátis', surcharge: 'taxa extra', h24: '24h' }
+};
+
+const capitalizeFirst = (str, lang = 'en') => {
+    if (!str) return '';
+    const first = str.charAt(0);
+    const upper = lang === 'tr' ? first.toLocaleUpperCase('tr-TR') : first.toUpperCase();
+    return upper + str.slice(1);
+};
+
+/**
+ * Parse a raw amenity label into clean Google Hotels-style `{ displayLabel, badges, isFree, isSurcharge, is24Hour }`.
+ * Examples:
+ * - "Free WiFi" -> { displayLabel: "WiFi", badges: ["free"] }
+ * - "Ücretsiz kablosuz bağlantı" -> { displayLabel: "Kablosuz bağlantı", badges: ["ücretsiz"] }
+ * - "24-hour room service" -> { displayLabel: "Room service", badges: ["24-hour"] }
+ * - "Airport shuttle (available 24 hours, surcharge)" -> { displayLabel: "Airport shuttle", badges: ["24-hour", "extra charge"] }
+ * - "Self parking (surcharge)" -> { displayLabel: "Self parking", badges: ["extra charge"] }
+ */
+export const parseAmenityDisplay = (label, currentLang = 'tr') => {
+    const normLang = String(currentLang || 'en').split(/[-_]/)[0].toLowerCase();
+    const bLoc = BADGE_LOCALES[normLang] || BADGE_LOCALES.en;
+
+    const cleanRaw = decodeAmenityText(label);
+    if (!cleanRaw) {
+        return { displayLabel: '', badges: [], isFree: false, isSurcharge: false, is24Hour: false };
+    }
+
+    let text = cleanRaw;
+    let isFree = false;
+    let isSurcharge = false;
+    let is24Hour = false;
+
+    // 1. Inspect and clean parenthetical qualifiers such as "(surcharge)", "(available 24 hours, surcharge)", "(ücretli)"
+    text = text.replace(/\(([^)]+)\)/g, (fullMatch, inner) => {
+        const parts = inner.split(/[,;/]/).map(p => p.trim()).filter(Boolean);
+        const keptParts = [];
+
+        for (const part of parts) {
+            if (/^(?:surcharge|extra charge|extra fee|fee|fees apply|paid|for a fee|ücretli|ek ücret|ek ücrete tabi|gegen gebühr|de pago|за доп\.? плату|برسوم إضافية)$/i.test(part)) {
+                isSurcharge = true;
+            } else if (/^(?:free|complimentary|no charge|ücretsiz|kostenlos|gratis|бесплатно|مجاني)$/i.test(part)) {
+                isFree = true;
+            } else if (/^(?:available\s+)?24[\s-]?(?:hours?|hrs?|h|saat|std\.?)$/i.test(part) || /^24\s*saat(?:\s+açık)?$/i.test(part)) {
+                is24Hour = true;
+            } else {
+                keptParts.push(part);
+            }
+        }
+
+        if (keptParts.length === 0) return '';
+        return `(${keptParts.join(', ')})`;
+    });
+
+    // 2. Leading "Free " / "Ücretsiz " / "Complimentary " / "Kostenlos " / "Gratis "
+    const freePrefixMatch = text.match(/^(?:free|complimentary|ücretsiz|kostenlos(?:es?|er)?|gratis|бесплатн(?:ый|ая|ое|ые)?)\s+(.+)$/i);
+    if (freePrefixMatch && freePrefixMatch[1].trim().length >= 3) {
+        isFree = true;
+        text = freePrefixMatch[1].trim();
+    }
+
+    // 3. Leading "24-hour " / "24 saat " / "24 saat açık "
+    const h24PrefixMatch = text.match(/^(?:24[\s-]?hours?|24[\s-]?hr|24\s*saat(?:\s+açık|\s+hizmet veren)?|24[\s-]?stunden|круглосуточн(?:ый|ая|ое|ые)?)\s+(.+)$/i);
+    if (h24PrefixMatch && h24PrefixMatch[1].trim().length >= 3) {
+        is24Hour = true;
+        text = h24PrefixMatch[1].trim();
+    }
+
+    // 4. Trailing " - surcharge" / " - free" / " (ücretsiz)" remnants
+    text = text.replace(/\s*[-–—]\s*(?:surcharge|extra charge|ücretli|ek ücret)$/i, () => {
+        isSurcharge = true;
+        return '';
+    });
+    text = text.replace(/\s*[-–—]\s*(?:free|ücretsiz)$/i, () => {
+        isFree = true;
+        return '';
+    });
+
+    // Detect remaining non-stripped flags without mutating text
+    if (!isFree && /\b(?:free|complimentary|ücretsiz|kostenlos|gratis|бесплатн|مجان)\b/i.test(cleanRaw) && !/smoke-?free|stair-?free|step-?free|gluten-?free|plastic-?free|barrier-?free/i.test(cleanRaw)) {
+        isFree = true;
+    }
+    if (!isSurcharge && /\b(?:surcharge|extra charge|fees? apply|ücretli|ek ücret|gegen gebühr|de pago|доп\.?\s*плат|برسوم)\b/i.test(cleanRaw)) {
+        isSurcharge = true;
+    }
+    if (!is24Hour && /(?:24[\s-]?hours?|24\s*saat|24[\s-]?std|круглосуточн|على مدار 24 ساعة)/i.test(cleanRaw)) {
+        is24Hour = true;
+    }
+
+    // Normalize whitespace & capitalize cleanly
+    text = text.replace(/\s{2,}/g, ' ').replace(/\s+([,.;:])/g, '$1').trim();
+    if (!text) text = cleanRaw;
+    text = capitalizeFirst(text, normLang);
+
+    const badges = [];
+    if (is24Hour) badges.push(bLoc.h24);
+    if (isFree && !isSurcharge) badges.push(bLoc.free);
+    else if (isSurcharge) badges.push(bLoc.surcharge);
+
+    return {
+        displayLabel: text,
+        badges,
+        isFree,
+        isSurcharge,
+        is24Hour
+    };
+};
+
 /**
  * Legacy numeric facility ID map (kept for backwards compatibility across
  * HotelListing, HotelCard, RoomGalleryModal, and fallback ID-only lookups).
@@ -62,7 +179,7 @@ export const FACILITY_ICON_MAP = {
     3154: { icon: 'nightlife', lucideIcon: 'Music', category: 'wellness', label: 'Night Club' },
     3891: { icon: 'hot_tub', lucideIcon: 'Bath', category: 'wellness', label: 'Jacuzzi' },
     650: { icon: 'spa', lucideIcon: 'Bath', category: 'wellness', label: 'Sauna' },
-    3064: { icon: 'atm', lucideIcon: 'CreditCard', category: 'services', label: 'ATM' },
+    3064: { icon: 'atm', lucideIcon: 'CircleDollarSign', category: 'policies_payments', label: 'ATM' },
     18006: { icon: 'business_center', lucideIcon: 'Briefcase', category: 'business', label: 'Business Centre' },
     18366: { icon: 'local_laundry_service', lucideIcon: 'WashingMachine', category: 'services', label: 'Laundry' },
     603: { icon: 'child_care', lucideIcon: 'Baby', category: 'family_pets', label: 'Babysitting' },
@@ -72,14 +189,14 @@ export const FACILITY_ICON_MAP = {
     1993: { icon: 'lock', lucideIcon: 'Lock', category: 'services', label: 'Safety Box' },
     1995: { icon: 'accessible', lucideIcon: 'Accessibility', category: 'accessibility', label: 'Wheelchair Access' },
     2007: { icon: 'elevator', lucideIcon: 'ArrowUpDown', category: 'general', label: 'Elevator' },
-    98485: { icon: 'security', lucideIcon: 'ShieldCheck', category: 'general', label: 'Security' },
-    100075: { icon: 'smoking_rooms', lucideIcon: 'Cigarette', category: 'general', label: 'Smoking Area' },
+    98485: { icon: 'security', lucideIcon: 'ShieldCheck', category: 'policies_payments', label: 'Security' },
+    100075: { icon: 'smoking_rooms', lucideIcon: 'Cigarette', category: 'policies_payments', label: 'Smoking Area' },
     1687: { icon: 'surfing', lucideIcon: 'Waves', category: 'wellness', label: 'Water Sports' },
     1981: { icon: 'child_friendly', lucideIcon: 'Baby', category: 'family_pets', label: 'Kids Club' },
     3724: { icon: 'beach_access', lucideIcon: 'Umbrella', category: 'pool_beach', label: 'Beach' },
     18126: { icon: 'directions_bike', lucideIcon: 'Bike', category: 'parking_transport', label: 'Bicycle Rental' },
     98415: { icon: 'airport_shuttle', lucideIcon: 'Plane', category: 'parking_transport', label: 'Airport Shuttle' },
-    610: { icon: 'local_parking', lucideIcon: 'CircleParking', category: 'parking_transport', label: 'Parking' },
+    610: { icon: 'local_parking', lucideIcon: 'SquareParking', category: 'parking_transport', label: 'Parking' },
     1984: { icon: 'self_improvement', lucideIcon: 'Sparkles', category: 'wellness', label: 'Yoga' },
     1991: { icon: 'meeting_room', lucideIcon: 'Users', category: 'business', label: 'Meeting Rooms' },
     611: { icon: 'room_service', lucideIcon: 'ConciergeBell', category: 'dining', label: 'Room Service' },
@@ -101,35 +218,14 @@ export const FACILITY_ICON_MAP = {
 };
 
 /**
- * Ordered hospitality category definitions for grouping property amenities.
+ * Ordered Google Hotels-style hospitality categories.
  */
 export const AMENITY_CATEGORIES = [
     {
         id: 'internet',
         lucideIcon: 'Wifi',
         materialIcon: 'wifi',
-        accent: {
-            headerBg: 'bg-blue-50/70 dark:bg-blue-950/25',
-            badgeBg: 'bg-blue-100/90 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
-            itemBg: 'bg-blue-50/90 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
-            chipActive: 'bg-blue-600 text-white border-blue-600 dark:bg-blue-500 dark:border-blue-500'
-        },
         labels: {
-            tr: 'İnternet & Bağlantı',
-            en: 'Internet & Connectivity',
-            de: 'Internet & Technik',
-            ar: 'الإنترنت والتقنية',
-            es: 'Internet y conectividad',
-            ru: 'Интернет и связь',
-            fr: 'Internet et connectivité',
-            it: 'Internet e connettività',
-            pt: 'Internet e conectividade',
-            zh: '网络与连接',
-            ja: 'インターネット・通信',
-            fa: 'اینترنت و ارتباطات',
-            el: 'Διαδίκτυο & Συνδεσιμότητα'
-        },
-        shortLabels: {
             tr: 'İnternet',
             en: 'Internet',
             de: 'Internet',
@@ -138,22 +234,20 @@ export const AMENITY_CATEGORIES = [
             ru: 'Интернет',
             fr: 'Internet',
             it: 'Internet',
-            pt: 'Internet'
+            pt: 'Internet',
+            zh: '网络',
+            ja: 'インターネット',
+            fa: 'اینترنت',
+            el: 'Διαδίκτυο'
         }
     },
     {
         id: 'dining',
         lucideIcon: 'Utensils',
         materialIcon: 'restaurant',
-        accent: {
-            headerBg: 'bg-amber-50/70 dark:bg-amber-950/20',
-            badgeBg: 'bg-amber-100/90 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
-            itemBg: 'bg-amber-50/90 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400',
-            chipActive: 'bg-amber-600 text-white border-amber-600 dark:bg-amber-500 dark:border-amber-500'
-        },
         labels: {
-            tr: 'Yeme & İçme',
-            en: 'Food & Drink',
+            tr: 'Yiyecek ve içecek',
+            en: 'Food & drink',
             de: 'Speisen & Getränke',
             ar: 'الطعام والشراب',
             es: 'Comida y bebida',
@@ -161,235 +255,138 @@ export const AMENITY_CATEGORIES = [
             fr: 'Restauration et boissons',
             it: 'Cibo e bevande',
             pt: 'Comidas e bebidas',
-            zh: '餐饮服务',
-            ja: '飲食・レストラン',
+            zh: '餐饮',
+            ja: '飲食',
             fa: 'غذا و نوشیدنی',
-            el: 'Φαγητό & Ποτό'
-        },
-        shortLabels: {
-            tr: 'Yeme & İçme',
-            en: 'Food & Drink',
-            de: 'Gastronomie',
-            ar: 'الطعام',
-            es: 'Comida',
-            ru: 'Питание',
-            fr: 'Restauration',
-            it: 'Ristorazione',
-            pt: 'Alimentação'
+            el: 'Φαγητό και ποτό'
         }
     },
     {
-        id: 'pool_beach',
-        lucideIcon: 'Waves',
-        materialIcon: 'pool',
-        accent: {
-            headerBg: 'bg-cyan-50/70 dark:bg-cyan-950/20',
-            badgeBg: 'bg-cyan-100/90 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300',
-            itemBg: 'bg-cyan-50/90 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-400',
-            chipActive: 'bg-cyan-600 text-white border-cyan-600 dark:bg-cyan-500 dark:border-cyan-500'
-        },
+        id: 'policies_payments',
+        lucideIcon: 'CircleDollarSign',
+        materialIcon: 'payments',
         labels: {
-            tr: 'Havuz, Plaj & Açık Alanlar',
-            en: 'Pool, Beach & Outdoors',
-            de: 'Pool, Strand & Außenbereich',
-            ar: 'المسبح والشاطئ والمساحات الخارجية',
-            es: 'Piscina, playa y exteriores',
-            ru: 'Бассейн, пляж и территория',
-            fr: 'Piscine, plage et extérieurs',
-            it: 'Piscina, spiaggia ed esterni',
-            pt: 'Piscina, praia e área externa',
-            zh: '泳池、海滩与户外',
-            ja: 'プール・ビーチ・屋外',
-            fa: 'استخر، ساحل و فضای باز',
-            el: 'Πισίνα, Παραλία & Εξωτερικοί Χώροι'
-        },
-        shortLabels: {
-            tr: 'Havuz & Plaj',
-            en: 'Pool & Beach',
-            de: 'Pool & Strand',
-            ar: 'المسبح والشاطئ',
-            es: 'Piscina y playa',
-            ru: 'Бассейн и пляж',
-            fr: 'Piscine & Plage',
-            it: 'Piscina & Spiaggia',
-            pt: 'Piscina e Praia'
-        }
-    },
-    {
-        id: 'wellness',
-        lucideIcon: 'Sparkles',
-        materialIcon: 'spa',
-        accent: {
-            headerBg: 'bg-emerald-50/70 dark:bg-emerald-950/20',
-            badgeBg: 'bg-emerald-100/90 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
-            itemBg: 'bg-emerald-50/90 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400',
-            chipActive: 'bg-emerald-600 text-white border-emerald-600 dark:bg-emerald-500 dark:border-emerald-500'
-        },
-        labels: {
-            tr: 'Spa, Sağlık & Aktiviteler',
-            en: 'Spa, Wellness & Activities',
-            de: 'Spa, Wellness & Aktivitäten',
-            ar: 'السبا والعافية والأنشطة',
-            es: 'Spa, bienestar y actividades',
-            ru: 'Спа, велнес и развлечения',
-            fr: 'Spa, bien-être et activités',
-            it: 'Spa, benessere e attività',
-            pt: 'Spa, bem-estar e atividades',
-            zh: '水疗、健身与娱乐',
-            ja: 'スパ・ウェルネス・アクティビティ',
-            fa: 'اسپا، سلامت و تفریحات',
-            el: 'Σπα, Ευεξία & Δραστηριότητες'
-        },
-        shortLabels: {
-            tr: 'Spa & Spor',
-            en: 'Spa & Fitness',
-            de: 'Spa & Fitness',
-            ar: 'السبا واللياقة',
-            es: 'Spa y fitness',
-            ru: 'Спа и спорт',
-            fr: 'Spa & Sport',
-            it: 'Spa & Fitness',
-            pt: 'Spa e Lazer'
-        }
-    },
-    {
-        id: 'parking_transport',
-        lucideIcon: 'Car',
-        materialIcon: 'local_parking',
-        accent: {
-            headerBg: 'bg-indigo-50/70 dark:bg-indigo-950/20',
-            badgeBg: 'bg-indigo-100/90 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300',
-            itemBg: 'bg-indigo-50/90 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
-            chipActive: 'bg-indigo-600 text-white border-indigo-600 dark:bg-indigo-500 dark:border-indigo-500'
-        },
-        labels: {
-            tr: 'Otopark & Ulaşım',
-            en: 'Parking & Transportation',
-            de: 'Parken & Transfer',
-            ar: 'المواقف والمواصلات',
-            es: 'Aparcamiento y transporte',
-            ru: 'Парковка и трансфер',
-            fr: 'Parking et transport',
-            it: 'Parcheggio e trasporti',
-            pt: 'Estacionamento e transporte',
-            zh: '停车与交通',
-            ja: '駐車場・送迎',
-            fa: 'پارکینگ و حمل‌ونقل',
-            el: 'Στάθμευση & Μεταφορά'
-        },
-        shortLabels: {
-            tr: 'Otopark & Ulaşım',
-            en: 'Parking & Transit',
-            de: 'Parken & Transfer',
-            ar: 'المواقف والنقل',
-            es: 'Transporte',
-            ru: 'Парковка',
-            fr: 'Parking',
-            it: 'Parcheggio',
-            pt: 'Estacionamento'
+            tr: 'Politikalar ve ödeme türleri',
+            en: 'Policies & payments',
+            de: 'Richtlinien & Zahlungen',
+            ar: 'السياسات وطرق الدفع',
+            es: 'Políticas y pagos',
+            ru: 'Правила и способы оплаты',
+            fr: 'Conditions et paiements',
+            it: 'Condizioni e pagamenti',
+            pt: 'Políticas e pagamentos',
+            zh: '政策与付款方式',
+            ja: 'ポリシー・お支払い',
+            fa: 'قوانین و روش‌های پرداخت',
+            el: 'Πολιτικές και πληρωμές'
         }
     },
     {
         id: 'services',
         lucideIcon: 'ConciergeBell',
         materialIcon: 'support_agent',
-        accent: {
-            headerBg: 'bg-sky-50/70 dark:bg-sky-950/20',
-            badgeBg: 'bg-sky-100/90 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
-            itemBg: 'bg-sky-50/90 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400',
-            chipActive: 'bg-sky-600 text-white border-sky-600 dark:bg-sky-500 dark:border-sky-500'
-        },
         labels: {
-            tr: 'Resepsiyon & Misafir Hizmetleri',
-            en: 'Guest Services & Reception',
-            de: 'Rezeption & Gästeservice',
-            ar: 'الاستقبال وخدمات النزلاء',
-            es: 'Recepción y servicios',
-            ru: 'Ресепшн и услуги',
-            fr: 'Réception et services',
-            it: 'Reception e servizi',
-            pt: 'Recepção e serviços',
-            zh: '前台与宾客服务',
-            ja: 'フロント・ゲストサービス',
-            fa: 'پذیرش و خدمات مهمان',
-            el: 'Υποδοχή & Υπηρεσίες'
-        },
-        shortLabels: {
             tr: 'Hizmetler',
             en: 'Services',
-            de: 'Service',
+            de: 'Services',
             ar: 'الخدمات',
             es: 'Servicios',
             ru: 'Услуги',
             fr: 'Services',
             it: 'Servizi',
-            pt: 'Serviços'
+            pt: 'Serviços',
+            zh: '服务',
+            ja: 'サービス',
+            fa: 'خدمات',
+            el: 'Υπηρεσίες'
+        }
+    },
+    {
+        id: 'pool_beach',
+        lucideIcon: 'Waves',
+        materialIcon: 'pool',
+        labels: {
+            tr: 'Havuzlar ve plaj',
+            en: 'Pools & beach',
+            de: 'Pools & Strand',
+            ar: 'المسابح والشاطئ',
+            es: 'Piscinas y playa',
+            ru: 'Бассейны и пляж',
+            fr: 'Piscines et plage',
+            it: 'Piscine e spiaggia',
+            pt: 'Piscinas e praia',
+            zh: '泳池与海滩',
+            ja: 'プール・ビーチ',
+            fa: 'استخر و ساحل',
+            el: 'Πισίνες και παραλία'
+        }
+    },
+    {
+        id: 'wellness',
+        lucideIcon: 'Sparkles',
+        materialIcon: 'spa',
+        labels: {
+            tr: 'Spa ve aktiviteler',
+            en: 'Wellness & activities',
+            de: 'Wellness & Aktivitäten',
+            ar: 'السبا والأنشطة',
+            es: 'Bienestar y actividades',
+            ru: 'Спа и развлечения',
+            fr: 'Bien-être et activités',
+            it: 'Benessere e attività',
+            pt: 'Bem-estar e atividades',
+            zh: '水疗与活动',
+            ja: 'ウェルネス・アクティビティ',
+            fa: 'اسپا و تفریحات',
+            el: 'Ευεξία και δραστηριότητες'
+        }
+    },
+    {
+        id: 'parking_transport',
+        lucideIcon: 'Car',
+        materialIcon: 'local_parking',
+        labels: {
+            tr: 'Otopark ve ulaşım',
+            en: 'Parking & transport',
+            de: 'Parken & Transport',
+            ar: 'المواقف والمواصلات',
+            es: 'Aparcamiento y transporte',
+            ru: 'Парковка и транспорт',
+            fr: 'Parking et transport',
+            it: 'Parcheggio e trasporti',
+            pt: 'Estacionamento e transporte',
+            zh: '停车与交通',
+            ja: '駐車場・交通',
+            fa: 'پارکینگ و حمل‌ونقل',
+            el: 'Στάθμευση και μεταφορά'
         }
     },
     {
         id: 'family_pets',
         lucideIcon: 'Baby',
         materialIcon: 'child_friendly',
-        accent: {
-            headerBg: 'bg-rose-50/70 dark:bg-rose-950/20',
-            badgeBg: 'bg-rose-100/90 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
-            itemBg: 'bg-rose-50/90 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400',
-            chipActive: 'bg-rose-600 text-white border-rose-600 dark:bg-rose-500 dark:border-rose-500'
-        },
         labels: {
-            tr: 'Aile, Çocuk & Evcil Hayvan',
-            en: 'Family, Kids & Pets',
-            de: 'Familie, Kinder & Haustiere',
-            ar: 'العائلة والأطفال والحيوانات الأليفة',
-            es: 'Familia, niños y mascotas',
-            ru: 'Семья, дети и питомцы',
-            fr: 'Famille, enfants et animaux',
-            it: 'Famiglia, bambini e animali',
-            pt: 'Família, crianças e pets',
-            zh: '亲子与宠物',
-            ja: 'ファミリー・ペット',
-            fa: 'خانواده، کودک و حیوانات خانگی',
-            el: 'Οικογένεια, Παιδιά & Κατοικίδια'
-        },
-        shortLabels: {
-            tr: 'Aile & Çocuk',
-            en: 'Family & Pets',
-            de: 'Familie',
-            ar: 'العائلة',
-            es: 'Familia',
-            ru: 'Семья и дети',
-            fr: 'Famille',
-            it: 'Famiglia',
-            pt: 'Família'
+            tr: 'Çocuklar ve evcil hayvanlar',
+            en: 'Children & pets',
+            de: 'Kinder & Haustiere',
+            ar: 'الأطفال والحيوانات الأليفة',
+            es: 'Niños y mascotas',
+            ru: 'Дети и животные',
+            fr: 'Enfants et animaux',
+            it: 'Bambini e animali',
+            pt: 'Crianças e animais',
+            zh: '儿童与宠物',
+            ja: 'お子様・ペット',
+            fa: 'کودکان و حیوانات خانگی',
+            el: 'Παιδιά και κατοικίδια'
         }
     },
     {
         id: 'business',
         lucideIcon: 'Briefcase',
         materialIcon: 'business_center',
-        accent: {
-            headerBg: 'bg-violet-50/70 dark:bg-violet-950/20',
-            badgeBg: 'bg-violet-100/90 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300',
-            itemBg: 'bg-violet-50/90 text-violet-600 dark:bg-violet-500/15 dark:text-violet-400',
-            chipActive: 'bg-violet-600 text-white border-violet-600 dark:bg-violet-500 dark:border-violet-500'
-        },
         labels: {
-            tr: 'İş, Toplantı & Etkinlik',
-            en: 'Business & Events',
-            de: 'Business & Tagungen',
-            ar: 'الأعمال والفعاليات',
-            es: 'Negocios y eventos',
-            ru: 'Бизнес и мероприятия',
-            fr: 'Affaires et événements',
-            it: 'Business ed eventi',
-            pt: 'Negócios e eventos',
-            zh: '商务与会议',
-            ja: 'ビジネス・イベント',
-            fa: 'کسب‌وکار و رویدادها',
-            el: 'Επιχειρήσεις & Εκδηλώσεις'
-        },
-        shortLabels: {
-            tr: 'İş & Toplantı',
+            tr: 'İş ve toplantı',
             en: 'Business',
             de: 'Business',
             ar: 'الأعمال',
@@ -397,19 +394,17 @@ export const AMENITY_CATEGORIES = [
             ru: 'Бизнес',
             fr: 'Affaires',
             it: 'Business',
-            pt: 'Negócios'
+            pt: 'Negócios',
+            zh: '商务',
+            ja: 'ビジネス',
+            fa: 'کسب‌وکار',
+            el: 'Επιχειρήσεις'
         }
     },
     {
         id: 'accessibility',
         lucideIcon: 'Accessibility',
         materialIcon: 'accessible',
-        accent: {
-            headerBg: 'bg-teal-50/70 dark:bg-teal-950/20',
-            badgeBg: 'bg-teal-100/90 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
-            itemBg: 'bg-teal-50/90 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400',
-            chipActive: 'bg-teal-600 text-white border-teal-600 dark:bg-teal-500 dark:border-teal-500'
-        },
         labels: {
             tr: 'Erişilebilirlik',
             en: 'Accessibility',
@@ -424,91 +419,46 @@ export const AMENITY_CATEGORIES = [
             ja: 'バリアフリー',
             fa: 'دسترسی‌پذیری',
             el: 'Προσβασιμότητα'
-        },
-        shortLabels: {
-            tr: 'Erişilebilirlik',
-            en: 'Accessibility',
-            de: 'Barrierefrei',
-            ar: 'الوصول',
-            es: 'Accesibilidad',
-            ru: 'Доступность',
-            fr: 'Accessibilité',
-            it: 'Accessibilità',
-            pt: 'Acessibilidade'
         }
     },
     {
         id: 'sustainability',
         lucideIcon: 'Leaf',
         materialIcon: 'eco',
-        accent: {
-            headerBg: 'bg-lime-50/70 dark:bg-lime-950/20',
-            badgeBg: 'bg-lime-100/90 text-lime-700 dark:bg-lime-500/20 dark:text-lime-300',
-            itemBg: 'bg-lime-50/90 text-lime-700 dark:bg-lime-500/15 dark:text-lime-400',
-            chipActive: 'bg-lime-600 text-white border-lime-600 dark:bg-lime-600 dark:border-lime-600'
-        },
         labels: {
-            tr: 'Sürdürülebilirlik & Çevre',
-            en: 'Eco & Sustainability',
+            tr: 'Sürdürülebilirlik',
+            en: 'Sustainability',
             de: 'Nachhaltigkeit',
-            ar: 'الاستدامة والبيئة',
+            ar: 'الاستدامة',
             es: 'Sostenibilidad',
             ru: 'Экологичность',
             fr: 'Développement durable',
             it: 'Sostenibilità',
             pt: 'Sustentabilidade',
-            zh: '环保与可持续',
+            zh: '可持续发展',
             ja: 'サステナビリティ',
-            fa: 'پایداری محیط‌زیست',
+            fa: 'پایداری',
             el: 'Βιωσιμότητα'
-        },
-        shortLabels: {
-            tr: 'Sürdürülebilirlik',
-            en: 'Eco-friendly',
-            de: 'Nachhaltigkeit',
-            ar: 'الاستدامة',
-            es: 'Ecológico',
-            ru: 'Эко',
-            fr: 'Éco',
-            it: 'Eco',
-            pt: 'Eco'
         }
     },
     {
         id: 'general',
         lucideIcon: 'Building2',
         materialIcon: 'apartment',
-        accent: {
-            headerBg: 'bg-slate-100/80 dark:bg-slate-800/70',
-            badgeBg: 'bg-slate-200/80 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
-            itemBg: 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300',
-            chipActive: 'bg-slate-700 text-white border-slate-700 dark:bg-slate-600 dark:border-slate-600'
-        },
         labels: {
-            tr: 'Genel Özellikler & Kurallar',
-            en: 'General & Property Features',
-            de: 'Allgemein & Ausstattung',
-            ar: 'المرافق العامة والسياسات',
-            es: 'General y políticas',
-            ru: 'Общие удобства и правила',
-            fr: 'Général et équipements',
-            it: 'Generale e struttura',
-            pt: 'Geral e comodidades',
-            zh: '综合设施与政策',
-            ja: '一般設備・ポリシー',
-            fa: 'امکانات عمومی و قوانین',
-            el: 'Γενικά & Πολιτικές'
-        },
-        shortLabels: {
-            tr: 'Genel',
+            tr: 'Diğer özellikler',
             en: 'General',
             de: 'Allgemein',
-            ar: 'عام',
+            ar: 'مرافق عامة',
             es: 'General',
             ru: 'Общее',
             fr: 'Général',
             it: 'Generale',
-            pt: 'Geral'
+            pt: 'Geral',
+            zh: '综合设施',
+            ja: '一般設備',
+            fa: 'امکانات عمومی',
+            el: 'Γενικά'
         }
     }
 ];
@@ -520,12 +470,9 @@ const CATEGORY_MAP = AMENITY_CATEGORIES.reduce((acc, cat) => {
 
 export const getAmenityCategoryMeta = (categoryId) => CATEGORY_MAP[categoryId] || CATEGORY_MAP.general;
 
-export const getAmenityCategoryLabel = (categoryId, lang = 'en', short = false) => {
+export const getAmenityCategoryLabel = (categoryId, lang = 'en') => {
     const meta = getAmenityCategoryMeta(categoryId);
     const norm = String(lang || 'en').split(/[-_]/)[0].toLowerCase();
-    if (short) {
-        return meta.shortLabels?.[norm] || meta.shortLabels?.en || meta.labels?.[norm] || meta.labels.en;
-    }
     return meta.labels?.[norm] || meta.labels.en;
 };
 
@@ -572,15 +519,15 @@ const BACKEND_CATEGORY_SLUG_MAP = {
     wheelchair: 'accessibility',
     sustainability: 'sustainability',
     eco: 'sustainability',
-    air_conditioning: 'general',
-    smoke_free: 'general',
-    non_smoking: 'general'
+    payment: 'policies_payments',
+    payments: 'policies_payments',
+    smoke_free: 'policies_payments',
+    non_smoking: 'policies_payments',
+    air_conditioning: 'general'
 };
 
 /**
  * Ordered multilingual classification rules.
- * Order matters carefully to avoid false positives (e.g. wheelchair-accessible parking -> accessibility,
- * water-efficient showers -> sustainability, pool table -> wellness, poolside bar -> dining).
  */
 const CLASSIFICATION_RULES = [
     // 1. ACCESSIBILITY (must precede parking, pool, restaurant, bathroom, elevator paths)
@@ -591,15 +538,15 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'accessible'
     },
 
-    // 2. SUSTAINABILITY / ECO-FRIENDLY (must precede dining/water/lighting/general)
+    // 2. SUSTAINABILITY / ECO-FRIENDLY
     {
-        regex: /recycl|single-use plastic|biodegradable|compost|led light|energy-saving|water-efficient|greywater|solar energy|renewable energy|eco-friendly|sustainable|sustainability|locally-sourced|organic food|food waste|reusable cups|double-glazed|change of bedsheets \(on request\)|change of towels \(on request\)|towel change|housekeeping on request|bulk dispenser|plant-based|vegetarian menu|vegan menu|carbon|green key|sürdürülebilir|geri dönüşüm|güneş enerjisi|su tasarruf|enerji tasarruf|çevre dostu|tek kullanımlık plastik|organik|yerel kaynaklı|nachhaltig|recycl|umweltfreundlich|sostenib|эколог|переработ|مستدام/i,
+        regex: /recycl|single-use plastic|biodegradable|compost|led light|energy-saving|water-efficient|greywater|solar energy|renewable energy|eco-friendly|sustainable|sustainability|locally-sourced|organic food|food waste|reusable cups|double-glazed|change of bedsheets \(on request\)|change of towels \(on request\)|towel change|housekeeping on request|bulk dispenser|plant-based|vegetarian menu|vegan menu|carbon|green key|sürdürülebilir|geri dönüşüm|güneş enerjisi|su tasarruf|enerji tasarruf|çevre dostu|tek kullanımlık plastik|organik|yerel kaynaklı|nachhaltig|umweltfreundlich|sostenib|эколог|переработ|مستدام/i,
         category: 'sustainability',
         lucideIcon: (s) => (/recycl|geri dönüşüm|compost|waste/i.test(s) ? 'Recycle' : (/water-efficient|greywater|su tasarruf/i.test(s) ? 'Droplets' : (/solar|led|energy|enerji|güneş/i.test(s) ? 'Sun' : 'Leaf'))),
         materialIcon: 'eco'
     },
 
-    // 3. FAMILY, KIDS & PETS (catch children's pool, kids club, pets before general pool/services)
+    // 3. FAMILY, KIDS & PETS
     {
         regex: /(?:\bpets?\b|pet[\s-]?friendly|\bdogs?\b|\bcats?\b|service animals?|litter box|dog exercise|pet bowls?|pet[\s-]?sitting|pet grooming|evcil hayvan|köpek|kedi|haustier|hunde|mascotas|perros|животн|питомц|حيوانات أليفة)/i,
         category: 'family_pets',
@@ -621,7 +568,7 @@ const CLASSIFICATION_RULES = [
 
     // 4. INTERNET & CONNECTIVITY
     {
-        regex: /wi-?fi|wireless internet|kablosuz internet|wlan|вай-?фай|واي فاي/i,
+        regex: /wi-?fi|wireless internet|kablosuz internet|kablosuz bağlantı|wlan|вай-?фай|واي فاي/i,
         category: 'internet',
         lucideIcon: 'Wifi',
         materialIcon: 'wifi'
@@ -695,7 +642,33 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'restaurant'
     },
 
-    // 6. SPA, WELLNESS, SPORTS & ENTERTAINMENT (check pool table / water sports before generic pool!)
+    // 6. POLICIES & PAYMENTS
+    {
+        regex: /credit card|debit card|cashless|payment|kredi kart|banka kart|nakit|ödeme|visa|mastercard|amex|atm|banking|currency exchange|döviz|bankamatik|geldautomat|cambio de divisas|банкомат|обмен валют|صراف/i,
+        category: 'policies_payments',
+        lucideIcon: 'CreditCard',
+        materialIcon: 'payments'
+    },
+    {
+        regex: /smoke-?free|non-?smoking|sigara içilmez|sigara içilmeyen|nichtraucher|libre de humo|для некурящих|خالي من التدخين/i,
+        category: 'policies_payments',
+        lucideIcon: 'CigaretteOff',
+        materialIcon: 'smoke_free'
+    },
+    {
+        regex: /smoking area|designated smoking|sigara içme|sigara alanı|raucherbereich|zona de fumadores|для курящих|التدخين/i,
+        category: 'policies_payments',
+        lucideIcon: 'Cigarette',
+        materialIcon: 'smoking_rooms'
+    },
+    {
+        regex: /security|cctv|fire extinguisher|smoke detector|carbon monoxide|güvenlik|yangın|kamera|alarm|sicherheit|seguridad|безопасност|أمن/i,
+        category: 'policies_payments',
+        lucideIcon: 'ShieldCheck',
+        materialIcon: 'security'
+    },
+
+    // 7. SPA, WELLNESS, SPORTS & ENTERTAINMENT
     {
         regex: /pool table|billiard|bilardo|arcade|game room|oyun odası|bowling|table tennis|ping pong|darts|foosball|spielzimmer|sala de juegos|бильярд|игровая/i,
         category: 'wellness',
@@ -733,7 +706,7 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'sports_tennis'
     },
 
-    // 7. POOL, BEACH & OUTDOORS
+    // 8. POOL, BEACH & OUTDOORS
     {
         regex: /water park|waterslide|aquapark|aqua park|su kaydırağı|swimming pool|outdoor pool|indoor pool|heated pool|rooftop pool|infinity pool|seasonal pool|plunge pool|lazy river|pool cabana|pool umbrella|pool sun lounger|havuz|yüzme|schwimmbad|innenpool|außenpool|piscina|бассейн|مسبح/i,
         category: 'pool_beach',
@@ -765,7 +738,7 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'balcony'
     },
 
-    // 8. PARKING & TRANSPORTATION
+    // 9. PARKING & TRANSPORTATION
     {
         regex: /ev charging|electric car|electric vehicle|elektrikli araç|şarj istasyon|ladestation|cargador.*eléctrico|зарядк.*электро/i,
         category: 'parking_transport',
@@ -799,11 +772,11 @@ const CLASSIFICATION_RULES = [
     {
         regex: /(?:\bself[- ]?parking\b|\bvalet\b|\bparking\b|\bgarage\b|\bcarport\b|rv\/bus\/truck|otopark|vale|garaj|park yeri|park alanı|parkplatz|aparcamiento|парковк|موقف سيارات)/i,
         category: 'parking_transport',
-        lucideIcon: 'CircleParking',
+        lucideIcon: 'SquareParking',
         materialIcon: 'local_parking'
     },
 
-    // 9. BUSINESS & EVENTS
+    // 10. BUSINESS & EVENTS
     {
         regex: /meeting room|conference|convention|banquet|ballroom|event space|exhibition|toplantı|konferans|balo salonu|etkinlik|tagungsraum|konferenz|sala de reuniones|конференц|переговорн|قاعة اجتماعات/i,
         category: 'business',
@@ -829,7 +802,7 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'celebration'
     },
 
-    // 10. GUEST SERVICES & RECEPTION (check safe-deposit before front desk!)
+    // 11. GUEST SERVICES & RECEPTION (safe-deposit checked before front desk)
     {
         regex: /safe-?deposit|safety box|kasa|emanet kasası|tresor|caja fuerte|сейф|خزنة/i,
         category: 'services',
@@ -873,12 +846,6 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'local_laundry_service'
     },
     {
-        regex: /atm|banking|currency exchange|döviz|bankamatik|geldautomat|cambio de divisas|банкомат|обмен валют|صراف/i,
-        category: 'services',
-        lucideIcon: 'CreditCard',
-        materialIcon: 'atm'
-    },
-    {
         regex: /gift shop|newsstand|shopping|market|convenience store|butik|mağaza|hediyelik|alışveriş|geschenkeladen|tienda|магазин|متجر/i,
         category: 'services',
         lucideIcon: 'ShoppingBag',
@@ -909,19 +876,7 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'cleaning_services'
     },
 
-    // 11. GENERAL & PROPERTY FEATURES
-    {
-        regex: /smoke-?free|non-?smoking|sigara içilmez|sigara içilmeyen|nichtraucher|libre de humo|для некурящих|خالي من التدخين/i,
-        category: 'general',
-        lucideIcon: 'CigaretteOff',
-        materialIcon: 'smoke_free'
-    },
-    {
-        regex: /smoking area|designated smoking|sigara içme|sigara alanı|raucherbereich|zona de fumadores|для курящих|التدخين/i,
-        category: 'general',
-        lucideIcon: 'Cigarette',
-        materialIcon: 'smoking_rooms'
-    },
+    // 12. GENERAL & PROPERTY FEATURES
     {
         regex: /(?:\bair[\s-]?condition|\ba\/c\b|climate control|klima|havalandırma|klimaanlage|aire acondicionado|кондиционер|تكييف)/i,
         category: 'general',
@@ -941,13 +896,7 @@ const CLASSIFICATION_RULES = [
         materialIcon: 'elevator'
     },
     {
-        regex: /security|cctv|fire extinguisher|smoke detector|carbon monoxide|güvenlik|yangın|kamera|alarm|sicherheit|seguridad|безопасност|أمن/i,
-        category: 'general',
-        lucideIcon: 'ShieldCheck',
-        materialIcon: 'security'
-    },
-    {
-        regex: /lobby|lobi|television in common|sitting area|oturma alanı|ortak alan/i,
+        regex: /lobby|lobi|sitting area|oturma alanı|ortak alan/i,
         category: 'general',
         lucideIcon: 'Sofa',
         materialIcon: 'weekend'
@@ -1000,7 +949,6 @@ export const extractFacilityLabel = (f, currentLang = 'tr') => {
         const cleaned = decodeAmenityText(String(raw || ''));
         if (cleaned) {
             if (f.value && typeof f.value === 'string' && f.value.trim() && !cleaned.toLowerCase().includes(f.value.trim().toLowerCase())) {
-                // Only append informative non-boolean values like numeric counts or times if absent
                 const val = f.value.trim();
                 if (!/^(true|false|yes|no)$/i.test(val)) {
                     return `${cleaned}: ${val}`;
@@ -1018,9 +966,6 @@ export const extractFacilityLabel = (f, currentLang = 'tr') => {
     return '';
 };
 
-/**
- * Resolve category from backend-supplied `categories` array or `type` field if present.
- */
 const resolveBackendCategory = (f) => {
     if (!f || typeof f !== 'object') return null;
 
@@ -1049,7 +994,7 @@ const resolveBackendCategory = (f) => {
 };
 
 /**
- * Resolve a single facility/amenity item to { id, label, icon, lucideIcon, category, isFree, isSurcharge }.
+ * Resolve a single facility/amenity item.
  * Backwards-compatible with callers expecting `{ icon, label }` (Material Symbols Outlined).
  */
 export const resolveFacility = (f, currentLang = 'tr') => {
@@ -1059,7 +1004,6 @@ export const resolveFacility = (f, currentLang = 'tr') => {
     const label = extractFacilityLabel(f, currentLang);
     if (!label) return null;
 
-    // Also include English name for reliable keyword matching when UI language is non-Latin (e.g. ar/ru/zh)
     const englishHint = typeof f === 'object' ? decodeAmenityText(f.names?.en || f.names?.default || '') : '';
     const matchText = englishHint && englishHint.toLowerCase() !== label.toLowerCase()
         ? `${label} ${englishHint}`
@@ -1069,7 +1013,6 @@ export const resolveFacility = (f, currentLang = 'tr') => {
     let lucideIcon = null;
     let materialIcon = null;
 
-    // 1. Match by descriptive label keywords first (prevents Expedia vs legacy numeric ID collisions)
     const isGenericFallbackLabel = /^(facility|amenity)\s*#?\d+$/i.test(label);
     if (!isGenericFallbackLabel) {
         for (const rule of CLASSIFICATION_RULES) {
@@ -1082,7 +1025,6 @@ export const resolveFacility = (f, currentLang = 'tr') => {
         }
     }
 
-    // 2. Respect explicit backend category slug when keyword didn't match (or refine generic matches)
     const backendCat = resolveBackendCategory(f);
     if (!category && backendCat) {
         category = backendCat;
@@ -1091,7 +1033,6 @@ export const resolveFacility = (f, currentLang = 'tr') => {
         materialIcon = materialIcon || catMeta.materialIcon;
     }
 
-    // 3. Fallback to legacy numeric FACILITY_ICON_MAP only if keywords didn't match
     if ((!lucideIcon || !category) && id != null && FACILITY_ICON_MAP[Number(id)]) {
         const legacy = FACILITY_ICON_MAP[Number(id)];
         category = category || legacy.category || 'general';
@@ -1099,22 +1040,23 @@ export const resolveFacility = (f, currentLang = 'tr') => {
         materialIcon = materialIcon || legacy.icon;
     }
 
-    // 4. Final clean defaults
     category = category || 'general';
-    lucideIcon = lucideIcon || 'CheckCircle2';
+    lucideIcon = lucideIcon || 'Check';
     materialIcon = materialIcon || 'check_circle';
 
-    const isFree = /\b(free|complimentary|ücretsiz|kostenlos|gratis|бесплатн|مجان)\b/i.test(matchText);
-    const isSurcharge = /\b(surcharge|extra charge|fee|fees|paid|ücretli|ek ücret|gegen gebühr|de pago|платн|برسوم)\b/i.test(matchText);
+    const parsed = parseAmenityDisplay(label, currentLang);
 
     return {
         id,
         label,
+        displayLabel: parsed.displayLabel,
+        badges: parsed.badges,
         icon: materialIcon,
         lucideIcon,
         category,
-        isFree,
-        isSurcharge
+        isFree: parsed.isFree,
+        isSurcharge: parsed.isSurcharge,
+        is24Hour: parsed.is24Hour
     };
 };
 
@@ -1124,37 +1066,50 @@ export const resolveFacility = (f, currentLang = 'tr') => {
 export const groupFacilities = (facilities = [], currentLang = 'tr') => {
     if (!Array.isArray(facilities) || facilities.length === 0) return [];
 
-    const seenLabels = new Set();
-    const bucketMap = new Map();
+    const dedupMap = new Map();
 
     facilities.forEach((raw, idx) => {
         const resolved = resolveFacility(raw, currentLang);
-        if (!resolved || !resolved.label) return;
+        if (!resolved || !resolved.displayLabel) return;
 
-        const normKey = resolved.label.trim().toLowerCase();
-        if (seenLabels.has(normKey)) return;
-        seenLabels.add(normKey);
-
-        if (!bucketMap.has(resolved.category)) {
-            bucketMap.set(resolved.category, []);
+        const normKey = `${resolved.category}::${resolved.displayLabel.trim().toLowerCase()}`;
+        const existing = dedupMap.get(normKey);
+        if (existing) {
+            // Merge any richer badges onto existing item
+            if (resolved.badges.length > existing.badges.length) {
+                dedupMap.set(normKey, {
+                    ...existing,
+                    badges: resolved.badges,
+                    isFree: existing.isFree || resolved.isFree,
+                    isSurcharge: existing.isSurcharge || resolved.isSurcharge,
+                    is24Hour: existing.is24Hour || resolved.is24Hour
+                });
+            }
+            return;
         }
-        bucketMap.get(resolved.category).push({
+
+        dedupMap.set(normKey, {
             ...resolved,
             key: `${resolved.category}-${resolved.id ?? idx}-${idx}`
         });
     });
 
+    const bucketMap = new Map();
+    for (const item of dedupMap.values()) {
+        if (!bucketMap.has(item.category)) {
+            bucketMap.set(item.category, []);
+        }
+        bucketMap.get(item.category).push(item);
+    }
+
     const groups = [];
     for (const cat of AMENITY_CATEGORIES) {
         const items = bucketMap.get(cat.id);
         if (items && items.length > 0) {
-            // Sort: free amenities first, then specific-icon amenities before fallback CheckCircle2, then alphabetically
             const sorted = [...items].sort((a, b) => {
                 if (a.isFree !== b.isFree) return a.isFree ? -1 : 1;
-                const aHasSpecific = a.lucideIcon !== 'CheckCircle2';
-                const bHasSpecific = b.lucideIcon !== 'CheckCircle2';
-                if (aHasSpecific !== bHasSpecific) return aHasSpecific ? -1 : 1;
-                return a.label.localeCompare(b.label, currentLang || 'en');
+                if (a.is24Hour !== b.is24Hour) return a.is24Hour ? -1 : 1;
+                return a.displayLabel.localeCompare(b.displayLabel, currentLang || 'en');
             });
 
             groups.push({
@@ -1169,20 +1124,19 @@ export const groupFacilities = (facilities = [], currentLang = 'tr') => {
 };
 
 /**
- * Highlight slots for picking the most valuable distinct selling points
- * for overview strips and summary badges (max 1 item per slot).
+ * Highlight slots for the "Popüler olanaklar" / "Popular amenities" strip.
  */
 const HIGHLIGHT_SLOTS = [
+    { key: 'breakfast', regex: /free breakfast|buffet breakfast|breakfast|kahvaltı|frühstück|desayuno|завтрак/i, exclude: /wheelchair/i },
     { key: 'wifi', regex: /wi-?fi|wireless internet|kablosuz/i },
+    { key: 'ac', regex: /(?:\bair[\s-]?condition|klima|klimaanlage|кондиционер|تكييف)/i },
+    { key: 'parking', regex: /(?:\bfree.*parking\b|\bself[- ]?parking\b|\bvalet parking\b|\bparking\b|otopark|park alanı|parkplatz|aparcamiento|парковк|موقف)/i, exclude: /wheelchair|accessible/i },
     { key: 'pool', regex: /swimming pool|outdoor pool|indoor pool|heated pool|rooftop pool|infinity pool|havuz|schwimmbad|piscina|бассейн/i, exclude: /pool table|wheelchair|children'?s pool|kids'? pool/i },
     { key: 'beach', regex: /private beach|beachfront|on the beach|beach access|plaj|sahil|strand|пляж/i, exclude: /wheelchair|shuttle/i },
-    { key: 'breakfast', regex: /free breakfast|buffet breakfast|breakfast|kahvaltı|frühstück|desayuno|завтрак/i, exclude: /wheelchair/i },
     { key: 'spa', regex: /full-?service spa|turkish bath|hammam|hamam|\bspa\b|sauna/i, exclude: /wheelchair|spa tub/i },
-    { key: 'parking', regex: /(?:\bfree.*parking\b|\bself[- ]?parking\b|\bvalet parking\b|\bparking\b|otopark|parkplatz|aparcamiento|парковк|موقف)/i, exclude: /wheelchair|accessible/i },
     { key: 'restaurant', regex: /(?:\brestaurants?\b|\bdining\b|all-?inclusive|restoran|her şey dahil|ресторан|مطعم)/i, exclude: /wheelchair|accessible/i },
     { key: 'fitness', regex: /(?:\bfitness\b|\bgym\b|health club|spor salonu|фитнес|لياقة)/i, exclude: /wheelchair|accessible/i },
     { key: 'shuttle', regex: /airport shuttle|airport transfer|havalimanı|havaalanı/i },
-    { key: 'ac', regex: /(?:\bair[\s-]?condition|klima|klimaanlage|кондиционер|تكييف)/i },
     { key: 'front_desk', regex: /24-?hour front desk|24 saat.*resepsiyon/i },
     { key: 'family', regex: /kids'? club|children'?s club|çocuk kulübü|babysit/i },
     { key: 'pets', regex: /(?:\bpets? allowed\b|pet[\s-]?friendly|evcil hayvan)/i },
@@ -1196,8 +1150,8 @@ export const extractHighlightAmenities = (facilities = [], currentLang = 'tr', m
     const seen = new Set();
     for (const raw of facilities) {
         const res = resolveFacility(raw, currentLang);
-        if (!res || !res.label) continue;
-        const k = res.label.toLowerCase();
+        if (!res || !res.displayLabel) continue;
+        const k = res.displayLabel.toLowerCase();
         if (seen.has(k)) continue;
         seen.add(k);
         resolvedList.push(res);
@@ -1208,9 +1162,8 @@ export const extractHighlightAmenities = (facilities = [], currentLang = 'tr', m
 
     for (const slot of HIGHLIGHT_SLOTS) {
         if (picked.length >= maxCount) break;
-        // Prefer free items matching this slot first
         const candidates = resolvedList.filter(item => {
-            if (usedLabels.has(item.label.toLowerCase())) return false;
+            if (usedLabels.has(item.displayLabel.toLowerCase())) return false;
             if (slot.exclude && slot.exclude.test(item.label)) return false;
             return slot.regex.test(item.label);
         });
@@ -1218,19 +1171,18 @@ export const extractHighlightAmenities = (facilities = [], currentLang = 'tr', m
         if (candidates.length > 0) {
             candidates.sort((a, b) => {
                 if (a.isFree !== b.isFree) return a.isFree ? -1 : 1;
-                return a.label.length - b.label.length;
+                return a.displayLabel.length - b.displayLabel.length;
             });
             const best = candidates[0];
             picked.push(best);
-            usedLabels.add(best.label.toLowerCase());
+            usedLabels.add(best.displayLabel.toLowerCase());
         }
     }
 
-    // If fewer than maxCount highlights matched known slots, top up with clean non-accessibility items
     if (picked.length < Math.min(maxCount, resolvedList.length)) {
         for (const item of resolvedList) {
             if (picked.length >= maxCount) break;
-            const k = item.label.toLowerCase();
+            const k = item.displayLabel.toLowerCase();
             if (usedLabels.has(k)) continue;
             if (item.category === 'accessibility' || item.category === 'sustainability') continue;
             picked.push(item);

@@ -21,7 +21,8 @@ import GoogleFlightDatePicker, { GoogleFlightDatePickerBody, formatGoogleFlightD
 import { getBoardTypeLabel, getBoardTypeDescription, BOARD_TYPES } from '../utils/boardTypeUtils';
 import { useAuth, getCurrencySymbol } from '../context/AuthContext';
 import { useFavorites } from '../context/FavoritesContext';
-import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
+import { FACILITY_ICON_MAP, extractHighlightAmenities } from '../utils/facilityUtils';
+import PropertyAmenitiesSection, { AmenityLucideIcon } from '../components/PropertyAmenitiesSection';
 import Tooltip from '../components/Tooltip';
 import RefundPolicyTooltip from '../components/RefundPolicyTooltip';
 import HotelReservationSummaryCard from '../components/HotelReservationSummaryCard';
@@ -2509,11 +2510,22 @@ const HotelDetail = () => {
 
                 {/* Quick Info Badges - Google Chips */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {(hotel.facilities?.slice(0, 6).map(f => decodeHTMLEntities(f.names?.tr || f.names?.en || f.name)) || ['Free WiFi', 'Free Parking', 'Breakfast Available']).map((item, i) => (
-                        <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
-                            <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">check</span> {item}
-                        </span>
-                    ))}
+                    {(() => {
+                        const quickHighlights = extractHighlightAmenities(hotel.facilities || [], currentLang, 6);
+                        if (quickHighlights.length > 0) {
+                            return quickHighlights.map((item, i) => (
+                                <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
+                                    <AmenityLucideIcon name={item.lucideIcon} className="w-3.5 h-3.5 text-[#1a73e8] dark:text-blue-400 shrink-0" strokeWidth={2} />
+                                    <span>{item.label}</span>
+                                </span>
+                            ));
+                        }
+                        return ['Free WiFi', 'Free Parking', 'Breakfast Available'].map((item, i) => (
+                            <span key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#303134] text-[#3c4043] dark:text-slate-200 rounded-full text-xs font-normal border border-[#dadce0] dark:border-slate-600 hover:bg-[#f8f9fa] dark:hover:bg-slate-700 transition-colors cursor-default">
+                                <span className="material-symbols-outlined text-[16px] text-[#1a73e8]">check</span> {item}
+                            </span>
+                        ));
+                    })()}
                 </div>
 
                 {/* Gallery Grid - Google Travel Style */}
@@ -3374,25 +3386,12 @@ const HotelDetail = () => {
                                 )}
 
                                 {activeTab === 'Amenities' && (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {(hotel.facilities || []).map((amenity, idx) => {
-                                            const id = typeof amenity === 'object' ? (amenity.facilityId || amenity.id) : amenity;
-                                            const match = FACILITY_ICON_MAP[Number(id)];
-
-                                            return (
-                                                <div key={idx} className="bg-white dark:bg-[#202124] p-3.5 rounded-lg border border-[#dadce0] dark:border-slate-700 flex items-center gap-3">
-                                                    <div className="size-8 rounded-lg bg-[#e8f0fe] dark:bg-blue-900/30 flex items-center justify-center text-[#1a73e8] shrink-0">
-                                                        <span className="material-symbols-outlined text-base">
-                                                            {match ? match.icon : 'done'}
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-xs text-[#3c4043] dark:text-slate-200">
-                                                        {decodeHTMLEntities(amenity.names?.tr || amenity.names?.en || amenity.label || (match ? match.label : 'Amenity'))}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    <PropertyAmenitiesSection
+                                        facilities={hotel.facilities || []}
+                                        currentLang={currentLang}
+                                        variant="detail"
+                                        showHeader={false}
+                                    />
                                 )}
 
                                 {activeTab === 'Transportation' && (

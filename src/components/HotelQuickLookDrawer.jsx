@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import placeholderHotel from '../assets/placeholder-hotel.svg';
 import { hotelService } from '../services/hotelService';
 import { getBoardTypeLabel, BOARD_TYPES } from '../utils/boardTypeUtils';
-import { FACILITY_ICON_MAP } from '../utils/facilityUtils';
+import { extractHighlightAmenities, getAmenityCategoryMeta } from '../utils/facilityUtils';
+import PropertyAmenitiesSection, { AmenityLucideIcon } from './PropertyAmenitiesSection';
 import RefundPolicyTooltip from './RefundPolicyTooltip';
 import GoogleFilterDropdown from './GoogleFilterDropdown';
 import { useToast } from '../context/ToastContext';
@@ -79,6 +80,7 @@ const DRAWER_LOCALES = {
         email: "E-Posta",
         getDirections: "Google Haritalar'da Yol Tarifi Al",
         popularAmenities: "Popüler olanaklar",
+        viewAllAmenities: (n) => `Tüm olanakları gör (${n}) →`,
         freeWifi: "Ücretsiz kablosuz internet",
         pool: "Yüzme havuzu",
         spa: "Spa & Masaj",
@@ -179,6 +181,7 @@ const DRAWER_LOCALES = {
         email: "Email",
         getDirections: "Get Directions on Google Maps",
         popularAmenities: "Popular Amenities",
+        viewAllAmenities: (n) => `View all amenities (${n}) →`,
         freeWifi: "Free Wi-Fi",
         pool: "Swimming pool",
         spa: "Spa & Massage",
@@ -279,6 +282,7 @@ const DRAWER_LOCALES = {
         email: "E-Mail",
         getDirections: "Route in Google Maps berechnen",
         popularAmenities: "Beliebte Ausstattungen",
+        viewAllAmenities: (n) => `Alle Ausstattungen ansehen (${n}) →`,
         freeWifi: "Kostenloses WLAN",
         pool: "Schwimmbad",
         spa: "Spa & Massage",
@@ -379,6 +383,7 @@ const DRAWER_LOCALES = {
         email: "البريد الإلكتروني",
         getDirections: "الحصول على الاتجاهات في خرائط Google",
         popularAmenities: "المرافق الشائعة",
+        viewAllAmenities: (n) => `عرض جميع المرافق (${n}) ←`,
         freeWifi: "واي فاي مجاني",
         pool: "مسبح",
         spa: "سبا ومساج",
@@ -479,6 +484,7 @@ const DRAWER_LOCALES = {
         email: "Correo electrónico",
         getDirections: "Cómo llegar en Google Maps",
         popularAmenities: "Servicios populares",
+        viewAllAmenities: (n) => `Ver todos los servicios (${n}) →`,
         freeWifi: "Wi-Fi gratis",
         pool: "Piscina",
         spa: "Spa y masajes",
@@ -579,6 +585,7 @@ const DRAWER_LOCALES = {
         email: "Эл. почта",
         getDirections: "Маршрут на Google Картах",
         popularAmenities: "Популярные удобства",
+        viewAllAmenities: (n) => `Все удобства (${n}) →`,
         freeWifi: "Бесплатный Wi-Fi",
         pool: "Бассейн",
         spa: "Спа и массаж",
@@ -781,6 +788,33 @@ const HotelQuickLookDrawer = ({
     const currentHotel = useMemo(() => {
         return { ...(cachedHotel || {}), ...(detailData || {}) };
     }, [cachedHotel, detailData]);
+
+    const effectiveFacilities = useMemo(() => {
+        if (Array.isArray(currentHotel.facilities) && currentHotel.facilities.length > 0) {
+            return currentHotel.facilities;
+        }
+        if (Array.isArray(currentHotel.amenities) && currentHotel.amenities.length > 0) {
+            return currentHotel.amenities;
+        }
+        return [];
+    }, [currentHotel.facilities, currentHotel.amenities]);
+
+    const overviewHighlights = useMemo(
+        () => extractHighlightAmenities(effectiveFacilities, currentLang, 6),
+        [effectiveFacilities, currentLang]
+    );
+
+    const handleJumpToAmenities = () => {
+        setActiveTab('about');
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                const el = scrollContainerRef.current?.querySelector('#quicklook-amenities-section');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    };
 
     // Fetch full hotel rooms & rates from hotelService.searchRooms
     useEffect(() => {
@@ -1687,35 +1721,56 @@ const HotelQuickLookDrawer = ({
 
                         {/* Popular Amenities */}
                         <div className="space-y-3 pt-1">
-                            <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-100">
-                                {t('popularAmenities')}
-                            </h3>
-                            <div className="grid grid-cols-2 gap-2.5 text-[13px] text-[#3c4043] dark:text-slate-300">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">wifi</span>
-                                    <span>{t('freeWifi')}</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">pool</span>
-                                    <span>{t('pool')}</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">spa</span>
-                                    <span>{t('spa')}</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">local_parking</span>
-                                    <span>{t('parking')}</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">restaurant</span>
-                                    <span>{t('restaurant')}</span>
-                                </div>
-                                <div className="flex items-center gap-2.5">
-                                    <span className="material-symbols-outlined text-[19px] text-[#5f6368]">ac_unit</span>
-                                    <span>{t('airConditioning')}</span>
-                                </div>
+                            <div className="flex items-center justify-between gap-2">
+                                <h3 className="text-[15px] font-medium text-[#202124] dark:text-slate-100">
+                                    {t('popularAmenities')}
+                                </h3>
+                                {effectiveFacilities.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleJumpToAmenities}
+                                        className="text-[12.5px] font-medium text-[#1a73e8] dark:text-blue-400 hover:underline cursor-pointer"
+                                    >
+                                        {t('viewAllAmenities', effectiveFacilities.length)}
+                                    </button>
+                                )}
                             </div>
+                            {overviewHighlights.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2.5 text-[13px] text-[#3c4043] dark:text-slate-300">
+                                    {overviewHighlights.map((item, idx) => {
+                                        const accent = getAmenityCategoryMeta(item.category)?.accent;
+                                        return (
+                                            <div key={idx} className="flex items-center gap-2.5 min-w-0" title={item.label}>
+                                                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${accent?.itemBg || 'bg-[#e8f0fe] text-[#1a73e8] dark:bg-blue-500/15 dark:text-blue-400'}`}>
+                                                    <AmenityLucideIcon name={item.lucideIcon} className="w-[15px] h-[15px]" strokeWidth={1.9} />
+                                                </div>
+                                                <span className="truncate">{item.label}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2.5 text-[13px] text-[#3c4043] dark:text-slate-300">
+                                    {[
+                                        { icon: 'Wifi', label: t('freeWifi'), cat: 'internet' },
+                                        { icon: 'Waves', label: t('pool'), cat: 'pool_beach' },
+                                        { icon: 'Sparkles', label: t('spa'), cat: 'wellness' },
+                                        { icon: 'CircleParking', label: t('parking'), cat: 'parking_transport' },
+                                        { icon: 'Utensils', label: t('restaurant'), cat: 'dining' },
+                                        { icon: 'Snowflake', label: t('airConditioning'), cat: 'general' }
+                                    ].map((item, idx) => {
+                                        const accent = getAmenityCategoryMeta(item.cat)?.accent;
+                                        return (
+                                            <div key={idx} className="flex items-center gap-2.5 min-w-0">
+                                                <div className={`size-7 rounded-lg flex items-center justify-center shrink-0 ${accent?.itemBg || 'bg-[#f1f3f4] text-[#5f6368]'}`}>
+                                                    <AmenityLucideIcon name={item.icon} className="w-[15px] h-[15px]" strokeWidth={1.9} />
+                                                </div>
+                                                <span className="truncate">{item.label}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {/* About Property Preview Snippet */}
@@ -2561,47 +2616,15 @@ const HotelQuickLookDrawer = ({
                         </div>
 
                         {/* All Hotel Facilities / Amenities */}
-                        <div className="space-y-3 pt-2 border-t border-[#dadce0] dark:border-slate-700">
-                            <h3 className="text-[16px] font-medium text-[#202124] dark:text-slate-100">
-                                {t('facilitiesAndServices')}
-                            </h3>
-                            <div className="grid grid-cols-2 gap-2.5">
-                                {(currentHotel.facilities && currentHotel.facilities.length > 0) ? (
-                                    currentHotel.facilities.map((fac, fIdx) => {
-                                        const id = typeof fac === 'object' ? (fac.facilityId || fac.id) : fac;
-                                        const match = FACILITY_ICON_MAP[Number(id)];
-                                        const label = fac.names?.[currentLang] || fac.names?.tr || fac.names?.en || fac.label || (match ? match.label : t('hotelServiceDefault'));
-                                        const icon = match ? match.icon : 'done';
-
-                                        return (
-                                            <div key={fIdx} className="flex items-center gap-2.5 p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                                <div className="size-7 rounded-md bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] flex items-center justify-center shrink-0">
-                                                    <span className="material-symbols-outlined text-[16px]">{icon}</span>
-                                                </div>
-                                                <span className="text-[12.5px] text-[#3c4043] dark:text-slate-200 truncate">{label}</span>
-                                            </div>
-                                        );
-                                    })
-                                ) : (
-                                    [
-                                        { icon: 'wifi', label: t('freeWifi') },
-                                        { icon: 'pool', label: t('pool') },
-                                        { icon: 'spa', label: t('spa') },
-                                        { icon: 'local_parking', label: t('parking') },
-                                        { icon: 'restaurant', label: t('restaurant') },
-                                        { icon: 'fitness_center', label: t('fitness') },
-                                        { icon: 'room_service', label: t('roomService') },
-                                        { icon: 'dry_cleaning', label: t('dryCleaning') }
-                                    ].map((fac, fIdx) => (
-                                        <div key={fIdx} className="flex items-center gap-2.5 p-2 rounded-lg bg-[#f8f9fa] dark:bg-[#303134] border border-[#dadce0] dark:border-slate-700">
-                                            <div className="size-7 rounded-md bg-[#e8f0fe] dark:bg-blue-900/30 text-[#1a73e8] flex items-center justify-center shrink-0">
-                                                <span className="material-symbols-outlined text-[16px]">{fac.icon}</span>
-                                            </div>
-                                            <span className="text-[12.5px] text-[#3c4043] dark:text-slate-200 truncate">{fac.label}</span>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
+                        <div className="pt-3 border-t border-[#dadce0] dark:border-slate-700">
+                            <PropertyAmenitiesSection
+                                sectionId="quicklook-amenities-section"
+                                facilities={effectiveFacilities}
+                                currentLang={currentLang}
+                                isLoading={isRoomsLoading}
+                                variant="drawer"
+                                title={t('facilitiesAndServices')}
+                            />
                         </div>
 
                         {/* Location & Contact */}
